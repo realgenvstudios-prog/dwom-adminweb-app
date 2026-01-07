@@ -119,7 +119,9 @@ const WarehouseOperationsPage: React.FC = () => {
   };
 
   const handleEditThresholds = (product: InventoryItem) => {
-    setSelectedProduct(product);
+    // Convert InventoryItem to Product-like format for the modal
+    setSelectedProductId(product.productId);
+    setSelectedProductName(product.productName);
     setEditThresholdsModalOpen(true);
   };
 
@@ -392,7 +394,7 @@ const WarehouseOperationsPage: React.FC = () => {
       <EditThresholdsModal
         isOpen={editThresholdsModalOpen}
         onClose={() => setEditThresholdsModalOpen(false)}
-        product={selectedProduct}
+        product={null}
         onSuccess={fetchData}
       />
     </div>

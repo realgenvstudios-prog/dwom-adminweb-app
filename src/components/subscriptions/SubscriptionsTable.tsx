@@ -57,7 +57,12 @@ const SubscriptionsTable: React.FC<Props> = ({ subscriptions, onView }) => {
       setSubscriptionsWithItems(withItems);
     } catch (error) {
       console.error("Failed to load subscriptions with items:", error);
-      setSubscriptionsWithItems(subscriptions);
+      // Map subscriptions to SubscriptionWithItems format
+      const fallbackItems = subscriptions.map(sub => ({
+        ...sub,
+        items: []
+      })) as SubscriptionWithItems[];
+      setSubscriptionsWithItems(fallbackItems);
     }
   };
 

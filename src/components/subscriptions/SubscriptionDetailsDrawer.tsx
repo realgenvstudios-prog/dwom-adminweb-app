@@ -44,7 +44,7 @@ const SubscriptionDetailsDrawer: React.FC<Props> = ({ open, subscription, onClos
       setLoading(true);
       const id = parseInt(subscription.id.replace('SUB-', ''));
       const fullSub = await subscriptionsService.getSubscriptionById(id);
-      setItems(fullSub?.items || []);
+      setItems((fullSub as any)?.items || []);
     } catch (error) {
       console.error("Failed to load subscription items:", error);
       setItems([]);
