@@ -46,7 +46,17 @@ const ProductsPage: React.FC = () => {
         console.log('✅ [ProductsPage] Products loaded:', productsData.length);
         console.log('✅ [ProductsPage] Categories loaded:', categoriesData.length);
         
-        setProducts(productsData || []);
+        // Enrich products with inventory status
+        const enrichedProducts = (productsData || []).map((prod: any) => ({
+          ...prod,
+          inventoryStatus: prod.inventory ? (
+            prod.inventory.quantity === 0 ? 'Out of stock' : 
+            prod.inventory.status === 'low_stock' ? 'Low' :
+            'In stock'
+          ) : 'Unknown'
+        }));
+        
+        setProducts(enrichedProducts);
         if (categoriesData && categoriesData.length > 0) {
           // Map backend categories to ProductCategory type
           const mappedCategories: ProductCategory[] = categoriesData.map((cat: any) => ({
@@ -71,7 +81,18 @@ const ProductsPage: React.FC = () => {
     try {
       setLoading(true);
       const productsData = await productsService.getAll();
-      setProducts(productsData || []);
+      
+      // Enrich products with inventory status
+      const enrichedProducts = (productsData || []).map((prod: any) => ({
+        ...prod,
+        inventoryStatus: prod.inventory ? (
+          prod.inventory.quantity === 0 ? 'Out of stock' : 
+          prod.inventory.status === 'low_stock' ? 'Low' :
+          'In stock'
+        ) : 'Unknown'
+      }));
+      
+      setProducts(enrichedProducts);
       console.log('✅ [ProductsPage] Products refreshed');
     } catch (err) {
       console.error('❌ [ProductsPage] Failed to refresh products:', err);
@@ -93,10 +114,17 @@ const ProductsPage: React.FC = () => {
     }
     
     const statusMatch = filters.status === "All" || (filters.status === "Active" ? p.active : !p.active);
+    
+    // Stock filter
+    let stockMatch = filters.stock === "All";
+    if (!stockMatch) {
+      stockMatch = p.inventoryStatus === filters.stock;
+    }
+    
     const searchMatch = p.nameEnglish.toLowerCase().includes(filters.search.toLowerCase()) ||
       p.nameLocal.toLowerCase().includes(filters.search.toLowerCase());
     
-    return categoryMatch && statusMatch && searchMatch;
+    return categoryMatch && statusMatch && stockMatch && searchMatch;
   });
   
   // Sort logic
@@ -159,11 +187,13 @@ const ProductsPage: React.FC = () => {
             {/* Filter Bar */}
             <ProductsFilterBar
               categories={categories}
+              category={filters.category}
               status={filters.status}
               stock={filters.stock as InventoryStatus | "All"}
               search={filters.search}
               onChange={f => { setFilters({ ...filters, ...f }); setPage(1); }}
             />
+            
             {/* Table */}
             <ProductsTable
               products={paged}

@@ -40,20 +40,43 @@ const OrdersPage: React.FC = () => {
         const transformedOrders: Order[] = Array.isArray(data) ? data.map((order: any) => ({
           id: order.id?.toString() || `DW-ORD-${order.id}`,
           time: new Date(order.createdAt).toLocaleString(),
-          customer: order.userId?.toString() || 'Unknown',
-          phone: order.deliveryAddress?.phone || 'N/A',
-          address: order.deliveryAddress?.addressText || 'N/A',
-          zone: order.deliveryAddress?.region || 'N/A',
-          rider: order.rider ? { id: order.rider.id.toString(), name: order.rider.name } : null,
-          items: order.items || [],
-          total: order.totalPrice || 0,
+          customer: order.User?.name || `User ${order.userId}`,
+          phone: order.Address?.phone || order.User?.phoneNumber || 'N/A',
+          address: order.Address?.addressText || 'N/A',
+          zone: order.Address?.addressText || order.User?.region || 'N/A',
+          rider: order.Rider ? { id: order.Rider.id.toString(), name: order.Rider.name } : null,
+          items: [
+            ...(order.OrderItem?.map((item: any) => ({
+              id: item.id.toString(),
+              name: item.Product?.nameEnglish || `Product ${item.productId}`,
+              quantity: item.quantity,
+              price: item.unitPrice || 0,
+            })) || []),
+            ...(order.BundleOrderItem?.map((item: any) => ({
+              id: `bundle-${item.id}`,
+              name: item.Bundle?.name || `Bundle ${item.bundleId}`,
+              quantity: item.quantity,
+              price: item.unitPrice || 0,
+            })) || []),
+          ],
+          total: order.total || 0,
           paymentStatus: order.paymentStatus || 'Pending',
           orderStatus: order.status || 'Pending',
           source: 'App',
           paymentRef: order.paymentReference,
-          coupon: order.coupon,
+          coupon: order.Coupon,
           subscription: order.subscriptionId?.toString(),
           timeline: [{ status: order.status || 'Pending', time: new Date(order.createdAt).toLocaleString() }],
+          riderRating: order.RiderRating?.[0] ? {
+            rating: order.RiderRating[0].rating,
+            comment: order.RiderRating[0].comment,
+          } : null,
+          productReviews: order.ProductReview?.map((review: any) => ({
+            productId: review.productId,
+            productName: review.Product?.nameEnglish || `Product ${review.productId}`,
+            rating: review.rating,
+            comment: review.comment,
+          })) || [],
         })) : [];
         
         console.log('✅ [OrdersPage] Orders loaded:', transformedOrders.length);

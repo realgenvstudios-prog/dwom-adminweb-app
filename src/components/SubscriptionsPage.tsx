@@ -45,18 +45,25 @@ const SubscriptionsPage: React.FC = () => {
       const data = await subscriptionsService.getFilteredSubscriptions(status !== "All" ? status : undefined, frequency !== "All" ? frequency : undefined, search || undefined);
       
       // Transform backend data to match UI format
-      const transformed = data.map((sub: DBSubscription) => ({
-        id: `SUB-${sub.id}`,
-        customer: sub.User?.name || "Unknown",
-        plan: sub.SubscriptionPlan?.name || "Basic Plan",
-        frequency: (sub.frequency as SubscriptionFrequency) || "Monthly",
-        nextBilling: sub.nextBillingDate?.split('T')[0] || new Date().toISOString().split('T')[0],
-        status: (sub.status?.charAt(0).toUpperCase() + sub.status?.slice(1) || "Active") as SubscriptionStatus,
-        lastCharge: sub.lastChargeAmount || 0,
-        totalSpent: sub.totalSpent || 0,
-        phone: sub.User?.phoneNumber,
-        email: sub.User?.email,
-      }));
+      const transformed = data.map((sub: DBSubscription) => {
+        // Get plan name from first subscription item product
+        const planName = sub.SubscriptionItem && sub.SubscriptionItem.length > 0
+          ? (sub.SubscriptionItem[0].Product?.nameEnglish || "Subscription")
+          : "Subscription";
+        
+        return {
+          id: `SUB-${sub.id}`,
+          customer: sub.User?.name || "Unknown",
+          plan: planName,
+          frequency: (sub.frequency as SubscriptionFrequency) || "Monthly",
+          nextBilling: sub.nextBillingDate?.split('T')[0] || new Date().toISOString().split('T')[0],
+          status: (sub.status?.charAt(0).toUpperCase() + sub.status?.slice(1) || "Active") as SubscriptionStatus,
+          lastCharge: sub.lastChargeAmount || 0,
+          totalSpent: sub.totalSpent || 0,
+          phone: sub.User?.phoneNumber,
+          email: sub.User?.email,
+        };
+      });
 
       setSubscriptions(transformed);
     } catch (error) {

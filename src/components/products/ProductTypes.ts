@@ -10,8 +10,16 @@ export interface ProductBundle {
   name: string;
 }
 
+export interface InventoryData {
+  id: number;
+  quantity: number;
+  reorderLevel: number;
+  reorderQuantity: number;
+  status: 'in_stock' | 'low_stock' | 'out_of_stock';
+}
+
 export interface Product {
-  id: string;
+  id: string | number;
   nameEnglish: string;
   nameLocal: string;
   category: ProductCategory | string | number;  // Can be object with id, or direct ID
@@ -21,7 +29,8 @@ export interface Product {
   inventoryStatus: InventoryStatus;
   active: boolean;
   description: string;
-  inventoryQuantity: number;
-  reorderLevel: number;
-  bundles: ProductBundle[];
+  inventoryQuantity?: number;
+  reorderLevel?: number;
+  bundles?: ProductBundle[];
+  inventory?: InventoryData | null;
 }

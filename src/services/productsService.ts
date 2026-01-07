@@ -28,6 +28,7 @@ export interface CreateProductDto {
   pricePerUnit: number;
   unitType: string;
   imageUrl?: string;
+  inventoryQuantity?: number;
 }
 
 export interface UpdateProductDto {

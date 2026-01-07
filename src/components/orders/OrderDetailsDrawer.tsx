@@ -13,11 +13,34 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
   const [loading, setLoading] = useState(false);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const [paymentDropdownOpen, setPaymentDropdownOpen] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState<string>(order?.orderStatus || "Pending");
-  const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<string>(order?.paymentStatus || "Pending");
+  const [selectedStatus, setSelectedStatus] = useState<string>(order?.orderStatus || "sorting");
+  const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<string>(order?.paymentStatus || "pending");
 
-  const statuses = ["Pending", "Preparing", "Ready", "On the way", "Delivered", "Canceled"];
-  const paymentStatuses = ["Pending", "Paid", "Failed"];
+  // New order statuses: sorting → ready → on_the_way → arrived → delivered (+ cancelled anytime)
+  const statuses = ["sorting", "ready", "on_the_way", "arrived", "delivered", "cancelled"];
+  const paymentStatuses = ["pending", "paid", "failed"];
+
+  // Map internal status values to display labels
+  const getStatusLabel = (status: string): string => {
+    const labels: Record<string, string> = {
+      "sorting": "Sorting",
+      "ready": "Ready",
+      "on_the_way": "On the way",
+      "arrived": "Arrived",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled",
+    };
+    return labels[status] || status;
+  };
+
+  const getPaymentLabel = (status: string): string => {
+    const labels: Record<string, string> = {
+      "pending": "Pending",
+      "paid": "Paid",
+      "failed": "Failed",
+    };
+    return labels[status] || status;
+  };
 
   const handleUpdateStatus = async (newStatus: string) => {
     if (!order) return;
@@ -112,11 +135,11 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
           </div>
           <div>
             <div className="font-semibold text-gray-700 mb-1">Current Status</div>
-            <div className="text-gray-900 font-medium bg-blue-50 px-3 py-2 rounded inline-block">{selectedStatus}</div>
+            <div className="text-gray-900 font-medium bg-blue-50 px-3 py-2 rounded inline-block">{getStatusLabel(selectedStatus)}</div>
           </div>
           <div>
             <div className="font-semibold text-gray-700 mb-1">Payment Status</div>
-            <div className="text-gray-900 font-medium bg-amber-50 px-3 py-2 rounded inline-block">{selectedPaymentStatus}</div>
+            <div className="text-gray-900 font-medium bg-amber-50 px-3 py-2 rounded inline-block">{getPaymentLabel(selectedPaymentStatus)}</div>
           </div>
           <div>
             <div className="font-semibold text-gray-700 mb-1">Rider</div>
@@ -152,6 +175,50 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
             <div className="font-semibold text-gray-700 mb-1">Coupon / Subscription</div>
             <div className="text-xs text-gray-500">{order.coupon || order.subscription || <span className='text-gray-400'>—</span>}</div>
           </div>
+          {/* Rider Rating */}
+          {order.riderRating && (
+            <div>
+              <div className="font-semibold text-gray-700 mb-2">Rider Rating</div>
+              <div className="bg-amber-50 p-3 rounded">
+                <div className="flex items-center gap-1 mb-1">
+                  {[...Array(5)].map((_, i) => (
+                    <span key={i} className={`text-lg ${i < order.riderRating.rating ? '⭐' : '☆'}`}>
+                      {i < order.riderRating.rating ? '⭐' : '☆'}
+                    </span>
+                  ))}
+                  <span className="text-xs font-bold text-amber-700 ml-2">{order.riderRating.rating}/5</span>
+                </div>
+                {order.riderRating.comment && (
+                  <div className="text-xs text-gray-700 mt-2 italic">"{order.riderRating.comment}"</div>
+                )}
+              </div>
+            </div>
+          )}
+          {/* Product Reviews */}
+          {order.productReviews && order.productReviews.length > 0 && (
+            <div>
+              <div className="font-semibold text-gray-700 mb-2">Product Reviews</div>
+              <div className="space-y-2">
+                {order.productReviews.map((review, i) => (
+                  <div key={i} className="bg-blue-50 p-3 rounded">
+                    <div className="flex items-start justify-between mb-1">
+                      <span className="text-xs font-semibold text-gray-700">{review.productName}</span>
+                      <div className="flex items-center gap-0.5">
+                        {[...Array(5)].map((_, j) => (
+                          <span key={j} className="text-sm">
+                            {j < review.rating ? '⭐' : '☆'}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    {review.comment && (
+                      <div className="text-xs text-gray-700 italic">"{review.comment}"</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="flex gap-2 mt-2 flex-wrap">
             {/* Update Status */}
             <div className="relative">
@@ -171,7 +238,7 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
                       disabled={loading}
                       className="block w-full text-left px-4 py-2 text-xs hover:bg-blue-100 disabled:opacity-50"
                     >
-                      {status}
+                      {getStatusLabel(status)}
                     </button>
                   ))}
                 </div>
@@ -196,7 +263,7 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
                       disabled={loading}
                       className="block w-full text-left px-4 py-2 text-xs hover:bg-amber-100 disabled:opacity-50"
                     >
-                      {status}
+                      {getPaymentLabel(status)}
                     </button>
                   ))}
                 </div>

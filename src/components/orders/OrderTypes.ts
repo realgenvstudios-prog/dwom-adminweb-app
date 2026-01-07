@@ -32,6 +32,8 @@ export interface Order {
   coupon?: string;
   subscription?: string;
   timeline: Array<{ status: OrderStatus; time: string }>;
+  riderRating?: { rating: number; comment?: string } | null;
+  productReviews?: Array<{ productId: number; productName: string; rating: number; comment?: string }>;
 }
 
 export interface OrdersFilterState {

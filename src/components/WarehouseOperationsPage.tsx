@@ -3,8 +3,14 @@ import UpdateStockModal from "./warehouse/UpdateStockModal";
 import StockMovementModal from "./warehouse/StockMovementModal";
 import MovementHistoryModal from "./warehouse/MovementHistoryModal";
 import EditThresholdsModal from "./warehouse/EditThresholdsModal";
+import BulkInventoryActions from "./products/BulkInventoryActions";
+import ProductsTable from "./products/ProductsTable";
+import ProductDetailsPanel from "./products/ProductDetailsPanel";
 import inventoryService from "../services/inventoryService";
+import productsService from "../services/productsService";
+import categoriesService from "../services/categoriesService";
 import type { InventoryItem, InventoryStats } from "../services/inventoryService";
+import type { Product, ProductCategory } from "./products/ProductTypes";
 
 const WarehouseOperationsPage: React.FC = () => {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
@@ -14,6 +20,18 @@ const WarehouseOperationsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("stock");
 
+  // Products and bulk operations state
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<ProductCategory[]>([]);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [showBulkOperations, setShowBulkOperations] = useState(false);
+  const [sortByProducts, setSortByProducts] = useState("nameEnglish");
+  const [sortDirProducts, setSortDirProducts] = useState<"asc" | "desc">("asc");
+  const [pageProducts, setPageProducts] = useState(1);
+  const pageSize = 10;
+
   // Modal states
   const [updateStockModalOpen, setUpdateStockModalOpen] = useState(false);
   const [movementModalOpen, setMovementModalOpen] = useState(false);
@@ -22,7 +40,7 @@ const WarehouseOperationsPage: React.FC = () => {
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [selectedProductName, setSelectedProductName] = useState<string | undefined>();
   const [selectedProductStock, setSelectedProductStock] = useState<number | undefined>();
-  const [selectedProduct, setSelectedProduct] = useState<InventoryItem | null>(null);
+  const [selectedInventoryItem, setSelectedInventoryItem] = useState<InventoryItem | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -34,9 +52,11 @@ const WarehouseOperationsPage: React.FC = () => {
       setError(null);
       console.log("📦 [WarehouseOperationsPage] Fetching warehouse data");
 
-      const [inventoryData, statsData] = await Promise.all([
+      const [inventoryData, statsData, productsData, categoriesData] = await Promise.all([
         inventoryService.getAll(),
         inventoryService.getStats(),
+        productsService.getAll(),
+        categoriesService.getAll(),
       ]);
 
       console.log("✅ [WarehouseOperationsPage] Data loaded");
@@ -50,8 +70,27 @@ const WarehouseOperationsPage: React.FC = () => {
         warehouseZone: item.warehouseZone || item.Zone || '-',
       }));
 
+      // Enrich products with inventory status
+      const enrichedProducts = (productsData || []).map((prod: any) => ({
+        ...prod,
+        inventoryStatus: prod.inventory ? (
+          prod.inventory.quantity === 0 ? 'Out of stock' :
+          prod.inventory.status === 'low_stock' ? 'Low' :
+          'In stock'
+        ) : 'Unknown'
+      }));
+
       setInventory(enrichedInventory || []);
       setStats(statsData);
+      setProducts(enrichedProducts);
+      
+      if (categoriesData && categoriesData.length > 0) {
+        const mappedCategories: ProductCategory[] = categoriesData.map((cat: any) => ({
+          id: cat.id.toString(),
+          name: cat.name,
+        }));
+        setCategories(mappedCategories);
+      }
     } catch (err: any) {
       console.error("❌ [WarehouseOperationsPage] Failed to fetch data:", err);
       setError(err.message || "Failed to load warehouse data");
@@ -157,6 +196,24 @@ const WarehouseOperationsPage: React.FC = () => {
               </div>
             </div>
 
+            {/* View Toggle */}
+            <div className="mb-6 flex gap-2">
+              <button
+                onClick={() => setShowBulkOperations(false)}
+                className={`px-4 py-2 rounded-lg font-semibold transition ${!showBulkOperations ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+              >
+                Inventory List
+              </button>
+              <button
+                onClick={() => setShowBulkOperations(true)}
+                className={`px-4 py-2 rounded-lg font-semibold transition ${showBulkOperations ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+              >
+                Bulk Operations
+              </button>
+            </div>
+
+            {!showBulkOperations ? (
+              <>
             {/* Inventory Table */}
             <section className="bg-white rounded-xl shadow p-6">
               <h2 className="text-xl font-bold mb-4">Inventory List</h2>
@@ -255,9 +312,57 @@ const WarehouseOperationsPage: React.FC = () => {
                 </table>
               </div>
             </section>
+            </>
+            ) : (
+              <>
+              {/* Bulk Operations Section */}
+              <BulkInventoryActions
+                selectedCount={selectedProductIds.length}
+                selectedProductIds={selectedProductIds}
+                allProducts={products}
+                onActionComplete={() => {
+                  fetchData();
+                  setSelectedProductIds([]);
+                }}
+              />
+
+              {/* Products Table for Bulk Operations */}
+              <ProductsTable
+                products={products.slice((pageProducts - 1) * pageSize, pageProducts * pageSize)}
+                onRowClick={product => { setSelectedProduct(product); setDetailsOpen(true); }}
+                sortBy={sortByProducts}
+                sortDir={sortDirProducts}
+                onSort={col => {
+                  if (sortByProducts === col) setSortDirProducts(sortDirProducts === "asc" ? "desc" : "asc");
+                  else { setSortByProducts(col); setSortDirProducts("asc"); }
+                }}
+                page={pageProducts}
+                pageSize={pageSize}
+                total={products.length}
+                onPageChange={setPageProducts}
+                selectedProducts={selectedProductIds}
+                onSelectionChange={setSelectedProductIds}
+              />
+              </>
+            )}
           </>
         )}
       </div>
+
+      {/* Product Details Panel */}
+      <ProductDetailsPanel
+        product={selectedProduct}
+        open={detailsOpen}
+        onClose={() => setDetailsOpen(false)}
+        onProductDeleted={() => {
+          fetchData();
+          setSelectedProduct(null);
+        }}
+        onProductUpdated={() => {
+          fetchData();
+        }}
+        categories={categories}
+      />
 
       {/* Modals */}
       <UpdateStockModal

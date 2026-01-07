@@ -1,10 +1,10 @@
 
 import React, { useEffect, useState } from "react";
-import settingsService from "../services/settingsService";
-import AddAdminModal from "./modals/AddAdminModal";
-import ManageRolesModal from "./modals/ManageRolesModal";
-import TemplateManagementModal from "./modals/TemplateManagementModal";
-import AuditLogsModal from "./modals/AuditLogsModal";
+import settingsService, { type Settings } from "../services/settingsService";
+// import AddAdminModal from "./modals/AddAdminModal";
+// import ManageRolesModal from "./modals/ManageRolesModal";
+// import TemplateManagementModal from "./modals/TemplateManagementModal";
+// import AuditLogsModal from "./modals/AuditLogsModal";
 
 const SettingsPage: React.FC = () => {
 	const roleTemplates = ["Owner", "Manager", "Finance", "Warehouse", "Support"];
@@ -67,10 +67,10 @@ const SettingsPage: React.FC = () => {
 	const [success, setSuccess] = useState(false);
 
 	// Modal States
-	const [showAddAdminModal, setShowAddAdminModal] = useState(false);
-	const [showManageRolesModal, setShowManageRolesModal] = useState(false);
-	const [showTemplateModal, setShowTemplateModal] = useState(false);
-	const [showAuditLogsModal, setShowAuditLogsModal] = useState(false);
+	// const [showAddAdminModal, setShowAddAdminModal] = useState(false);
+	// const [showManageRolesModal, setShowManageRolesModal] = useState(false);
+	// const [showTemplateModal, setShowTemplateModal] = useState(false);
+	// const [showAuditLogsModal, setShowAuditLogsModal] = useState(false);
 
 	// Logo upload handler
 	const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,42 +82,42 @@ const SettingsPage: React.FC = () => {
 	};
 
 	// Load settings from backend
-	useEffect(() => {
-		const loadSettings = async () => {
-			try {
-				setLoading(true);
-				setError(null);
-				const s = await settingsService.getSettings();
-				setBusinessName(s.businessName ?? "DWOM Ghana Ltd.");
-				setSupportEmail(s.supportEmail ?? "support@dwom.com");
-				setSupportPhone(s.supportPhone ?? "0244000000");
-				setWarehouseAddress(s.warehouseAddress ?? "Accra Central, Ghana");
-				setLogo(s.logo ?? "");
-				setAutoAssignOrders(!!s.autoAssignOrders);
-				setAutoActivateRiders(!!s.autoActivateRiders);
-				setEnableSubscriptionBilling(!!s.enableSubscriptionBilling);
-				setDefaultDeliveryFee(s.defaultDeliveryFee ?? 5);
-				setDefaultServiceFee(s.defaultServiceFee ?? 2);
-				setTimezone(s.timezone ?? "Africa/Accra");
-				setDateFormat(s.dateFormat ?? "DD/MM/YYYY");
-				setTestMode(!!s.testMode);
-				setRetryLogic(s.retryLogic ?? "Exponential");
-				setMaxRetryAttempts(s.maxRetryAttempts ?? 3);
-				setRetryInterval(s.retryInterval ?? 10);
-				setNotifyOrderUpdates(!!s.notifyOrderUpdates);
-				setNotifyFailedSubscriptions(!!s.notifyFailedSubscriptions);
-				setNotifyLowInventory(!!s.notifyLowInventory);
-				setNotifyNewRiders(!!s.notifyNewRiders);
-				setEnable2FA(!!s.enable2FA);
-				setIpAccessControlList(s.ipAccessControlList ?? []);
-			} catch (err: any) {
-				console.error('❌ Error loading settings:', err);
-				setError(err.message || 'Failed to load settings.');
-			} finally {
-				setLoading(false);
-			}
-		};
+	const loadSettings = async () => {
+		try {
+			setLoading(true);
+			setError(null);
+			const s = await settingsService.getSettings();
+			setBusinessName(s.businessName ?? "DWOM Ghana Ltd.");
+			setSupportEmail(s.supportEmail ?? "support@dwom.com");
+			setSupportPhone(s.supportPhone ?? "0244000000");
+			setWarehouseAddress(s.warehouseAddress ?? "Accra Central, Ghana");
+			setLogo(s.logo ?? "");
+			setAutoAssignOrders(!!s.autoAssignOrders);
+			setAutoActivateRiders(!!s.autoActivateRiders);
+			setEnableSubscriptionBilling(!!s.enableSubscriptionBilling);
+			setDefaultDeliveryFee(s.defaultDeliveryFee ?? 5);
+			setDefaultServiceFee(s.defaultServiceFee ?? 2);
+			setTimezone(s.timezone ?? "Africa/Accra");
+			setDateFormat(s.dateFormat ?? "DD/MM/YYYY");
+			setTestMode(!!s.testMode);
+			setRetryLogic(s.retryLogic ?? "Exponential");
+			setMaxRetryAttempts(s.maxRetryAttempts ?? 3);
+			setRetryInterval(s.retryInterval ?? 10);
+			setNotifyOrderUpdates(!!s.notifyOrderUpdates);
+			setNotifyFailedSubscriptions(!!s.notifyFailedSubscriptions);
+			setNotifyLowInventory(!!s.notifyLowInventory);
+			setNotifyNewRiders(!!s.notifyNewRiders);
+			setEnable2FA(!!s.enable2FA);
+			setIpAccessControlList(s.ipAccessControlList ?? []);
+		} catch (err: any) {
+			console.error('❌ Error loading settings:', err);
+			setError(err.message || 'Failed to load settings.');
+		} finally {
+			setLoading(false);
+		}
+	};
 
+	useEffect(() => {
 		loadSettings();
 	}, []);
 
@@ -128,7 +128,7 @@ const SettingsPage: React.FC = () => {
 			setError(null);
 			console.log('💾 Saving settings...');
 
-			const updatedSettings = {
+			const updatedSettings: Partial<Settings> = {
 				businessName,
 				supportEmail,
 				supportPhone,
@@ -166,25 +166,52 @@ const SettingsPage: React.FC = () => {
 		}
 	};
 
+	const renderSaveButton = () => (
+		<div className="mt-4 flex justify-end">
+			<button
+				className="px-6 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:bg-blue-400 shadow-sm"
+				onClick={handleSave}
+				disabled={saving}
+			>
+				{saving ? (
+					<>
+						<svg
+							className="animate-spin h-5 w-5 inline mr-2"
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 24 24"
+						>
+							<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+							<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+						</svg>
+						Saving...
+					</>
+				) : (
+					"Save Changes"
+				)}
+			</button>
+		</div>
+	);
+
 	// Add admin handler
-	const handleAddAdmin = () => {
-		setShowAddAdminModal(true);
-	};
+	// const handleAddAdmin = () => {
+	// 	setShowAddAdminModal(true);
+	// };
 
 	// Manage roles handler
-	const handleManageRoles = () => {
-		setShowManageRolesModal(true);
-	};
+	// const handleManageRoles = () => {
+	// 	setShowManageRolesModal(true);
+	// };
 
 	// Template management handler
-	const handleTemplateManage = () => {
-		setShowTemplateModal(true);
-	};
+	// const handleTemplateManage = () => {
+	// 	setShowTemplateModal(true);
+	// };
 
 	// Audit logs handler
-	const handleAuditLogs = () => {
-		setShowAuditLogsModal(true);
-	};
+	// const handleAuditLogs = () => {
+	// 	setShowAuditLogsModal(true);
+	// };
 
 	// Danger zone actions
 	// const handleDanger = () => {
@@ -263,19 +290,7 @@ const SettingsPage: React.FC = () => {
 						<div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
 							{logo ? <img src={logo} alt="Logo preview" className="w-full h-full object-contain" /> : <span className="text-gray-400 text-xs">Logo preview</span>}
 						</div>
-						<button className="ml-auto px-6 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:bg-blue-400 shadow-sm" onClick={handleSave} disabled={saving}>
-							{saving ? (
-								<>
-									<svg className="animate-spin h-5 w-5 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-										<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-										<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-									</svg>
-									Saving...
-								</>
-							) : (
-								'Save Changes'
-							)}
-						</button>
+						{renderSaveButton()}
 					</div>
 				</div>
 				{/* 2. Operating Preferences */}
@@ -318,8 +333,7 @@ const SettingsPage: React.FC = () => {
 								<option value="MM/DD/YYYY">MM/DD/YYYY</option>
 								<option value="YYYY-MM-DD">YYYY-MM-DD</option>
 							</select>
-						</div>
-					</div>
+						</div>					{renderSaveButton()}					</div>
 				</div>
 				{/* 3. User & Roles Management */}
 				<div className="bg-white rounded-xl border border-gray-100 shadow-sm p-8 flex flex-col gap-6">
@@ -327,7 +341,7 @@ const SettingsPage: React.FC = () => {
 					<div className="flex flex-col gap-4">
 						<div className="flex justify-between items-center mb-2">
 							<span className="text-lg font-medium">Admin Users</span>
-							<button className="px-4 py-2 rounded bg-blue-600 text-white text-sm font-semibold" onClick={handleAddAdmin}>Add Admin</button>
+							{/* <button className="px-4 py-2 rounded bg-blue-600 text-white text-sm font-semibold" onClick={handleAddAdmin}>Add Admin</button> */}
 						</div>
 						<table className="min-w-full text-left text-sm mb-2">
 							<thead>
@@ -354,7 +368,7 @@ const SettingsPage: React.FC = () => {
 							{roleTemplates.map(r => (
 								<span key={r} className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-xs border border-gray-200">{r}</span>
 							))}
-							<button className="ml-auto px-4 py-2 rounded bg-blue-100 text-blue-700 text-sm font-medium" onClick={handleManageRoles}>Manage Roles</button>
+							{/* <button className="ml-auto px-4 py-2 rounded bg-blue-100 text-blue-700 text-sm font-medium" onClick={handleManageRoles}>Manage Roles</button> */}
 						</div>
 						{/* Permissions Matrix Modal (UI only) */}
 						<div className="mt-4">
@@ -379,6 +393,7 @@ const SettingsPage: React.FC = () => {
 							</div>
 						</div>
 					</div>
+					{renderSaveButton()}
 				</div>
 				{/* 4. Payment & Billing Settings */}
 				<div className="bg-white rounded-xl border border-gray-100 shadow-sm p-8 flex flex-col gap-6">
@@ -421,6 +436,7 @@ const SettingsPage: React.FC = () => {
 							<input className="border rounded-lg px-4 py-2 w-full" value={billingCycle} readOnly />
 						</div>
 					</div>
+					{renderSaveButton()}
 				</div>
 				{/* 5. Email & Notification Settings */}
 				<div className="bg-white rounded-xl border border-gray-100 shadow-sm p-8 flex flex-col gap-6">
@@ -452,9 +468,10 @@ const SettingsPage: React.FC = () => {
 								<input type="checkbox" checked={notifyNewRiders} onChange={e => setNotifyNewRiders(e.target.checked)} />
 								<span className="text-sm">New rider signup</span>
 							</div>
-							<button className="mt-2 px-4 py-2 rounded bg-blue-100 text-blue-700 text-sm font-medium" onClick={handleTemplateManage}>Template Management</button>
+							<button className="mt-2 px-4 py-2 rounded bg-blue-100 text-blue-700 text-sm font-medium" onClick={() => {}}>Template Management</button>
 						</div>
 					</div>
+					{renderSaveButton()}
 				</div>
 				{/* 6. Security & Audit */}
 				<div className="bg-white rounded-xl border border-gray-100 shadow-sm p-8 flex flex-col gap-6">
@@ -476,14 +493,15 @@ const SettingsPage: React.FC = () => {
 									))}
 								</div>
 							</div>
-							<button className="mt-2 px-4 py-2 rounded bg-blue-100 text-blue-700 text-sm font-medium" onClick={handleAuditLogs}>View Audit Logs</button>
+							<button className="mt-2 px-4 py-2 rounded bg-blue-100 text-blue-700 text-sm font-medium" onClick={() => {}}>View Audit Logs</button>
 						</div>
+						{renderSaveButton()}
 					</div>
 				</div>
 			)}
 
 			{/* Modals */}
-			<AddAdminModal 
+			{/* <AddAdminModal 
 				isOpen={showAddAdminModal} 
 				onClose={() => setShowAddAdminModal(false)}
 				onSuccess={() => {
@@ -502,7 +520,7 @@ const SettingsPage: React.FC = () => {
 			<AuditLogsModal 
 				isOpen={showAuditLogsModal} 
 				onClose={() => setShowAuditLogsModal(false)}
-			/>
+			/> */}
 		</div>
 	);
 };

@@ -18,6 +18,7 @@ const CreateProductModal: React.FC<Props> = ({ open, onClose, onProductCreated, 
     unitType: 'Kg',
     description: '',
     imageUrl: '',
+    inventoryQuantity: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,6 +41,7 @@ const CreateProductModal: React.FC<Props> = ({ open, onClose, onProductCreated, 
         unitType: formData.unitType,
         description: formData.description || undefined,
         imageUrl: formData.imageUrl || undefined,
+        inventoryQuantity: formData.inventoryQuantity ? parseInt(formData.inventoryQuantity) : 0,
       };
 
       const response = await productsService.create(payload);
@@ -55,6 +57,7 @@ const CreateProductModal: React.FC<Props> = ({ open, onClose, onProductCreated, 
         unitType: 'Kg',
         description: '',
         imageUrl: '',
+        inventoryQuantity: '',
       });
       
       onProductCreated?.();
@@ -162,6 +165,21 @@ const CreateProductModal: React.FC<Props> = ({ open, onClose, onProductCreated, 
               <option value="Bottle">Bottle</option>
               <option value="Litre">Litre</option>
             </select>
+          </div>
+
+          {/* Initial Inventory Quantity */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Initial Inventory Quantity (Optional)</label>
+            <input
+              type="number"
+              step="1"
+              min="0"
+              value={formData.inventoryQuantity}
+              onChange={(e) => setFormData({ ...formData, inventoryQuantity: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., 100"
+            />
+            <p className="text-xs text-gray-500 mt-1">Leave empty to start with 0 units in stock</p>
           </div>
 
           {/* Description */}

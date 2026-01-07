@@ -113,7 +113,9 @@ class AdminApiClient {
    */
   async patch<T>(endpoint: string, data?: any): Promise<T> {
     try {
-      console.log(`📡 [AdminAPI] PATCH ${endpoint}`);
+      // Reload token before each request in case it was updated
+      this.loadToken();
+      console.log(`📡 [AdminAPI] PATCH ${endpoint}`, { hasToken: !!this.token });
       const response = await fetch(`${this.baseURL}${endpoint}`, {
         method: 'PATCH',
         headers: this.getHeaders(),
@@ -142,7 +144,9 @@ class AdminApiClient {
    */
   async delete<T>(endpoint: string): Promise<T> {
     try {
-      console.log(`📡 [AdminAPI] DELETE ${endpoint}`);
+      // Reload token before each request in case it was updated
+      this.loadToken();
+      console.log(`📡 [AdminAPI] DELETE ${endpoint}`, { hasToken: !!this.token });
       const response = await fetch(`${this.baseURL}${endpoint}`, {
         method: 'DELETE',
         headers: this.getHeaders(),

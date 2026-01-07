@@ -29,11 +29,9 @@ import adminAuthService from './services/authService';
 import dashboardService, { type DashboardData } from './services/dashboardService';
 
 function App() {
-  console.log('🎯 App component rendering...');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-  console.log('📍 Current location:', location.pathname);
   const isActive = (path: string) => location.pathname === path;
 
   // Dashboard state

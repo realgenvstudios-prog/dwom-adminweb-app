@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import productsService from "../../services/productsService";
+import inventoryService from "../../services/inventoryService";
 import type { Product, ProductCategory } from "./ProductTypes";
 
 interface ProductDetailsPanelProps {
@@ -29,6 +30,7 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
     description: product?.description || '',
     imageUrl: product?.imageUrl || '',
     categoryId: '',
+    inventoryQuantity: product?.inventory?.quantity || 0,
   });
 
   React.useEffect(() => {
@@ -41,6 +43,7 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
         description: product.description || '',
         imageUrl: product.imageUrl || '',
         categoryId: typeof product.category === 'object' ? product.category.id?.toString() : product.category?.toString() || '',
+        inventoryQuantity: product.inventory?.quantity || 0,
       });
       setEditing(false);
     }
@@ -53,6 +56,7 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
       const productId = typeof product.id === 'string' ? parseInt(product.id, 10) : product.id;
       console.log(`✏️ [ProductDetailsPanel] Updating product ${productId}`);
       
+      // Update product details
       await productsService.update(productId, {
         nameEnglish: formData.nameEnglish,
         nameLocal: formData.nameLocal,
@@ -62,6 +66,26 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
         imageUrl: formData.imageUrl || undefined,
         categoryId: formData.categoryId ? parseInt(formData.categoryId, 10) : undefined,
       });
+      
+      // Update inventory if it changed
+      const currentQuantity = product.inventory?.quantity || 0;
+      if (formData.inventoryQuantity !== currentQuantity) {
+        console.log(`📦 [ProductDetailsPanel] Updating inventory from ${currentQuantity} to ${formData.inventoryQuantity}`);
+        
+        const difference = formData.inventoryQuantity - currentQuantity;
+        if (difference > 0) {
+          // Add stock (incoming)
+          await inventoryService.restock(productId, { quantity: difference });
+        } else if (difference < 0) {
+          // Remove stock (using movement)
+          await inventoryService.recordMovement(productId, {
+            type: 'OUT',
+            quantity: Math.abs(difference),
+            reason: 'Inventory adjustment',
+            reference: 'Manual edit'
+          });
+        }
+      }
       
       console.log('✅ [ProductDetailsPanel] Product updated');
       alert('Product updated successfully!');
@@ -116,9 +140,10 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
                 <div className="text-lg font-semibold text-gray-900">{product.nameEnglish}</div>
                 <div className="text-sm text-gray-500">{product.nameLocal}</div>
               </div>
-              <div className="mb-2 text-sm"><span className="font-medium">Category:</span> {typeof product.category === 'object' ? product.category?.name : 'N/A'}</div>
+              <div className="mb-2 text-sm"><span className="font-medium">Category:</span> {typeof product.category === 'object' && product.category?.name ? product.category.name : (typeof (product as any).Category === 'object' && (product as any).Category?.name ? (product as any).Category.name : 'N/A')}</div>
               <div className="mb-2 text-sm"><span className="font-medium">Unit:</span> {product.unitType}</div>
               <div className="mb-2 text-sm"><span className="font-medium">Price:</span> GHS {typeof product.pricePerUnit === 'string' ? parseFloat(product.pricePerUnit).toFixed(2) : (product.pricePerUnit as number).toFixed(2)}</div>
+              <div className="mb-2 text-sm"><span className="font-medium">Inventory:</span> <span className={`px-2 py-1 rounded text-xs font-semibold ${product.inventory?.status === 'out_of_stock' ? 'bg-red-100 text-red-700' : product.inventory?.status === 'low_stock' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>{product.inventory?.quantity || 0} {product.unitType}</span></div>
               <div className="mb-4 text-sm"><span className="font-medium">Description:</span> {product.description || 'N/A'}</div>
               <div className="flex gap-2 mt-6">
                 <button 
@@ -191,6 +216,18 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
                     onChange={(e) => setFormData({ ...formData, unitType: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Inventory Quantity</label>
+                  <input
+                    type="number"
+                    step="1"
+                    min="0"
+                    value={formData.inventoryQuantity.toString()}
+                    onChange={(e) => setFormData({ ...formData, inventoryQuantity: parseInt(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Current: {product.inventory?.quantity || 0} {product.unitType}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>

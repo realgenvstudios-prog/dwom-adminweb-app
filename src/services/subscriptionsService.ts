@@ -13,11 +13,10 @@ export interface SubscriptionMetrics {
 export interface Subscription {
   id: number;
   userId: number;
-  planId: number;
   status: string;
   frequency: 'Weekly' | 'Biweekly' | 'Monthly';
   nextBillingDate: string;
-  lastBillingDate?: string;
+  lastChargeDate?: string;
   lastChargeAmount: number;
   totalSpent: number;
   createdAt: string;
@@ -28,11 +27,16 @@ export interface Subscription {
     email: string;
     phoneNumber: string;
   };
-  SubscriptionPlan?: {
+  SubscriptionItem?: Array<{
     id: number;
-    name: string;
-    price: number;
-  };
+    productId: number;
+    quantity: number;
+    unitPrice: number;
+    Product?: {
+      nameEnglish: string;
+      pricePerUnit: number;
+    };
+  }>;
 }
 
 export interface SubscriptionTrend {
@@ -80,7 +84,7 @@ class SubscriptionsService {
   async getAllSubscriptions(): Promise<Subscription[]> {
     try {
       console.log('📋 [SubscriptionsService] Fetching all subscriptions...');
-      const subscriptions = (await adminApiClient.get('/subscriptions')) as any;
+      const subscriptions = (await adminApiClient.get('/subscriptions/admin/dashboard/active')) as any;
       console.log('✅ [SubscriptionsService] All subscriptions loaded:', subscriptions);
       return subscriptions || [];
     } catch (error: any) {
@@ -150,10 +154,17 @@ class SubscriptionsService {
           !status || status === 'All' || (sub.status || '').toLowerCase() === status.toLowerCase();
         const frequencyMatch =
           !frequency || frequency === 'All' || sub.frequency === frequency;
+        
+        // Search by customer name or product names
+        const productNames = (sub.SubscriptionItem || [])
+          .map(item => item.Product?.nameEnglish || '')
+          .join(' ')
+          .toLowerCase();
+        
         const searchMatch =
           !search ||
           (sub.User?.name || '').toLowerCase().includes(search.toLowerCase()) ||
-          (sub.SubscriptionPlan?.name || '').toLowerCase().includes(search.toLowerCase());
+          productNames.includes(search.toLowerCase());
 
         return statusMatch && frequencyMatch && searchMatch;
       });

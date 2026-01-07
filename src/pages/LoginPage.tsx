@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import adminAuthService from '../services/authService';
 
 const LoginPage: React.FC = () => {
-  console.log('🔓 LoginPage component rendering...');
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -55,7 +54,7 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-600 via-red-700 to-red-800 flex items-center justify-center p-4" style={{ backgroundColor: '#dc2626' }}>
+    <div className="min-h-screen bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center p-4">
       {/* Login Container */}
       <div className="bg-white rounded-lg shadow-2xl w-full max-w-md p-8">
         {/* Header */}

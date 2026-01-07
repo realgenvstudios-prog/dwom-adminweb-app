@@ -6,7 +6,7 @@ export interface Settings {
   supportEmail: string;
   supportPhone: string;
   warehouseAddress: string;
-  logo: string;
+  logo: string | null;
 
   // Operating Preferences
   autoAssignOrders: boolean;
