@@ -41,9 +41,18 @@ const SubscriptionsTable: React.FC<Props> = ({ subscriptions, onView }) => {
           try {
             const id = parseInt(sub.id.replace('SUB-', ''));
             const fullSub = await subscriptionsService.getSubscriptionById(id);
+            const mappedItems = (fullSub?.SubscriptionItem || []).map(item => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              product: {
+                nameEnglish: item.Product?.nameEnglish || "Product",
+                unitType: "unit"
+              }
+            }));
             return {
               ...sub,
-              items: fullSub?.items || [],
+              items: mappedItems,
             } as SubscriptionWithItems;
           } catch (error) {
             console.error(`Failed to fetch subscription ${sub.id}:`, error);
