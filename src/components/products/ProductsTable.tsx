@@ -13,7 +13,6 @@ interface ProductsTableProps {
   onPageChange: (page: number) => void;
   selectedProducts?: string[];
   onSelectionChange?: (productIds: string[]) => void;
-  onSelectAll?: (productIds: string[]) => void;
 }
 
 const ProductsTable: React.FC<ProductsTableProps> = ({ 
@@ -28,7 +27,6 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
   onPageChange,
   selectedProducts = [],
   onSelectionChange,
-  onSelectAll,
 }) => {
   const handleProductCheck = (productId: string) => {
     if (!onSelectionChange) return;

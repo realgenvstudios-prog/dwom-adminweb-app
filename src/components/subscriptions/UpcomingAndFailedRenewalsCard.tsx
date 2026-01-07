@@ -34,10 +34,10 @@ const UpcomingAndFailedRenewalsCard: React.FC = () => {
         .filter((sub: Subscription) => sub.status === "Active")
         .slice(0, 3)
         .map((sub: Subscription) => ({
-          customer: sub.User?.name || "Unknown",
-          plan: sub.SubscriptionPlan?.name || "Plan",
+          customer: (sub as any).User?.name || "Unknown",
+          plan: (sub as any).SubscriptionPlan?.name || sub.planName || "Plan",
           date: sub.nextBillingDate?.split('T')[0] || new Date().toISOString().split('T')[0],
-          amount: sub.SubscriptionPlan?.price || 0,
+          amount: (sub as any).SubscriptionPlan?.price || 0,
         }));
 
       setUpcoming(upcomingData);
@@ -48,8 +48,8 @@ const UpcomingAndFailedRenewalsCard: React.FC = () => {
         .filter((sub: Subscription) => sub.status === "Failed")
         .slice(0, 2)
         .map((sub: Subscription) => ({
-          customer: sub.User?.name || "Unknown",
-          plan: sub.SubscriptionPlan?.name || "Plan",
+          customer: (sub as any).User?.name || "Unknown",
+          plan: (sub as any).SubscriptionPlan?.name || sub.planName || "Plan",
           date: sub.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
           reason: "Payment failed",
         }));

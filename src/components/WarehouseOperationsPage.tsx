@@ -40,7 +40,6 @@ const WarehouseOperationsPage: React.FC = () => {
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [selectedProductName, setSelectedProductName] = useState<string | undefined>();
   const [selectedProductStock, setSelectedProductStock] = useState<number | undefined>();
-  const [selectedInventoryItem, setSelectedInventoryItem] = useState<InventoryItem | null>(null);
 
   useEffect(() => {
     fetchData();

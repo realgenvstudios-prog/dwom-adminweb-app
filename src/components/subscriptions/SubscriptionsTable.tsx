@@ -28,7 +28,6 @@ const statusColors: Record<string, string> = {
 
 const SubscriptionsTable: React.FC<Props> = ({ subscriptions, onView }) => {
   const [subscriptionsWithItems, setSubscriptionsWithItems] = useState<SubscriptionWithItems[]>([]);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     loadFullSubscriptions();
@@ -36,7 +35,6 @@ const SubscriptionsTable: React.FC<Props> = ({ subscriptions, onView }) => {
 
   const loadFullSubscriptions = async () => {
     try {
-      setLoading(true);
       // Fetch full subscription details for each subscription
       const withItems = await Promise.all(
         subscriptions.map(async (sub) => {
@@ -60,8 +58,6 @@ const SubscriptionsTable: React.FC<Props> = ({ subscriptions, onView }) => {
     } catch (error) {
       console.error("Failed to load subscriptions with items:", error);
       setSubscriptionsWithItems(subscriptions);
-    } finally {
-      setLoading(false);
     }
   };
 

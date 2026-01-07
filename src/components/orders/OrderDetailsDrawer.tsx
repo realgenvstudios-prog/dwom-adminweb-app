@@ -182,13 +182,13 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
               <div className="bg-amber-50 p-3 rounded">
                 <div className="flex items-center gap-1 mb-1">
                   {[...Array(5)].map((_, i) => (
-                    <span key={i} className={`text-lg ${i < order.riderRating.rating ? '⭐' : '☆'}`}>
-                      {i < order.riderRating.rating ? '⭐' : '☆'}
+                    <span key={i} className={`text-lg ${i < (order.riderRating?.rating || 0) ? '⭐' : '☆'}`}>
+                      {i < (order.riderRating?.rating || 0) ? '⭐' : '☆'}
                     </span>
                   ))}
-                  <span className="text-xs font-bold text-amber-700 ml-2">{order.riderRating.rating}/5</span>
+                  <span className="text-xs font-bold text-amber-700 ml-2">{order.riderRating?.rating || 0}/5</span>
                 </div>
-                {order.riderRating.comment && (
+                {order.riderRating?.comment && (
                   <div className="text-xs text-gray-700 mt-2 italic">"{order.riderRating.comment}"</div>
                 )}
               </div>
