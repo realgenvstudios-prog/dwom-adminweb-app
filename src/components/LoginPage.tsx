@@ -22,7 +22,13 @@ const LoginPage: React.FC = () => {
 
       console.log('🔐 [LoginPage] Attempting login with email:', email);
       await adminAuthService.login(email, password);
-      console.log('✅ [LoginPage] Login successful, redirecting to dashboard');
+      
+      // Verify token was saved
+      const savedToken = localStorage.getItem('admin_token');
+      console.log('✅ [LoginPage] Login successful, token saved:', { tokenExists: !!savedToken, tokenLength: savedToken?.length || 0 });
+      
+      // Small delay to ensure token is persisted before redirecting
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       // Redirect to dashboard
       navigate('/dashboard', { replace: true });

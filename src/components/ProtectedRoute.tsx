@@ -13,8 +13,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   useEffect(() => {
     const verifyAuth = async () => {
       try {
-        // Small delay to ensure token is properly saved from login
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Small delay to ensure token is properly saved before checking
+        await new Promise(resolve => setTimeout(resolve, 150));
         
         // Reload token from localStorage to ensure we have the latest
         const token = localStorage.getItem('admin_token');
