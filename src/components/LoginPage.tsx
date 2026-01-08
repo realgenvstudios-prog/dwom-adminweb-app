@@ -34,18 +34,7 @@ const LoginPage: React.FC = () => {
       navigate('/dashboard', { replace: true });
     } catch (err: any) {
       console.error('❌ [LoginPage] Login failed:', err);
-      let errorMessage = 'Login failed. Please check your credentials.';
-      
-      // Provide more specific error messages
-      if (err.message?.includes('401')) {
-        errorMessage = 'Invalid email or password';
-      } else if (err.message?.includes('Failed to fetch')) {
-        errorMessage = 'Cannot reach the server. Please check your connection.';
-      } else if (err.message) {
-        errorMessage = err.message;
-      }
-      
-      setError(errorMessage);
+      setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }

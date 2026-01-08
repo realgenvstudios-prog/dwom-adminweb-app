@@ -39,7 +39,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div
         className={`${
           sidebarOpen ? 'w-64' : 'w-20'
-        } bg-gray-900 text-white transition-all duration-300 flex flex-col flex-shrink-0 overflow-hidden`}
+        } bg-gray-900 text-white transition-all duration-300 overflow-hidden flex flex-col`}
       >
         {/* Logo */}
         <div className="p-4 flex items-center justify-between border-b border-gray-800">
