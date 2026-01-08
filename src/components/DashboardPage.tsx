@@ -10,7 +10,6 @@ interface KPICard {
   title: string;
   value: string | number;
   change: string;
-  icon: string;
   color: string;
 }
 
@@ -33,28 +32,24 @@ const DashboardPage: React.FC = () => {
           title: 'Total Orders',
           value: dashboardData.stats.allOrdersCount,
           change: `${dashboardData.stats.completedOrders} completed today`,
-          icon: '📦',
           color: 'bg-blue-500',
         },
         {
           title: "Today's Revenue",
           value: `GH₵${dashboardData.stats.revenueToday.toFixed(2)}`,
           change: `${dashboardData.stats.completedOrders} orders`,
-          icon: '💰',
           color: 'bg-green-500',
         },
         {
           title: 'Active Riders',
           value: dashboardData.riderStats.activeRiders,
           change: `${dashboardData.riderStats.totalRiders} total`,
-          icon: '🚴',
           color: 'bg-purple-500',
         },
         {
           title: 'Products',
           value: dashboardData.productStats.totalProducts,
           change: `${dashboardData.productStats.outOfStockProducts} out of stock`,
-          icon: '📊',
           color: 'bg-orange-500',
         },
       ];
@@ -69,28 +64,24 @@ const DashboardPage: React.FC = () => {
           title: 'Total Orders',
           value: '0',
           change: 'Loading...',
-          icon: '📦',
           color: 'bg-blue-500',
         },
         {
           title: "Today's Revenue",
           value: 'GH₵0.00',
           change: 'Loading...',
-          icon: '💰',
           color: 'bg-green-500',
         },
         {
           title: 'Active Riders',
           value: '0',
           change: 'Loading...',
-          icon: '🚴',
           color: 'bg-purple-500',
         },
         {
           title: 'Products',
           value: '0',
           change: 'Loading...',
-          icon: '📊',
           color: 'bg-orange-500',
         },
       ]);
@@ -123,7 +114,6 @@ const DashboardPage: React.FC = () => {
                 <p className="text-3xl font-bold text-gray-900 mt-2">{kpi.value}</p>
                 <p className="text-gray-500 text-xs mt-3">{kpi.change}</p>
               </div>
-              <div className={`${kpi.color} text-white p-3 rounded-lg text-2xl`}>{kpi.icon}</div>
             </div>
           </div>
         ))}
