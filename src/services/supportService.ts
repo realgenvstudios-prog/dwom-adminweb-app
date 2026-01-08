@@ -194,11 +194,14 @@ const supportService = {
   },
 
   // Update ticket status (local only - would need backend PATCH endpoint)
-  async updateTicketStatus(_ticketId: string, _status: 'Open' | 'In Progress' | 'Resolved' | 'Escalated'): Promise<SupportTicket | null> {
+  async updateTicketStatus(ticketId: string, status: 'Open' | 'In Progress' | 'Resolved' | 'Escalated'): Promise<SupportTicket | null> {
     try {
-      // TODO: In production, send to backend: PATCH /chat/admin/support-tickets/:id/status
-      console.log(`Updating ticket ${_ticketId} status to ${_status}`);
-      return await this.getTicketById(_ticketId);
+      // Extract userId from ticket ID
+      const ticketNum = parseInt(ticketId.replace('T-', ''));
+      const userId = ticketNum - 1001;
+      
+      await adminApiClient.post(`/chat/admin/support-tickets/${userId}/status`, { status });
+      return await this.getTicketById(ticketId);
     } catch (error) {
       console.error('Failed to update ticket status:', error);
       return null;
@@ -206,11 +209,14 @@ const supportService = {
   },
 
   // Assign ticket (local only - would need backend PATCH endpoint)
-  async assignTicket(_ticketId: string, _assignee: string): Promise<SupportTicket | null> {
+  async assignTicket(ticketId: string, assignee: string): Promise<SupportTicket | null> {
     try {
-      // TODO: In production, send to backend: PATCH /chat/admin/support-tickets/:id/assign
-      console.log(`Assigning ticket ${_ticketId} to ${_assignee}`);
-      return await this.getTicketById(_ticketId);
+      // Extract userId from ticket ID
+      const ticketNum = parseInt(ticketId.replace('T-', ''));
+      const userId = ticketNum - 1001;
+      
+      await adminApiClient.post(`/chat/admin/support-tickets/${userId}/assign`, { assignee });
+      return await this.getTicketById(ticketId);
     } catch (error) {
       console.error('Failed to assign ticket:', error);
       return null;
@@ -218,11 +224,14 @@ const supportService = {
   },
 
   // Update ticket priority (local only - would need backend PATCH endpoint)
-  async updateTicketPriority(_ticketId: string, _priority: 'Low' | 'Medium' | 'High' | 'Urgent'): Promise<SupportTicket | null> {
+  async updateTicketPriority(ticketId: string, priority: 'Low' | 'Medium' | 'High' | 'Urgent'): Promise<SupportTicket | null> {
     try {
-      // TODO: In production, send to backend: PATCH /chat/admin/support-tickets/:id/priority
-      console.log(`Updating ticket ${_ticketId} priority to ${_priority}`);
-      return await this.getTicketById(_ticketId);
+      // Extract userId from ticket ID
+      const ticketNum = parseInt(ticketId.replace('T-', ''));
+      const userId = ticketNum - 1001;
+      
+      await adminApiClient.post(`/chat/admin/support-tickets/${userId}/priority`, { priority });
+      return await this.getTicketById(ticketId);
     } catch (error) {
       console.error('Failed to update ticket priority:', error);
       return null;
