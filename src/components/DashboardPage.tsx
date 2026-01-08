@@ -16,7 +16,6 @@ interface KPICard {
 
 const DashboardPage: React.FC = () => {
   const [kpis, setKpis] = useState<KPICard[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -25,7 +24,6 @@ const DashboardPage: React.FC = () => {
 
   const fetchDashboardData = async () => {
     try {
-      setLoading(true);
       setError(null);
 
       const dashboardData = await dashboardService.getDashboardData();
@@ -97,7 +95,6 @@ const DashboardPage: React.FC = () => {
         },
       ]);
     } finally {
-      setLoading(false);
     }
   };
 

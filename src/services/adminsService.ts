@@ -234,7 +234,7 @@ class AdminsService {
     try {
       console.log('📧 [AdminsService] Inviting new admin:', data.email);
 
-      const response = (await apiClient.post('/users', {
+      const response = (await adminApiClient.post('/users', {
         name: data.name,
         email: data.email,
         phoneNumber: data.phone,
@@ -269,7 +269,7 @@ class AdminsService {
     try {
       console.log(`👤 [AdminsService] Updating admin ${adminId} role to ${newRole}`);
 
-      const response = (await apiClient.patch(`/users/${adminId}`, {
+      const response = (await adminApiClient.patch(`/users/${adminId}`, {
         role: this._reverseMapRole(newRole),
       })) as any;
 
@@ -300,7 +300,7 @@ class AdminsService {
     try {
       console.log(`🚫 [AdminsService] Suspending admin ${adminId}`);
 
-      await apiClient.patch(`/users/${adminId}`, {
+      await adminApiClient.patch(`/users/${adminId}`, {
         status: 'suspended',
       });
 
@@ -318,7 +318,7 @@ class AdminsService {
     try {
       console.log(`✅ [AdminsService] Reactivating admin ${adminId}`);
 
-      await apiClient.patch(`/users/${adminId}`, {
+      await adminApiClient.patch(`/users/${adminId}`, {
         status: 'active',
       });
 
