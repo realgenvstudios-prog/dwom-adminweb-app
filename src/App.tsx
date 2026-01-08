@@ -16,6 +16,7 @@ import FinancePage from './components/FinancePage';
 import MarketingPage from './components/MarketingPage';
 import CustomersPage from './components/CustomersPage';
 import SettingsPage from './components/SettingsPage';
+import SupportPage from './components/SupportPage';
 import './App.css';
 
 const App: React.FC = () => {
@@ -148,6 +149,16 @@ const App: React.FC = () => {
           <ProtectedRoute>
             <Layout>
               <SettingsPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/support"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <SupportPage />
             </Layout>
           </ProtectedRoute>
         }
