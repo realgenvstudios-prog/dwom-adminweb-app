@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3000';
+import adminApiClient from './apiClient';
 
 export interface RiderData {
   id: number;
