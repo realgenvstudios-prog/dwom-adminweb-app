@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/Layout';
 import LoginPage from './components/LoginPage';
 import AdminsPage from './components/AdminsPage';
 import OrdersPage from './components/OrdersPage';
@@ -24,7 +25,9 @@ const App: React.FC = () => {
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <AdminsPage />
+            <Layout>
+              <AdminsPage />
+            </Layout>
           </ProtectedRoute>
         }
       />
@@ -32,7 +35,9 @@ const App: React.FC = () => {
         path="/orders"
         element={
           <ProtectedRoute>
-            <OrdersPage />
+            <Layout>
+              <OrdersPage />
+            </Layout>
           </ProtectedRoute>
         }
       />
@@ -40,7 +45,9 @@ const App: React.FC = () => {
         path="/warehouse"
         element={
           <ProtectedRoute>
-            <WarehouseOperationsPage />
+            <Layout>
+              <WarehouseOperationsPage />
+            </Layout>
           </ProtectedRoute>
         }
       />
@@ -48,7 +55,9 @@ const App: React.FC = () => {
         path="/products"
         element={
           <ProtectedRoute>
-            <ProductsPage />
+            <Layout>
+              <ProductsPage />
+            </Layout>
           </ProtectedRoute>
         }
       />
@@ -56,7 +65,9 @@ const App: React.FC = () => {
         path="/categories"
         element={
           <ProtectedRoute>
-            <CategoriesPage />
+            <Layout>
+              <CategoriesPage />
+            </Layout>
           </ProtectedRoute>
         }
       />
@@ -64,7 +75,9 @@ const App: React.FC = () => {
         path="/bundles"
         element={
           <ProtectedRoute>
-            <BundlesPage />
+            <Layout>
+              <BundlesPage />
+            </Layout>
           </ProtectedRoute>
         }
       />
@@ -72,7 +85,9 @@ const App: React.FC = () => {
         path="/subscriptions"
         element={
           <ProtectedRoute>
-            <SubscriptionsPage />
+            <Layout>
+              <SubscriptionsPage />
+            </Layout>
           </ProtectedRoute>
         }
       />
@@ -80,7 +95,9 @@ const App: React.FC = () => {
         path="/riders"
         element={
           <ProtectedRoute>
-            <RidersPage />
+            <Layout>
+              <RidersPage />
+            </Layout>
           </ProtectedRoute>
         }
       />
@@ -88,7 +105,9 @@ const App: React.FC = () => {
         path="/finance"
         element={
           <ProtectedRoute>
-            <FinancePage />
+            <Layout>
+              <FinancePage />
+            </Layout>
           </ProtectedRoute>
         }
       />
@@ -96,7 +115,9 @@ const App: React.FC = () => {
         path="/marketing"
         element={
           <ProtectedRoute>
-            <MarketingPage />
+            <Layout>
+              <MarketingPage />
+            </Layout>
           </ProtectedRoute>
         }
       />
@@ -104,7 +125,9 @@ const App: React.FC = () => {
         path="/customers"
         element={
           <ProtectedRoute>
-            <CustomersPage />
+            <Layout>
+              <CustomersPage />
+            </Layout>
           </ProtectedRoute>
         }
       />
@@ -112,7 +135,9 @@ const App: React.FC = () => {
         path="/settings"
         element={
           <ProtectedRoute>
-            <SettingsPage />
+            <Layout>
+              <SettingsPage />
+            </Layout>
           </ProtectedRoute>
         }
       />
