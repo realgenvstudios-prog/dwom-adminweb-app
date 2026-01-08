@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import LoginPage from './components/LoginPage';
+import DashboardPage from './components/DashboardPage';
 import AdminsPage from './components/AdminsPage';
 import OrdersPage from './components/OrdersPage';
 import WarehouseOperationsPage from './components/WarehouseOperationsPage';
@@ -23,6 +24,16 @@ const App: React.FC = () => {
       <Route path="/login" element={<LoginPage />} />
       <Route
         path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <DashboardPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admins"
         element={
           <ProtectedRoute>
             <Layout>

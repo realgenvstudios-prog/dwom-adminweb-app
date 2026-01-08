@@ -1,4 +1,4 @@
-import apiClient from './apiClient';
+import adminApiClient from './apiClient';
 
 export interface ChatMessage {
   id: number;
@@ -43,7 +43,7 @@ const supportService = {
   // Get all support tickets from backend
   async getAllTickets(limit: number = 50): Promise<SupportTicket[]> {
     try {
-      const response = await apiClient.get('/chat/admin/support-tickets');
+      const response = await adminApiClient.get('/chat/admin/support-tickets');
       const tickets = ((response as any)?.data || []) as any[];
 
       // Convert to frontend format
@@ -81,7 +81,7 @@ const supportService = {
       const ticketNum = parseInt(ticketId.replace('T-', ''));
       const userId = ticketNum - 1001;
       
-      const response = await apiClient.get(`/chat/admin/support-tickets/${userId}`);
+      const response = await adminApiClient.get(`/chat/admin/support-tickets/${userId}`);
       const t = (response as any)?.data;
       
       if (!t) return null;
@@ -116,7 +116,7 @@ const supportService = {
       const ticketNum = parseInt(ticketId.replace('T-', ''));
       const userId = ticketNum - 1001;
       
-      const response = await apiClient.post('/chat/admin/support-reply', { userId, message });
+      const response = await adminApiClient.post('/chat/admin/support-reply', { userId, message });
       return (((response as any)?.data || null) as ChatMessage);
     } catch (error) {
       console.error('Failed to send reply:', error);
@@ -127,7 +127,7 @@ const supportService = {
   // Get support metrics from backend
   async getSupportMetrics(): Promise<SupportMetrics> {
     try {
-      const response = await apiClient.get('/chat/admin/support-metrics');
+      const response = await adminApiClient.get('/chat/admin/support-metrics');
       const data = (response as any)?.data;
 
       return {

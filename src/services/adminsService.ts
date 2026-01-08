@@ -1,4 +1,4 @@
-import apiClient from './apiClient';
+import adminApiClient from './apiClient';
 
 export interface Admin {
   id: number;
@@ -47,7 +47,7 @@ class AdminsService {
       console.log('👨‍💼 [AdminsService] Fetching all admins...');
       
       // Fetch all users from backend
-      const response = (await apiClient.get('/users')) as any;
+      const response = (await adminApiClient.get('/users')) as any;
       const users = response?.data || [];
 
       // Filter for admin users (role is not 'user')
