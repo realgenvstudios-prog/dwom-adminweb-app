@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
+import LoginPage from './components/LoginPage';
 import AdminsPage from './components/AdminsPage';
 import OrdersPage from './components/OrdersPage';
 import WarehouseOperationsPage from './components/WarehouseOperationsPage';
@@ -18,6 +19,7 @@ import './App.css';
 const App: React.FC = () => {
   return (
     <Routes>
+      <Route path="/login" element={<LoginPage />} />
       <Route
         path="/dashboard"
         element={
