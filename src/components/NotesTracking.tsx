@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import dashboardService from "../services/dashboardService";
 
 interface NoteRecord {
   id: number;
