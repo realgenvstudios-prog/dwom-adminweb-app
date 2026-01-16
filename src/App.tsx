@@ -15,6 +15,7 @@ import RidersPage from './components/RidersPage';
 import FinancePage from './components/FinancePage';
 import MarketingPage from './components/MarketingPage';
 import CustomersPage from './components/CustomersPage';
+import NotesTrackingPage from './components/NotesTrackingPage';
 import SettingsPage from './components/SettingsPage';
 import SupportPage from './components/SupportPage';
 import './App.css';
@@ -139,6 +140,16 @@ const App: React.FC = () => {
           <ProtectedRoute>
             <Layout>
               <CustomersPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notes"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <NotesTrackingPage />
             </Layout>
           </ProtectedRoute>
         }

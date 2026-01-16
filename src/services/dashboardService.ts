@@ -32,6 +32,7 @@ export interface PopularProduct {
   nameEnglish: string;
   quantity: number;
   revenue: number;
+  imageUrl?: string;
 }
 
 export interface DashboardData {
@@ -163,11 +164,22 @@ class DashboardService {
     try {
       console.log('⭐ [DashboardService] Fetching popular products...');
       
-      // Fetch all orders with items
-      const orders = (await adminApiClient.get('/orders/admin/all')) as any;
+      // Fetch all orders with items AND all products for image data
+      const [orders, allProducts] = await Promise.all([
+        (adminApiClient.get('/orders/admin/all')) as Promise<any>,
+        (adminApiClient.get('/products')) as Promise<any>,
+      ]);
+
+      // Create product map with images
+      const productImageMap = new Map<number, string>();
+      allProducts.forEach((product: any) => {
+        if (product.id && product.imageUrl) {
+          productImageMap.set(product.id, product.imageUrl);
+        }
+      });
 
       // Group products by sales
-      const productMap = new Map<number, { nameEnglish: string; quantity: number; revenue: number }>();
+      const productMap = new Map<number, { nameEnglish: string; quantity: number; revenue: number; imageUrl?: string }>();
 
       orders.forEach((order: any) => {
         if (order.OrderItem && Array.isArray(order.OrderItem)) {
@@ -177,6 +189,7 @@ class DashboardService {
                 nameEnglish: item.Product?.nameEnglish || 'Unknown',
                 quantity: 0,
                 revenue: 0,
+                imageUrl: productImageMap.get(item.productId),
               });
             }
 

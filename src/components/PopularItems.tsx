@@ -12,7 +12,7 @@ const PopularItems: React.FC = () => {
   const fetchPopularProducts = async () => {
     try {
       setLoading(true);
-      const popularProducts = await dashboardService.getPopularProducts(4);
+      const popularProducts = await dashboardService.getPopularProducts(5);
       setProducts(popularProducts);
     } catch (error) {
       console.error("Failed to fetch popular products:", error);
@@ -32,20 +32,30 @@ const PopularItems: React.FC = () => {
           </svg>
         </div>
       ) : (
-        <div className="grid grid-cols-4 gap-4">
+        <div className="flex flex-row justify-start gap-6 overflow-x-auto pb-2">
           {products.length > 0 ? (
             products.map((product) => (
-              <div key={product.id} className="bg-white rounded-lg shadow p-4 border">
-                <div className="w-full h-16 bg-gradient-to-r from-orange-200 to-orange-100 rounded mb-3 flex items-center justify-center">
-                  <span className="text-2xl">🥕</span>
+              <div key={product.id} className="bg-white rounded-xl shadow-md overflow-hidden border hover:shadow-xl transition-all w-44 flex-shrink-0">
+                <div className="w-full h-28 bg-gradient-to-r from-orange-200 to-orange-100 flex items-center justify-center overflow-hidden">
+                  {product.imageUrl ? (
+                    <img 
+                      src={product.imageUrl} 
+                      alt={product.nameEnglish}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-4xl">🥕</span>
+                  )}
                 </div>
-                <h4 className="font-medium text-sm">{product.nameEnglish}</h4>
-                <p className="text-xs text-gray-500 mt-1">{product.quantity} sold</p>
-                <p className="text-xs font-semibold text-green-600 mt-1">GH₵ {product.revenue.toFixed(2)}</p>
+                <div className="p-4">
+                  <h4 className="font-semibold text-sm truncate">{product.nameEnglish}</h4>
+                  <p className="text-xs text-gray-500 mt-2">{product.quantity} sold</p>
+                  <p className="text-sm font-bold text-green-600 mt-2">GH₵ {product.revenue.toFixed(2)}</p>
+                </div>
               </div>
             ))
           ) : (
-            <div className="col-span-4 text-center py-8 text-gray-500">
+            <div className="w-full text-center py-8 text-gray-500">
               No products available yet
             </div>
           )}
