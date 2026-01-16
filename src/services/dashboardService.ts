@@ -302,6 +302,45 @@ class DashboardService {
       return 0;
     }
   }
+
+  /**
+   * Get all notes for admin tracking
+   */
+  async getAllNotes(skip: number = 0, take: number = 50, status?: string, userId?: number): Promise<any> {
+    try {
+      console.log('📝 [DashboardService] Fetching notes data...');
+      let url = `/notes/admin/all?skip=${skip}&take=${take}`;
+      if (status) url += `&status=${status}`;
+      if (userId) url += `&userId=${userId}`;
+      
+      const response = await adminApiClient.get(url);
+      console.log('✅ [DashboardService] Notes loaded:', response);
+      return response;
+    } catch (error: any) {
+      console.error('❌ [DashboardService] Failed to fetch notes:', error.message);
+      return { notes: [], total: 0 };
+    }
+  }
+
+  /**
+   * Get notes analytics
+   */
+  async getNotesAnalytics(limit: number = 100): Promise<any> {
+    try {
+      console.log('📊 [DashboardService] Fetching notes analytics...');
+      const response = await adminApiClient.get(`/notes/admin/analytics?limit=${limit}`);
+      console.log('✅ [DashboardService] Notes analytics loaded:', response);
+      return response;
+    } catch (error: any) {
+      console.error('❌ [DashboardService] Failed to fetch notes analytics:', error.message);
+      return {
+        stats: {},
+        commonSearches: [],
+        errorNotes: [],
+        lowConfidenceMatches: [],
+      };
+    }
+  }
 }
 
 export default new DashboardService();
