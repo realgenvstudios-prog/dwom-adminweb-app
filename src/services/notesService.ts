@@ -1,6 +1,6 @@
-import api from './api';
+import adminApiClient from './apiClient';
 
-export interface NotesAnalytics {
+export type NotesAnalytics = {
   stats: {
     totalNotes: number;
     processedNotes: number;
@@ -27,13 +27,13 @@ export interface NotesAnalytics {
     confidence: number;
     matchRatio: number;
   }>;
-}
+};
 
 export const notesService = {
   async getAnalytics(): Promise<NotesAnalytics> {
     try {
-      const response = await api.get('/notes/analytics');
-      return response.data;
+      const response = await adminApiClient.get<NotesAnalytics>('/notes/analytics');
+      return response;
     } catch (error: any) {
       console.error('Failed to fetch notes analytics:', error);
       throw error;
@@ -48,8 +48,8 @@ export const notesService = {
       params.append('skip', String(skip));
       params.append('take', String(take));
 
-      const response = await api.get(`/notes/admin?${params.toString()}`);
-      return response.data;
+      const response = await adminApiClient.get(`/notes/admin/all?${params.toString()}`);
+      return response;
     } catch (error: any) {
       console.error('Failed to fetch notes:', error);
       throw error;

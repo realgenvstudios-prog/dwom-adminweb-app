@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import notesService, { NotesAnalytics } from '../services/notesService';
+import notesService from '../services/notesService';
+import type { NotesAnalytics } from '../services/notesService';
 
 const NotesTrackingPage: React.FC = () => {
   const [analytics, setAnalytics] = useState<NotesAnalytics | null>(null);
