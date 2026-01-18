@@ -96,18 +96,50 @@ const BundleDetailsModal: React.FC<BundleDetailsModalProps> = ({
             </div>
 
             {/* Price and Discount */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">Bundle Price</p>
-                <p className="text-3xl font-bold text-blue-700">GHS {bundle.price?.toFixed(2)}</p>
-              </div>
-              {bundle.discount > 0 && (
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-1">Discount</p>
-                  <p className="text-3xl font-bold text-green-700">{bundle.discount}%</p>
+            {(() => {
+              // Calculate original total from items
+              const originalTotal = bundle.BundleItem?.reduce((total, item) => {
+                return total + (item.totalItemPrice || 0);
+              }, 0) || 0;
+              
+              const hasDiscount = bundle.discount > 0 && originalTotal > bundle.price;
+              const savingsAmount = originalTotal - bundle.price;
+              
+              return (
+                <div className="p-5 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl border border-blue-100">
+                  <div className="flex items-center gap-4">
+                    {hasDiscount ? (
+                      <>
+                        {/* Original Price - Strikethrough */}
+                        <span className="text-xl text-gray-400 line-through">
+                          GHS {originalTotal.toFixed(2)}
+                        </span>
+                        
+                        {/* Discounted Price */}
+                        <span className="text-3xl font-bold text-green-600">
+                          GHS {bundle.price?.toFixed(2)}
+                        </span>
+                        
+                        {/* Savings Badge */}
+                        <span className="ml-2 px-3 py-1 bg-green-500 text-white text-sm font-semibold rounded-full">
+                          Save {bundle.discount}%
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-3xl font-bold text-blue-700">
+                        GHS {bundle.price?.toFixed(2)}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {hasDiscount && (
+                    <p className="text-green-600 text-sm mt-2">
+                      ✨ You save GHS {savingsAmount.toFixed(2)} with this bundle!
+                    </p>
+                  )}
                 </div>
-              )}
-            </div>
+              );
+            })()}
 
             {/* Bundle Items */}
             <div>
