@@ -19,13 +19,38 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
 }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('0');
   const [discount, setDiscount] = useState('0');
   const [imageUrl, setImageUrl] = useState('');
   const [bundleItems, setBundleItems] = useState<Array<{ productId: number; quantity: number }>>([]);
   const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Calculate original total from selected products
+  const calculateOriginalTotal = (): number => {
+    return bundleItems.reduce((total, item) => {
+      const product = availableProducts.find(p => p.id === item.productId);
+      if (product) {
+        const price = typeof product.pricePerUnit === 'string' 
+          ? parseFloat(product.pricePerUnit) 
+          : product.pricePerUnit;
+        return total + (price * item.quantity);
+      }
+      return total;
+    }, 0);
+  };
+
+  // Calculate final price after discount
+  const calculateFinalPrice = (): number => {
+    const originalTotal = calculateOriginalTotal();
+    const discountPercent = parseFloat(discount) || 0;
+    const discountAmount = originalTotal * (discountPercent / 100);
+    return originalTotal - discountAmount;
+  };
+
+  const originalTotal = calculateOriginalTotal();
+  const finalPrice = calculateFinalPrice();
+  const savingsAmount = originalTotal - finalPrice;
 
   // Fetch available products
   useEffect(() => {
@@ -34,7 +59,6 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
       if (editingBundle) {
         setName(editingBundle.name);
         setDescription(editingBundle.description || '');
-        setPrice(editingBundle.price.toString());
         setDiscount((editingBundle.discount || 0).toString());
         setImageUrl(editingBundle.imageUrl || '');
         // Use BundleItem if available (from backend), otherwise use items
@@ -46,7 +70,6 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
       } else {
         setName('');
         setDescription('');
-        setPrice('0');
         setDiscount('0');
         setImageUrl('');
         setBundleItems([]);
@@ -72,13 +95,13 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
       return;
     }
 
-    if (!price || parseFloat(price) <= 0) {
-      setError('Bundle price must be greater than 0');
+    if (bundleItems.length === 0) {
+      setError('Add at least one product to the bundle');
       return;
     }
 
-    if (bundleItems.length === 0) {
-      setError('Add at least one product to the bundle');
+    if (finalPrice <= 0) {
+      setError('Bundle price must be greater than 0. Add products or reduce discount.');
       return;
     }
 
@@ -91,7 +114,7 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
         await bundlesService.update(editingBundle.id, {
           name: name.trim(),
           description: description.trim() || undefined,
-          price: parseFloat(price),
+          price: parseFloat(finalPrice.toFixed(2)),
           discount: parseFloat(discount) || undefined,
           imageUrl: imageUrl.trim() || undefined,
         });
@@ -102,7 +125,7 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
         await bundlesService.create({
           name: name.trim(),
           description: description.trim() || undefined,
-          price: parseFloat(price),
+          price: parseFloat(finalPrice.toFixed(2)),
           discount: parseFloat(discount) || undefined,
           imageUrl: imageUrl.trim() || undefined,
           items: bundleItems,
@@ -191,22 +214,6 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Bundle Price (GHS) *
-            </label>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., 25.50"
-              disabled={loading}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
               Discount (%)
             </label>
             <input
@@ -221,6 +228,34 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
               disabled={loading}
             />
           </div>
+
+          {/* Price Calculation Display */}
+          {bundleItems.length > 0 && (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2">
+              <h4 className="text-sm font-semibold text-gray-700 mb-3">💰 Price Calculation</h4>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Original Total:</span>
+                <span className="font-medium">GHS {originalTotal.toFixed(2)}</span>
+              </div>
+              {parseFloat(discount) > 0 && (
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>Discount ({discount}%):</span>
+                  <span className="font-medium">- GHS {savingsAmount.toFixed(2)}</span>
+                </div>
+              )}
+              <div className="border-t border-gray-300 pt-2 mt-2">
+                <div className="flex justify-between text-lg font-bold">
+                  <span className="text-gray-800">Final Bundle Price:</span>
+                  <span className="text-blue-600">GHS {finalPrice.toFixed(2)}</span>
+                </div>
+              </div>
+              {parseFloat(discount) > 0 && (
+                <p className="text-xs text-green-600 mt-1">
+                  ✨ Customers save GHS {savingsAmount.toFixed(2)} ({discount}% off)
+                </p>
+              )}
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
