@@ -22,7 +22,8 @@ export interface Product {
   id: string | number;
   nameEnglish: string;
   nameLocal: string;
-  category: ProductCategory | string | number;  // Can be object with id, or direct ID
+  categoryId: number;  // Backend field name
+  category?: ProductCategory;  // Optional populated category object
   unitType: string;
   pricePerUnit: number | string;  // Can come as string from API
   imageUrl?: string;  // Added image URL
