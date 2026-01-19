@@ -103,19 +103,12 @@ const ProductsPage: React.FC = () => {
 
   // Filter logic
   let filtered = products.filter(p => {
-    // Category filter - handle both object and string/number category
+    // Category filter - use categoryId which is a number from backend
     let categoryMatch = filters.category === "All";
     if (!categoryMatch && filters.category !== "All") {
-      // Debug: log what we're comparing
-      console.log(`🔍 Filtering product: ${p.nameEnglish}, product.category:`, p.category, `filter value: ${filters.category}`);
-      
-      if (typeof p.category === 'object' && p.category?.id) {
-        categoryMatch = p.category.id.toString() === filters.category;
-        console.log(`  → Object match: ${categoryMatch}`);
-      } else if (typeof p.category === 'string' || typeof p.category === 'number') {
-        categoryMatch = p.category.toString() === filters.category;
-        console.log(`  → String/Number match: ${categoryMatch}`);
-      }
+      // filters.category is the selected category ID as a string from the dropdown
+      // p.categoryId is a number from the backend
+      categoryMatch = p.categoryId?.toString() === filters.category;
     }
     
     const statusMatch = filters.status === "All" || (filters.status === "Active" ? p.active : !p.active);
