@@ -102,22 +102,20 @@ const ProductsPage: React.FC = () => {
   };
 
   // Filter logic
-  console.log('🔍 [Filter] Starting filter with:', { filterCategory: filters.category, totalProducts: products.length });
-  
   let filtered = products.filter(p => {
-    // Category filter - check both categoryId (direct) and Category.id (Prisma relation)
+    // Category filter - robust check for all possible field names/formats
     let categoryMatch = filters.category === "All";
     if (!categoryMatch && filters.category !== "All") {
-      // Backend returns categoryId as number AND Category as object (from Prisma include)
-      const productCategoryId = (p as any).categoryId || (p as any).Category?.id;
-      console.log(`🔍 [Filter] Product: ${p.nameEnglish}`, {
-        categoryId: (p as any).categoryId,
-        CategoryObj: (p as any).Category,
-        productCategoryId,
-        filterValue: filters.category,
-        match: productCategoryId?.toString() === filters.category
-      });
-      categoryMatch = productCategoryId?.toString() === filters.category;
+      const prod = p as any;
+      // Check all possible ways category ID could be stored
+      const productCategoryId = 
+        prod.categoryId ||           // Direct field (number)
+        prod.Category?.id ||         // Prisma relation (capital C)
+        prod.category?.id ||         // Lowercase relation
+        (typeof prod.category === 'number' ? prod.category : null) ||  // Direct number
+        (typeof prod.category === 'string' ? prod.category : null);    // Direct string
+      
+      categoryMatch = String(productCategoryId) === String(filters.category);
     }
     
     const statusMatch = filters.status === "All" || (filters.status === "Active" ? p.active : !p.active);
