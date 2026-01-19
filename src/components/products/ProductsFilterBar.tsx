@@ -1,5 +1,5 @@
 import React from "react";
-import type { ProductCategory, InventoryStatus } from "./ProductTypes";
+import type { InventoryStatus } from "./ProductTypes";
 
 interface ProductsFilterBarProps {
   status: string;

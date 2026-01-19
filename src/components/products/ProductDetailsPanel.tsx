@@ -42,7 +42,7 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
         unitType: product.unitType,
         description: product.description || '',
         imageUrl: product.imageUrl || '',
-        categoryId: typeof product.category === 'object' ? product.category.id?.toString() : product.category?.toString() || '',
+        categoryId: (product as any).categoryId?.toString() || (product as any).Category?.id?.toString() || '',
         inventoryQuantity: product.inventory?.quantity || 0,
       });
       setEditing(false);
