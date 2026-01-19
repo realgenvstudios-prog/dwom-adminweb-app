@@ -102,12 +102,21 @@ const ProductsPage: React.FC = () => {
   };
 
   // Filter logic
+  console.log('🔍 [Filter] Starting filter with:', { filterCategory: filters.category, totalProducts: products.length });
+  
   let filtered = products.filter(p => {
     // Category filter - check both categoryId (direct) and Category.id (Prisma relation)
     let categoryMatch = filters.category === "All";
     if (!categoryMatch && filters.category !== "All") {
       // Backend returns categoryId as number AND Category as object (from Prisma include)
       const productCategoryId = (p as any).categoryId || (p as any).Category?.id;
+      console.log(`🔍 [Filter] Product: ${p.nameEnglish}`, {
+        categoryId: (p as any).categoryId,
+        CategoryObj: (p as any).Category,
+        productCategoryId,
+        filterValue: filters.category,
+        match: productCategoryId?.toString() === filters.category
+      });
       categoryMatch = productCategoryId?.toString() === filters.category;
     }
     
