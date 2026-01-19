@@ -103,12 +103,12 @@ const ProductsPage: React.FC = () => {
 
   // Filter logic
   let filtered = products.filter(p => {
-    // Category filter - use categoryId which is a number from backend
+    // Category filter - check both categoryId (direct) and Category.id (Prisma relation)
     let categoryMatch = filters.category === "All";
     if (!categoryMatch && filters.category !== "All") {
-      // filters.category is the selected category ID as a string from the dropdown
-      // p.categoryId is a number from the backend
-      categoryMatch = p.categoryId?.toString() === filters.category;
+      // Backend returns categoryId as number AND Category as object (from Prisma include)
+      const productCategoryId = (p as any).categoryId || (p as any).Category?.id;
+      categoryMatch = productCategoryId?.toString() === filters.category;
     }
     
     const statusMatch = filters.status === "All" || (filters.status === "Active" ? p.active : !p.active);
