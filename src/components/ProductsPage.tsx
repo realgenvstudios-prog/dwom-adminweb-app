@@ -18,7 +18,7 @@ const mockCategories: ProductCategory[] = [
 const ProductsPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<ProductCategory[]>(mockCategories);
-  const [filters, setFilters] = useState({ status: "All", stock: "All", search: "" });
+  const [filters, setFilters] = useState({ category: "All", status: "All", stock: "All", search: "" });
   const [sortBy, setSortBy] = useState("nameEnglish");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
@@ -103,6 +103,14 @@ const ProductsPage: React.FC = () => {
 
   // Filter logic
   let filtered = products.filter(p => {
+    // Category filter - get product category ID from any possible field
+    let categoryMatch = filters.category === "All";
+    if (!categoryMatch) {
+      const prod = p as any;
+      const productCatId = String(prod.categoryId || prod.Category?.id || '');
+      categoryMatch = productCatId === filters.category;
+    }
+    
     const statusMatch = filters.status === "All" || (filters.status === "Active" ? p.active : !p.active);
     
     // Stock filter
@@ -114,7 +122,7 @@ const ProductsPage: React.FC = () => {
     const searchMatch = p.nameEnglish.toLowerCase().includes(filters.search.toLowerCase()) ||
       p.nameLocal.toLowerCase().includes(filters.search.toLowerCase());
     
-    return statusMatch && stockMatch && searchMatch;
+    return categoryMatch && statusMatch && stockMatch && searchMatch;
   });
   
   // Sort logic
@@ -176,10 +184,12 @@ const ProductsPage: React.FC = () => {
           <>
             {/* Filter Bar */}
             <ProductsFilterBar
+              categories={categories}
+              category={filters.category}
               status={filters.status}
               stock={filters.stock as InventoryStatus | "All"}
               search={filters.search}
-              onChange={f => { setFilters({ status: f.status, stock: f.stock, search: f.search }); setPage(1); }}
+              onChange={f => { setFilters({ category: f.category, status: f.status, stock: f.stock, search: f.search }); setPage(1); }}
             />
             
             {/* Table */}
