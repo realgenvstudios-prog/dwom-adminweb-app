@@ -366,15 +366,77 @@ class MarketingService {
   }
 
   /**
-   * Get analytics for specific cart code
+   * Send broadcast notification via Firebase
    */
-  async getCartCodeAnalyticsById(codeId: number): Promise<CartCodeAnalytics> {
+  async sendBroadcastNotification(data: {
+    title: string;
+    body: string;
+    type?: 'promotion' | 'product_update' | 'system_message';
+    data?: Record<string, string>;
+  }): Promise<{ successCount: number; failureCount: number }> {
     try {
-      console.log(`🛒 [MarketingService] Fetching analytics for code ${codeId}...`);
-      const analytics = (await adminApiClient.get(`/marketing/codes/${codeId}/analytics`)) as any;
-      return analytics;
+      console.log('📡 [MarketingService] Sending broadcast notification via Firebase...');
+      const result = (await adminApiClient.post('/notifications/broadcast', data)) as any;
+      return result;
     } catch (error: any) {
-      console.error('❌ Failed to fetch cart code analytics:', error.message);
+      console.error('❌ Failed to send broadcast notification:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Send promotion notification to specific users
+   */
+  async sendPromotionNotification(data: {
+    title: string;
+    body: string;
+    promotionId?: string;
+    userIds?: string[];
+  }): Promise<{ successCount: number; failureCount: number }> {
+    try {
+      console.log('🎉 [MarketingService] Sending promotion notification...');
+      const result = (await adminApiClient.post('/notifications/promotion', data)) as any;
+      return result;
+    } catch (error: any) {
+      console.error('❌ Failed to send promotion notification:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Send product update notification
+   */
+  async sendProductUpdateNotification(data: {
+    title: string;
+    body: string;
+    productId: string;
+  }): Promise<{ successCount: number; failureCount: number }> {
+    try {
+      console.log('📦 [MarketingService] Sending product update notification...');
+      const result = (await adminApiClient.post('/notifications/product-update', data)) as any;
+      return result;
+    } catch (error: any) {
+      console.error('❌ Failed to send product update notification:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Send notification to multiple users
+   */
+  async sendToUsers(data: {
+    userIds: string[];
+    title: string;
+    body: string;
+    type?: string;
+    data?: Record<string, string>;
+  }): Promise<{ successCount: number; failureCount: number }> {
+    try {
+      console.log('👥 [MarketingService] Sending notification to users...');
+      const result = (await adminApiClient.post('/notifications/send-to-users', data)) as any;
+      return result;
+    } catch (error: any) {
+      console.error('❌ Failed to send notification to users:', error.message);
       throw error;
     }
   }
