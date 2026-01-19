@@ -106,10 +106,15 @@ const ProductsPage: React.FC = () => {
     // Category filter - handle both object and string/number category
     let categoryMatch = filters.category === "All";
     if (!categoryMatch && filters.category !== "All") {
+      // Debug: log what we're comparing
+      console.log(`🔍 Filtering product: ${p.nameEnglish}, product.category:`, p.category, `filter value: ${filters.category}`);
+      
       if (typeof p.category === 'object' && p.category?.id) {
         categoryMatch = p.category.id.toString() === filters.category;
+        console.log(`  → Object match: ${categoryMatch}`);
       } else if (typeof p.category === 'string' || typeof p.category === 'number') {
         categoryMatch = p.category.toString() === filters.category;
+        console.log(`  → String/Number match: ${categoryMatch}`);
       }
     }
     
