@@ -72,4 +72,4 @@ export default defineConfig([
 ])
 ```
 
-trigger
+<!-- Deployment trigger: 2026-01-21 - SPA routing verification -->
