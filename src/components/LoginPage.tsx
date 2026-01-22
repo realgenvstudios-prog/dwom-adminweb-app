@@ -115,6 +115,7 @@ const LoginPage: React.FC = () => {
           <p className="text-xs text-gray-600 font-medium">Demo Credentials:</p>
           <p className="text-xs text-gray-500 mt-1">Email: admin@dwom.com</p>
           <p className="text-xs text-gray-500">Password: test@123</p>
+          <p className="text-xs text-green-600 mt-2 font-semibold">✓ Deployment verified - Jan 21</p>
         </div>
 
         {/* Footer */}
