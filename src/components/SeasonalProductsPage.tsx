@@ -14,7 +14,6 @@ interface Product {
 }
 
 interface SeasonalConfig {
-  bannerImageUrls?: string[];
   rotationFrequency: 'daily' | 'weekly' | 'monthly';
   featuredProductId: number;
 }
@@ -23,15 +22,12 @@ const SeasonalProductsPage: React.FC = () => {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [seasonalProducts, setSeasonalProducts] = useState<Product[]>([]);
   const [config, setConfig] = useState<SeasonalConfig>({
-    bannerImageUrls: [],
     rotationFrequency: 'daily',
     featuredProductId: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [bannerUrls, setBannerUrls] = useState<string[]>([]);
-  const [newBannerUrl, setNewBannerUrl] = useState<string>('');
 
   // Fetch data on mount
   useEffect(() => {
@@ -53,34 +49,12 @@ const SeasonalProductsPage: React.FC = () => {
       setAllProducts(allProds || []);
       setSeasonalProducts(seasonalProds || []);
       setConfig(seasonalConfig);
-      setBannerUrls(seasonalConfig?.bannerImageUrls || []);
     } catch (err: any) {
       console.error('Failed to fetch seasonal data:', err);
       setError(err.message || 'Failed to load data');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleBannerUrlChange = (urls: string[]) => {
-    setBannerUrls(urls);
-    setConfig({
-      ...config,
-      bannerImageUrls: urls,
-    });
-  };
-
-  const handleAddBannerUrl = () => {
-    if (newBannerUrl.trim()) {
-      const updatedUrls = [...bannerUrls, newBannerUrl.trim()];
-      handleBannerUrlChange(updatedUrls);
-      setNewBannerUrl('');
-    }
-  };
-
-  const handleRemoveBannerUrl = (index: number) => {
-    const updatedUrls = bannerUrls.filter((_, i) => i !== index);
-    handleBannerUrlChange(updatedUrls);
   };
 
   const handleToggleSeasonal = async (productId: number, isCurrentlySeasonal: boolean) => {
@@ -137,7 +111,6 @@ const SeasonalProductsPage: React.FC = () => {
       const updateData: any = {
         rotationFrequency: config.rotationFrequency,
         featuredProductId: config.featuredProductId,
-        bannerImageUrls: bannerUrls,
       };
 
       await seasonalService.updateSeasonalConfig(updateData);
@@ -173,50 +146,6 @@ const SeasonalProductsPage: React.FC = () => {
         <h2 className="text-2xl font-semibold text-gray-900 mb-6">Configuration</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {/* Banner URLs Input */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Banner Images (Multiple) - Add Cloudinary URLs
-            </label>
-            <div className="space-y-2 mb-4">
-              {bannerUrls.map((url, index) => (
-                <div key={index} className="flex items-start gap-2">
-                  <div className="flex-1">
-                    <div className="text-xs text-gray-600 truncate">{url}</div>
-                    <img
-                      src={url}
-                      alt={`Banner ${index + 1}`}
-                      className="w-20 h-12 object-cover rounded border border-gray-300 mt-1"
-                      onError={() => console.error(`Failed to load banner ${index + 1}`)}
-                    />
-                  </div>
-                  <button
-                    onClick={() => handleRemoveBannerUrl(index)}
-                    className="text-red-600 hover:text-red-800 font-medium text-sm mt-1"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newBannerUrl}
-                onChange={(e) => setNewBannerUrl(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleAddBannerUrl()}
-                placeholder="Paste Cloudinary URL..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm"
-              />
-              <button
-                onClick={handleAddBannerUrl}
-                className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 text-sm font-medium"
-              >
-                Add
-              </button>
-            </div>
-          </div>
-
           {/* Rotation Frequency */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
