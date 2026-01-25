@@ -30,8 +30,7 @@ const SeasonalProductsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [bannerFile, setBannerFile] = useState<File | null>(null);
-  const [bannerPreview, setBannerPreview] = useState<string>('');
+  const [bannerUrl, setBannerUrl] = useState<string>('');
 
   // Fetch data on mount
   useEffect(() => {
@@ -53,7 +52,7 @@ const SeasonalProductsPage: React.FC = () => {
       setAllProducts(allProds || []);
       setSeasonalProducts(seasonalProds || []);
       setConfig(seasonalConfig);
-      setBannerPreview(seasonalConfig.bannerImageUrl || '');
+      setBannerUrl(seasonalConfig?.bannerImageUrl || '');
     } catch (err: any) {
       console.error('Failed to fetch seasonal data:', err);
       setError(err.message || 'Failed to load data');
@@ -62,31 +61,36 @@ const SeasonalProductsPage: React.FC = () => {
     }
   };
 
-  const handleBannerFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setBannerFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setBannerPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleBannerUrlChange = (url: string) => {
+    setBannerUrl(url);
+    setConfig({
+      ...config,
+      bannerImageUrl: url,
+    });
   };
 
   const handleToggleSeasonal = async (productId: number, isCurrentlySeasonal: boolean) => {
     try {
       setSaving(true);
       const product = allProducts.find(p => p.id === productId);
-      if (!product) return;
+      if (!product) {
+        setError('Product not found');
+        return;
+      }
 
+      // Toggle seasonal status
       await seasonalService.toggleSeasonalStatus(
         productId,
         !isCurrentlySeasonal,
-        product.seasonalDiscount
+        product.seasonalDiscount || 0
       );
 
-      // Refresh data
+      // Update local state immediately
+      setAllProducts(allProducts.map(p =>
+        p.id === productId ? { ...p, seasonal: !isCurrentlySeasonal } : p
+      ));
+
+      // Refresh data from server
       await fetchData();
     } catch (err: any) {
       console.error('Failed to toggle seasonal status:', err);
@@ -119,12 +123,8 @@ const SeasonalProductsPage: React.FC = () => {
       const updateData: any = {
         rotationFrequency: config.rotationFrequency,
         featuredProductId: config.featuredProductId,
+        bannerImageUrl: bannerUrl,
       };
-
-      if (bannerFile) {
-        // TODO: Upload banner to Cloudinary if needed
-        updateData.bannerImageUrl = config.bannerImageUrl;
-      }
 
       await seasonalService.updateSeasonalConfig(updateData);
       setError(null);
@@ -159,26 +159,29 @@ const SeasonalProductsPage: React.FC = () => {
         <h2 className="text-2xl font-semibold text-gray-900 mb-6">Configuration</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {/* Banner Upload */}
+          {/* Banner URL Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Banner Image
+              Banner Image URL (from Cloudinary)
             </label>
-            <div className="flex items-center gap-4">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleBannerFileChange}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
-              />
-              {bannerPreview && (
+            <input
+              type="text"
+              value={bannerUrl}
+              onChange={(e) => handleBannerUrlChange(e.target.value)}
+              placeholder="https://res.cloudinary.com/..."
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none mb-2"
+            />
+            {bannerUrl && (
+              <div className="flex items-center gap-2">
                 <img
-                  src={bannerPreview}
+                  src={bannerUrl}
                   alt="Banner preview"
-                  className="w-20 h-20 object-cover rounded"
+                  className="w-32 h-20 object-cover rounded border border-gray-300"
+                  onError={() => console.error('Failed to load image from URL')}
                 />
-              )}
-            </div>
+                <span className="text-xs text-gray-500">Banner preview</span>
+              </div>
+            )}
           </div>
 
           {/* Rotation Frequency */}
