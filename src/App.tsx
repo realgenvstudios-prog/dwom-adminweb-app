@@ -10,6 +10,7 @@ import WarehouseOperationsPage from './components/WarehouseOperationsPage';
 import ProductsPage from './components/ProductsPage';
 import CategoriesPage from './components/CategoriesPage';
 import BundlesPage from './components/BundlesPage';
+import SeasonalProductsPage from './components/SeasonalProductsPage';
 import SubscriptionsPage from './components/SubscriptionsPage';
 import RidersPage from './components/RidersPage';
 import FinancePage from './components/FinancePage';
@@ -90,6 +91,16 @@ const App: React.FC = () => {
           <ProtectedRoute>
             <Layout>
               <BundlesPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/seasonal"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <SeasonalProductsPage />
             </Layout>
           </ProtectedRoute>
         }
