@@ -1,7 +1,10 @@
 {
+  "env": {
+    "VITE_API_URL": "@api_url"
+  },
   "rewrites": [
     {
-      "source": "/((?!api/.*).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
