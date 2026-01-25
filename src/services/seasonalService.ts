@@ -3,7 +3,7 @@ import adminApiClient from './apiClient';
 const BASE_URL = '/seasonal';
 
 interface SeasonalConfig {
-  bannerImageUrl: string;
+  bannerImageUrls?: string[];
   rotationFrequency: 'daily' | 'weekly' | 'monthly';
   featuredProductId: number;
 }
