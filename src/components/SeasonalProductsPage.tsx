@@ -9,7 +9,6 @@ interface Product {
   price: number;
   pricePerUnit: number;
   seasonal: boolean;
-  seasonalDiscount: number;
   imageUrl?: string;
 }
 
@@ -69,8 +68,7 @@ const SeasonalProductsPage: React.FC = () => {
       // Toggle seasonal status
       await seasonalService.toggleSeasonalStatus(
         productId,
-        !isCurrentlySeasonal,
-        product.seasonalDiscount || 0
+        !isCurrentlySeasonal
       );
 
       // Update local state immediately
@@ -88,22 +86,6 @@ const SeasonalProductsPage: React.FC = () => {
     }
   };
 
-  const handleDiscountChange = async (productId: number, discount: number) => {
-    try {
-      setSaving(true);
-      await seasonalService.updateSeasonalDiscount(productId, discount);
-      
-      // Update local state
-      setAllProducts(allProducts.map(p =>
-        p.id === productId ? { ...p, seasonalDiscount: discount } : p
-      ));
-    } catch (err: any) {
-      console.error('Failed to update discount:', err);
-      setError(err.message || 'Failed to update discount');
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const handleSaveConfig = async () => {
     try {
@@ -222,9 +204,6 @@ const SeasonalProductsPage: React.FC = () => {
                 <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">
                   In Season
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                  Seasonal Discount %
-                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -264,24 +243,6 @@ const SeasonalProductsPage: React.FC = () => {
                         className="w-5 h-5 rounded border-gray-300 text-red-600 focus:ring-red-500"
                       />
                     </label>
-                  </td>
-                  <td className="px-6 py-4">
-                    {product.seasonal && (
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={product.seasonalDiscount}
-                        onChange={(e) =>
-                          handleDiscountChange(
-                            product.id,
-                            parseFloat(e.target.value)
-                          )
-                        }
-                        disabled={saving}
-                        className="w-20 px-3 py-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-red-500 outline-none"
-                      />
-                    )}
                   </td>
                 </tr>
               ))}

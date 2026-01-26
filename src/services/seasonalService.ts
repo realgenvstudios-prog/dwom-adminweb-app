@@ -49,21 +49,13 @@ const seasonalService = {
   },
 
   // Toggle product as seasonal
-  async toggleSeasonalStatus(productId: number, seasonal: boolean, seasonalDiscount: number = 0) {
+  async toggleSeasonalStatus(productId: number, seasonal: boolean) {
     const response: any = await adminApiClient.patch(`${BASE_URL}/products/${productId}/toggle`, {
       seasonal,
-      seasonalDiscount,
     });
     return response?.data || response;
   },
 
-  // Update seasonal discount for a product
-  async updateSeasonalDiscount(productId: number, discount: number) {
-    const response: any = await adminApiClient.patch(`${BASE_URL}/products/${productId}/discount`, {
-      discount,
-    });
-    return response?.data || response;
-  },
 };
 
 export default seasonalService;
