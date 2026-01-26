@@ -7,8 +7,17 @@ import CreateOrderModal from "./orders/CreateOrderModal";
 import type { Order, OrdersFilterState, RiderSummary } from "./orders/OrderTypes";
 import ordersService from "../services/ordersService";
 
+// Get today's date in YYYY-MM-DD format
+const getTodayString = (): string => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const defaultFilter: OrdersFilterState = {
-  dateRange: ["2025-12-11", "2025-12-11"],
+  dateRange: [getTodayString(), getTodayString()],
   status: "All",
   paymentStatus: "All",
   zone: "All",
