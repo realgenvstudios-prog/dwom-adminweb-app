@@ -10,6 +10,7 @@ export interface Product {
   pricePerUnit: number;
   unitType: string;
   active: boolean;
+  discount?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -40,6 +41,7 @@ export interface UpdateProductDto {
   unitType?: string;
   active?: boolean;
   imageUrl?: string;
+  discount?: number;
 }
 
 export const productsService = {

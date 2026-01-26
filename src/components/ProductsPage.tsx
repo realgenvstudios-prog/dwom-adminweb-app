@@ -27,6 +27,7 @@ const ProductsPage: React.FC = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [discountUpdating, setDiscountUpdating] = useState(false);
   const pageSize = 10;
 
   // Fetch products and categories on mount
@@ -141,6 +142,19 @@ const ProductsPage: React.FC = () => {
   });
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
+  const handleDiscountChange = async (productId: number, discount: number) => {
+    try {
+      setDiscountUpdating(true);
+      await productsService.update(productId, { discount });
+      setProducts(products.map(p => p.id === productId ? { ...p, discount } : p));
+    } catch (err: any) {
+      console.error('❌ Failed to update discount:', err);
+      setError('Failed to update discount');
+    } finally {
+      setDiscountUpdating(false);
+    }
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
       <div className="max-w-screen-2xl mx-auto">
@@ -206,6 +220,8 @@ const ProductsPage: React.FC = () => {
               pageSize={pageSize}
               total={filtered.length}
               onPageChange={setPage}
+              onDiscountChange={handleDiscountChange}
+              discountUpdating={discountUpdating}
             />
           </>
         )}

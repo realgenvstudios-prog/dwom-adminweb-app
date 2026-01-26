@@ -13,6 +13,8 @@ interface ProductsTableProps {
   onPageChange: (page: number) => void;
   selectedProducts?: string[];
   onSelectionChange?: (productIds: string[]) => void;
+  onDiscountChange?: (productId: number, discount: number) => void;
+  discountUpdating?: boolean;
 }
 
 const ProductsTable: React.FC<ProductsTableProps> = ({ 
@@ -27,6 +29,8 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
   onPageChange,
   selectedProducts = [],
   onSelectionChange,
+  onDiscountChange,
+  discountUpdating,
 }) => {
   const handleProductCheck = (productId: string) => {
     if (!onSelectionChange) return;
@@ -70,6 +74,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
             <th className="px-4 py-3 text-left">Category</th>
             <th className="px-4 py-3 text-left">Unit</th>
             <th className="px-4 py-3 text-left cursor-pointer" onClick={() => onSort("pricePerUnit")}>Price (GHS) {sortBy === "pricePerUnit" && (sortDir === "asc" ? "▲" : "▼")}</th>
+            <th className="px-4 py-3 text-left">Discount %</th>
             <th className="px-4 py-3 text-left">Inventory</th>
             <th className="px-4 py-3 text-left">Active</th>
             <th className="px-4 py-3 text-left">Actions</th>
@@ -101,6 +106,18 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
               </td>
               <td className="px-4 py-3 cursor-pointer" onClick={() => onRowClick(product)}>{product.unitType}</td>
               <td className="px-4 py-3 cursor-pointer" onClick={() => onRowClick(product)}>GHS {typeof product.pricePerUnit === 'string' ? parseFloat(product.pricePerUnit).toFixed(2) : (product.pricePerUnit as number).toFixed(2)}</td>
+              <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={product.discount || 0}
+                  onChange={(e) => onDiscountChange?.(product.id as number, parseFloat(e.target.value))}
+                  disabled={discountUpdating}
+                  className="w-16 px-2 py-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100"
+                  placeholder="0"
+                />
+              </td>
               <td className="px-4 py-3 cursor-pointer" onClick={() => onRowClick(product)}>
                 <span className={`px-2 py-1 rounded text-xs font-semibold ${product.inventoryStatus === "In stock" ? "bg-green-100 text-green-700" : product.inventoryStatus === "Low" ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}>{product.inventoryStatus}</span>
               </td>

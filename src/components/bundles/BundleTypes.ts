@@ -3,6 +3,7 @@ export interface Product {
   nameEnglish: string;
   nameLocal: string;
   pricePerUnit: number | string;
+  discount?: number;  // Optional discount percentage (0-100)
   [key: string]: any;
 }
 

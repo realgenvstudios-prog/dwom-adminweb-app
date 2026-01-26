@@ -30,6 +30,7 @@ export interface Product {
   inventoryStatus: InventoryStatus;
   active: boolean;
   description: string;
+  discount?: number;  // Optional discount percentage (0-100)
   inventoryQuantity?: number;
   reorderLevel?: number;
   bundles?: ProductBundle[];
