@@ -37,8 +37,11 @@ export const ordersService = {
       const response = await adminApiClient.get<any>(
         `/orders/admin/all`
       );
-      console.log('✅ [OrdersService] Orders fetched:', Array.isArray(response) ? response.length : 0);
-      return response;
+      // Backend returns { data: orders, pagination: {...} }
+      // Extract the data array directly
+      const orders = response?.data || response || [];
+      console.log('✅ [OrdersService] Orders fetched:', Array.isArray(orders) ? orders.length : 0);
+      return orders;
     } catch (error) {
       console.error('❌ [OrdersService] Failed to fetch orders:', error);
       throw error;
