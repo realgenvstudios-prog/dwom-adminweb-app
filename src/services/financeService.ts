@@ -1,5 +1,11 @@
 import adminApiClient from './apiClient';
 
+function asArray<T>(value: any): T[] {
+  if (Array.isArray(value)) return value as T[];
+  if (Array.isArray(value?.data)) return value.data as T[];
+  return [];
+}
+
 export interface FinanceKPIs {
   gmv: number;
   netRevenue: number;
@@ -47,8 +53,8 @@ class FinanceService {
       console.log('💰 [FinanceService] Calculating KPIs...');
 
       // Fetch all orders
-      const orders = (await adminApiClient.get('/orders/admin/all')) as any;
-      const allOrders = orders || [];
+      const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
+      const allOrders = asArray<any>(ordersResponse);
 
       // Calculate KPIs
       const gmv = allOrders.reduce((sum: number, order: any) => sum + (order.total || 0), 0);
@@ -97,8 +103,8 @@ class FinanceService {
     try {
       console.log(`📈 [FinanceService] Fetching revenue trends for ${days} days...`);
 
-      const orders = (await adminApiClient.get('/orders/admin/all')) as any;
-      const allOrders = orders || [];
+      const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
+      const allOrders = asArray<any>(ordersResponse);
 
       // Group by date
       const dateMap = new Map<string, { gmv: number; net: number }>();
@@ -144,8 +150,8 @@ class FinanceService {
     try {
       console.log('🗺️ [FinanceService] Fetching revenue by zone...');
 
-      const orders = (await adminApiClient.get('/orders/admin/all')) as any;
-      const allOrders = orders || [];
+      const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
+      const allOrders = asArray<any>(ordersResponse);
 
       // Group by zone
       const zoneMap = new Map<string, number>();
@@ -179,8 +185,8 @@ class FinanceService {
     try {
       console.log('👥 [FinanceService] Fetching top customers...');
 
-      const orders = (await adminApiClient.get('/orders/admin/all')) as any;
-      const allOrders = orders || [];
+      const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
+      const allOrders = asArray<any>(ordersResponse);
 
       // Group by customer
       const customerMap = new Map<
@@ -240,8 +246,8 @@ class FinanceService {
     try {
       console.log('❌ [FinanceService] Fetching failed payments...');
 
-      const orders = (await adminApiClient.get('/orders/admin/all')) as any;
-      const allOrders = orders || [];
+      const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
+      const allOrders = asArray<any>(ordersResponse);
 
       // Filter failed payments
       const failedPayments = allOrders

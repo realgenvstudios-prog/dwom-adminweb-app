@@ -7,6 +7,16 @@ interface Product {
   quantity: number;
 }
 
+interface LowStockInventory {
+  id: number;
+  quantity: number;
+  Product?: {
+    id: number;
+    nameEnglish: string;
+    imageUrl?: string;
+  };
+}
+
 const InventoryAlerts: React.FC = () => {
   const [alerts, setAlerts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
@@ -18,22 +28,23 @@ const InventoryAlerts: React.FC = () => {
   const fetchInventoryAlerts = async () => {
     try {
       setLoading(true);
-      const products = (await adminApiClient.get('/products')) as any;
-      
-      // Filter products with low or no stock
-      const lowStockProducts = (products || [])
-        .filter((p: any) => {
-          const quantity = p.Inventory?.[0]?.quantity || 0;
-          return quantity <= 10; // Low stock: 10 or less
-        })
-        .slice(0, 3)
-        .map((p: any) => ({
-          id: p.id,
-          nameEnglish: p.nameEnglish,
-          quantity: p.Inventory?.[0]?.quantity || 0,
-        }));
-      
-      setAlerts(lowStockProducts);
+
+      // Use backend low-stock endpoint (already computed server-side)
+      const response = (await adminApiClient.get(
+        `/admin/dashboard/low-stock?limit=3`
+      )) as any;
+
+      const lowStock = (Array.isArray(response) ? response : response?.data || []) as LowStockInventory[];
+
+      const mapped: Product[] = lowStock
+        .map((inv) => ({
+          id: inv.Product?.id ?? inv.id,
+          nameEnglish: inv.Product?.nameEnglish ?? 'Unknown',
+          quantity: inv.quantity ?? 0,
+        }))
+        .slice(0, 3);
+
+      setAlerts(mapped);
     } catch (error) {
       console.error("Failed to fetch inventory alerts:", error);
     } finally {

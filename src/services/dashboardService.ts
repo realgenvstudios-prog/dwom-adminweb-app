@@ -1,5 +1,11 @@
 import adminApiClient from './apiClient';
 
+function asArray<T>(value: any): T[] {
+  if (Array.isArray(value)) return value as T[];
+  if (Array.isArray(value?.data)) return value.data as T[];
+  return [];
+}
+
 export interface DashboardStats {
   totalOrdersToday: number;
   completedOrders: number;
@@ -100,7 +106,8 @@ class DashboardService {
       console.log('📦 [DashboardService] Fetching product statistics...');
       
       // Fetch all products
-      const products = (await adminApiClient.get('/products')) as any;
+      const productsResponse = (await adminApiClient.get('/products')) as any;
+      const products = asArray<any>(productsResponse);
 
       const totalProducts = products.length;
       
@@ -163,48 +170,21 @@ class DashboardService {
   async getPopularProducts(limit: number = 5): Promise<PopularProduct[]> {
     try {
       console.log('⭐ [DashboardService] Fetching popular products...');
-      
-      // Fetch all orders with items AND all products for image data
-      const [orders, allProducts] = await Promise.all([
-        (adminApiClient.get('/orders/admin/all')) as Promise<any>,
-        (adminApiClient.get('/products')) as Promise<any>,
-      ]);
 
-      // Create product map with images
-      const productImageMap = new Map<number, string>();
-      allProducts.forEach((product: any) => {
-        if (product.id && product.imageUrl) {
-          productImageMap.set(product.id, product.imageUrl);
-        }
-      });
+      // Use backend dashboard stats endpoint (fast + reliable)
+      const topProductsResponse = (await adminApiClient.get(
+        `/admin/dashboard/top-products?limit=${limit}`
+      )) as any;
 
-      // Group products by sales
-      const productMap = new Map<number, { nameEnglish: string; quantity: number; revenue: number; imageUrl?: string }>();
+      const topProducts = asArray<any>(topProductsResponse);
 
-      orders.forEach((order: any) => {
-        if (order.OrderItem && Array.isArray(order.OrderItem)) {
-          order.OrderItem.forEach((item: any) => {
-            if (!productMap.has(item.productId)) {
-              productMap.set(item.productId, {
-                nameEnglish: item.Product?.nameEnglish || 'Unknown',
-                quantity: 0,
-                revenue: 0,
-                imageUrl: productImageMap.get(item.productId),
-              });
-            }
-
-            const existing = productMap.get(item.productId)!;
-            existing.quantity += item.quantity || 0;
-            existing.revenue += item.totalPrice || 0;
-          });
-        }
-      });
-
-      // Convert to array and sort by quantity
-      const popularProducts = Array.from(productMap.entries())
-        .map(([id, data]) => ({ id, ...data }))
-        .sort((a, b) => b.quantity - a.quantity)
-        .slice(0, limit);
+      const popularProducts: PopularProduct[] = topProducts.map((p: any) => ({
+        id: p.productId,
+        nameEnglish: p.name || 'Unknown',
+        quantity: p.quantity || 0,
+        revenue: p.revenue || 0,
+        imageUrl: p.image,
+      }));
 
       console.log('✅ [DashboardService] Popular products:', popularProducts);
       return popularProducts;
@@ -222,7 +202,8 @@ class DashboardService {
       console.log(`📊 [DashboardService] Fetching revenue data for last ${days} days...`);
       
       // Fetch all orders
-      const orders = (await adminApiClient.get('/orders/admin/all')) as any;
+      const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
+      const orders = asArray<any>(ordersResponse);
 
       // Group by date
       const dateMap = new Map<string, { orders: number; revenue: number }>();

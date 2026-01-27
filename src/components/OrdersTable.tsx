@@ -5,7 +5,7 @@ interface Order {
   id: number;
   User: { name: string };
   Zone: { name: string } | null;
-  Rider: { name: string } | null;
+  Rider: { name: string; User?: { name?: string } } | null;
   total: number;
   status: string;
 }
@@ -21,7 +21,9 @@ const OrdersTable: React.FC = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const allOrders = (await adminApiClient.get('/orders/admin/all')) as any;
+      const response = (await adminApiClient.get('/orders/admin/all')) as any;
+      const allOrders = Array.isArray(response) ? response : response?.data || [];
+
       const recentOrders = (allOrders || [])
         .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, 4);
@@ -64,7 +66,7 @@ const OrdersTable: React.FC = () => {
                   <td className="py-2 pr-4 font-medium">{formatOrderId(order.id)}</td>
                   <td className="py-2 pr-4">{order.User?.name || "N/A"}</td>
                   <td className="py-2 pr-4">{order.Zone?.name || "Unassigned"}</td>
-                  <td className="py-2 pr-4">{order.Rider?.name || "Not assigned"}</td>
+                  <td className="py-2 pr-4">{order.Rider?.User?.name || order.Rider?.name || "Not assigned"}</td>
                   <td className="py-2 pr-4 font-medium">GH₵ {order.total.toFixed(2)}</td>
                 </tr>
               ))
