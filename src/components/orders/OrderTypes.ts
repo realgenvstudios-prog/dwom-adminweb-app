@@ -24,6 +24,7 @@ export interface Order {
   zone: string;
   rider: RiderSummary | null;
   items: OrderItem[];
+  itemsCount?: number;
   total: number;
   paymentStatus: PaymentStatus;
   orderStatus: OrderStatus;

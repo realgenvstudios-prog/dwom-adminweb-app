@@ -46,28 +46,28 @@ const OrdersPage: React.FC = () => {
         const data = await ordersService.getAll();
         
         // Transform backend data to frontend format
-        const transformedOrders: Order[] = Array.isArray(data) ? data.map((order: any) => ({
+        const transformedOrders: Order[] = Array.isArray(data) ? data.map((order: any) => {
+          const itemsCount =
+            (order?._count?.OrderItem || 0) +
+            (order?._count?.BundleOrderItem || 0);
+
+          return ({
           id: order.id?.toString() || `DW-ORD-${order.id}`,
           time: new Date(order.createdAt).toLocaleString(),
           customer: order.User?.name || `User ${order.userId}`,
           phone: order.Address?.phone || order.User?.phoneNumber || 'N/A',
           address: order.Address?.addressText || 'N/A',
           zone: order.Address?.addressText || order.User?.region || 'N/A',
-          rider: order.Rider ? { id: order.Rider.id.toString(), name: order.Rider.name } : null,
-          items: [
-            ...(order.OrderItem?.map((item: any) => ({
-              id: item.id.toString(),
-              name: item.Product?.nameEnglish || `Product ${item.productId}`,
-              quantity: item.quantity,
-              price: item.unitPrice || 0,
-            })) || []),
-            ...(order.BundleOrderItem?.map((item: any) => ({
-              id: `bundle-${item.id}`,
-              name: item.Bundle?.name || `Bundle ${item.bundleId}`,
-              quantity: item.quantity,
-              price: item.unitPrice || 0,
-            })) || []),
-          ],
+          rider: order.Rider
+            ? {
+                id: order.Rider.id.toString(),
+                name: order.Rider.User?.name || order.Rider.name || `Rider ${order.Rider.id}`,
+              }
+            : null,
+          // Admin list endpoint is optimized and does NOT include item arrays (only _count)
+          // Items are fetched on-demand in the details drawer.
+          items: [],
+          itemsCount,
           total: order.total || 0,
           paymentStatus: order.paymentStatus || 'Pending',
           orderStatus: order.status || 'Pending',
@@ -86,7 +86,8 @@ const OrdersPage: React.FC = () => {
             rating: review.rating,
             comment: review.comment,
           })) || [],
-        })) : [];
+        });
+        }) : [];
         
         console.log('✅ [OrdersPage] Orders loaded:', transformedOrders.length);
         setOrders(transformedOrders);

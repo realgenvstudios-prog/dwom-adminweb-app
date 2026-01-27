@@ -56,7 +56,7 @@ const OrdersTable: React.FC<Props> = ({ orders, onRowClick, page, pageSize, tota
               <td className="py-2 px-2">{order.customer}</td>
               <td className="py-2 px-2">{order.zone}</td>
               <td className="py-2 px-2">{order.rider?.name || <span className="text-gray-400">—</span>}</td>
-              <td className="py-2 px-2 text-right">{order.items.length}</td>
+              <td className="py-2 px-2 text-right">{order.itemsCount ?? order.items.length}</td>
               <td className="py-2 px-2 text-right">GHS {order.total.toLocaleString()}</td>
               <td className="py-2 px-2 text-center">
                 <span className={`px-2 py-1 rounded-full text-xs font-semibold ${paymentColors[order.paymentStatus]}`}>{order.paymentStatus}</span>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import type { Order } from "./OrderTypes";
 import ordersService from "../../services/ordersService";
 
@@ -11,10 +11,62 @@ interface Props {
 
 const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpdated }) => {
   const [loading, setLoading] = useState(false);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [detailsError, setDetailsError] = useState<string | null>(null);
+  const [detailsItems, setDetailsItems] = useState<Order['items']>([]);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const [paymentDropdownOpen, setPaymentDropdownOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>(order?.orderStatus || "sorting");
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<string>(order?.paymentStatus || "pending");
+
+  const orderIdNum = useMemo(() => {
+    if (!order?.id) return null;
+    const idNum = Number.parseInt(order.id, 10);
+    return Number.isFinite(idNum) ? idNum : null;
+  }, [order?.id]);
+
+  useEffect(() => {
+    if (!order) return;
+    setSelectedStatus(order.orderStatus || 'sorting');
+    setSelectedPaymentStatus(order.paymentStatus || 'pending');
+  }, [order]);
+
+  useEffect(() => {
+    const fetchDetails = async () => {
+      if (!open || !orderIdNum) return;
+      try {
+        setDetailsLoading(true);
+        setDetailsError(null);
+        console.log(`📦 [OrderDetailsDrawer] Fetching full order details for ${orderIdNum}`);
+        const fullOrder: any = await ordersService.getById(orderIdNum);
+
+        const productItems = (fullOrder?.OrderItem || []).map((item: any) => ({
+          id: item.id?.toString() || `product-${item.productId}`,
+          name: item.Product?.nameEnglish || `Product ${item.productId}`,
+          quantity: item.quantity || 0,
+          price: item.unitPrice || 0,
+        }));
+
+        const bundleItems = (fullOrder?.BundleOrderItem || []).map((item: any) => ({
+          id: `bundle-${item.id}`,
+          name: item.Bundle?.name || `Bundle ${item.bundleId}`,
+          quantity: item.quantity || 0,
+          price: item.unitPrice || 0,
+        }));
+
+        setDetailsItems([...productItems, ...bundleItems]);
+        console.log('✅ [OrderDetailsDrawer] Loaded items:', productItems.length + bundleItems.length);
+      } catch (e: any) {
+        console.error('❌ [OrderDetailsDrawer] Failed to load order details:', e);
+        setDetailsError(e?.message || 'Failed to load order items');
+        setDetailsItems([]);
+      } finally {
+        setDetailsLoading(false);
+      }
+    };
+
+    fetchDetails();
+  }, [open, orderIdNum]);
 
   // New order statuses: sorting → ready → on_the_way → arrived → delivered (+ cancelled anytime)
   const statuses = ["sorting", "ready", "on_the_way", "arrived", "delivered", "cancelled"];
@@ -147,14 +199,22 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
           </div>
           <div>
             <div className="font-semibold text-gray-700 mb-1">Items</div>
-            <ul className="divide-y divide-gray-100">
-              {order.items.map((item, i) => (
-                <li key={i} className="py-2 flex items-center justify-between">
-                  <span className="text-xs text-gray-700">{item.name} × {item.quantity}</span>
-                  <span className="text-xs font-semibold text-gray-700">GHS {item.price.toLocaleString()}</span>
-                </li>
-              ))}
-            </ul>
+            {detailsLoading ? (
+              <div className="py-4 text-sm text-gray-500">Loading items…</div>
+            ) : detailsError ? (
+              <div className="py-4 text-sm text-red-600">❌ {detailsError}</div>
+            ) : detailsItems.length === 0 ? (
+              <div className="py-4 text-sm text-gray-400">— No items found for this order</div>
+            ) : (
+              <ul className="divide-y divide-gray-100">
+                {detailsItems.map((item, i) => (
+                  <li key={item.id || i} className="py-2 flex items-center justify-between">
+                    <span className="text-xs text-gray-700">{item.name} × {item.quantity}</span>
+                    <span className="text-xs font-semibold text-gray-700">GHS {item.price.toLocaleString()}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <div>
             <div className="font-semibold text-gray-700 mb-1">Timeline</div>
