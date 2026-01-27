@@ -56,7 +56,9 @@ class DashboardService {
   async getOrderStats(): Promise<DashboardStats> {
     try {
       console.log('📊 [DashboardService] Fetching order statistics...');
-      const response = await adminApiClient.get<DashboardStats>('/orders/stats/overview');
+
+      // Prefer admin dashboard stats endpoint for consistency
+      const response = await adminApiClient.get<DashboardStats>('/admin/dashboard/orders');
       console.log('✅ [DashboardService] Order stats loaded:', response);
       return response;
     } catch (error: any) {
