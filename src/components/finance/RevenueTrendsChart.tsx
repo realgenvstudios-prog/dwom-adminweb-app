@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import ReactApexChart from "react-apexcharts";
 import financeService from "../../services/financeService";
 
+const REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minutes for trend data
+
 const RevenueTrendsChart: React.FC = () => {
   const [series, setSeries] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -9,6 +11,13 @@ const RevenueTrendsChart: React.FC = () => {
 
   useEffect(() => {
     fetchRevenueTrends();
+
+    // Set up auto-refresh interval
+    const interval = setInterval(() => {
+      fetchRevenueTrends();
+    }, REFRESH_INTERVAL);
+
+    return () => clearInterval(interval);
   }, []);
 
   const fetchRevenueTrends = async () => {

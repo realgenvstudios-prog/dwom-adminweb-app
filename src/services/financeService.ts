@@ -10,6 +10,7 @@ export interface FinanceKPIs {
   gmv: number;
   netRevenue: number;
   grossProfit: number;
+  grossProfitMargin: number;
   avgOrderValue: number;
   mrr: number;
   activeSubscriptions: number;
@@ -46,33 +47,58 @@ export interface FailedPayment {
 
 class FinanceService {
   /**
-   * Calculate finance KPIs from orders data
+   * Get finance KPIs - Calculate from orders data with error handling
    */
   async getFinanceKPIs(): Promise<FinanceKPIs> {
     try {
-      console.log('💰 [FinanceService] Calculating KPIs...');
+      console.log('💰 [FinanceService] Calculating KPIs from orders...');
 
       // Fetch all orders
-      const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
-      const allOrders = asArray<any>(ordersResponse);
+      let allOrders: any[] = [];
+      try {
+        const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
+        allOrders = asArray<any>(ordersResponse);
+      } catch (orderError) {
+        console.warn('⚠️ Could not fetch /orders/admin/all, returning zero values', orderError);
+        // Return zero values if orders can't be fetched
+        return {
+          gmv: 0,
+          netRevenue: 0,
+          grossProfit: 0,
+          grossProfitMargin: 22.0,
+          avgOrderValue: 0,
+          mrr: 0,
+          activeSubscriptions: 0,
+          failedPaymentRate: 0,
+        };
+      }
 
-      // Calculate KPIs
+      // Calculate GMV (all orders)
       const gmv = allOrders.reduce((sum: number, order: any) => sum + (order.total || 0), 0);
       
-      // Net revenue = sum of paid orders
+      // Net revenue (paid orders only)
       const paidOrders = allOrders.filter((o: any) => o.paymentStatus === 'paid');
       const netRevenue = paidOrders.reduce((sum: number, order: any) => sum + (order.total || 0), 0);
       
-      // Gross profit estimate (22% margin)
-      const grossProfit = 0.22;
+      // Gross profit margin (22% default, will be configurable via backend later)
+      const grossProfitMargin = 22.0;
+      const grossProfit = netRevenue * (grossProfitMargin / 100);
       
-      // Average order value
-      const avgOrderValue = paidOrders.length > 0 ? parseFloat((netRevenue / paidOrders.length).toFixed(2)) : 0;
+      // Average order value (from paid orders)
+      const avgOrderValue = paidOrders.length > 0 ? netRevenue / paidOrders.length : 0;
       
-      // MRR (Monthly recurring revenue) - estimated from subscriptions
-      const subscriptions = (await adminApiClient.get('/subscriptions')) as any;
-      const activeSubscriptions = (subscriptions || []).filter((s: any) => s.status === 'active').length;
-      const mrr = activeSubscriptions * 25; // Assuming GHS 25/month per subscription
+      // MRR from subscriptions
+      let activeSubscriptions = 0;
+      try {
+        const subscriptionsResponse = (await adminApiClient.get('/subscriptions')) as any;
+        const subscriptions = asArray<any>(subscriptionsResponse);
+        activeSubscriptions = subscriptions.filter((s: any) => s.status === 'active').length;
+      } catch (subError) {
+        console.warn('⚠️ Could not fetch subscriptions', subError);
+      }
+      
+      const subscriptionPrice = 25.0; // Default GHS/month
+      const mrr = activeSubscriptions * subscriptionPrice;
       
       // Failed payment rate
       const failedOrders = allOrders.filter((o: any) => o.paymentStatus === 'failed');
@@ -81,8 +107,9 @@ class FinanceService {
       const kpis: FinanceKPIs = {
         gmv: parseFloat(gmv.toFixed(2)),
         netRevenue: parseFloat(netRevenue.toFixed(2)),
-        grossProfit,
-        avgOrderValue,
+        grossProfit: parseFloat(grossProfit.toFixed(2)),
+        grossProfitMargin: grossProfitMargin,
+        avgOrderValue: parseFloat(avgOrderValue.toFixed(2)),
         mrr: parseFloat(mrr.toFixed(2)),
         activeSubscriptions,
         failedPaymentRate,
@@ -92,19 +119,39 @@ class FinanceService {
       return kpis;
     } catch (error: any) {
       console.error('❌ [FinanceService] Failed to calculate KPIs:', error.message);
-      throw error;
+      // Return zero values on error instead of throwing
+      return {
+        gmv: 0,
+        netRevenue: 0,
+        grossProfit: 0,
+        grossProfitMargin: 22.0,
+        avgOrderValue: 0,
+        mrr: 0,
+        activeSubscriptions: 0,
+        failedPaymentRate: 0,
+      };
     }
   }
 
   /**
-   * Get revenue trends for the past N days
+   * Get revenue trends for the past N days with error handling
    */
   async getRevenueTrends(days: number = 7): Promise<RevenueTrend[]> {
     try {
       console.log(`📈 [FinanceService] Fetching revenue trends for ${days} days...`);
 
-      const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
-      const allOrders = asArray<any>(ordersResponse);
+      let allOrders: any[] = [];
+      try {
+        const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
+        allOrders = asArray<any>(ordersResponse);
+      } catch (orderError) {
+        console.warn('⚠️ Could not fetch /orders/admin/all for trends', orderError);
+        return [];
+      }
+
+      if (!allOrders || allOrders.length === 0) {
+        return [];
+      }
 
       // Group by date
       const dateMap = new Map<string, { gmv: number; net: number }>();

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import dashboardService, { type PopularProduct } from "../services/dashboardService";
+import { POPULAR_ITEMS_LIMIT } from "../constants/limits";
 
 const PopularItems: React.FC = () => {
   const [products, setProducts] = useState<PopularProduct[]>([]);
@@ -12,7 +13,7 @@ const PopularItems: React.FC = () => {
   const fetchPopularProducts = async () => {
     try {
       setLoading(true);
-      const popularProducts = await dashboardService.getPopularProducts(5);
+      const popularProducts = await dashboardService.getPopularProducts(POPULAR_ITEMS_LIMIT);
       setProducts(popularProducts);
     } catch (error) {
       console.error("Failed to fetch popular products:", error);

@@ -21,20 +21,29 @@ const LoginPage: React.FC = () => {
       }
 
       console.log('🔐 [LoginPage] Attempting login with email:', email);
-      await adminAuthService.login(email, password);
+      const authResponse = await adminAuthService.login(email, password);
       
-      // Verify token was saved
+      // Verify token and user data were saved
       const savedToken = localStorage.getItem('admin_token');
-      console.log('✅ [LoginPage] Login successful, token saved:', { tokenExists: !!savedToken, tokenLength: savedToken?.length || 0 });
+      const savedUser = localStorage.getItem('admin_user');
+      console.log('✅ [LoginPage] Login successful:', { 
+        tokenExists: !!savedToken, 
+        tokenLength: savedToken?.length || 0,
+        userExists: !!savedUser,
+        userName: authResponse.admin?.name 
+      });
       
-      // Small delay to ensure token is persisted before redirecting
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Small delay to ensure data is persisted before redirecting
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       // Redirect to dashboard
+      console.log('🔀 [LoginPage] Redirecting to dashboard...');
       navigate('/dashboard', { replace: true });
     } catch (err: any) {
       console.error('❌ [LoginPage] Login failed:', err);
-      setError(err.message || 'Login failed. Please check your credentials.');
+      const errorMessage = err.message || 'Login failed. Please check your credentials.';
+      setError(errorMessage);
+      console.error('📋 [LoginPage] Error message:', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -110,12 +119,10 @@ const LoginPage: React.FC = () => {
           </button>
         </form>
 
-        {/* Demo Credentials Info */}
+        {/* Auth Note */}
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-600 font-medium">Demo Credentials:</p>
-          <p className="text-xs text-gray-500 mt-1">Email: admin@dwom.com</p>
-          <p className="text-xs text-gray-500">Password: test@123</p>
-          <p className="text-xs text-green-600 mt-2 font-semibold">✓ Deployment verified - Jan 21</p>
+          <p className="text-xs text-gray-600 font-medium">Sign in with your admin email/password.</p>
+          <p className="text-xs text-gray-500 mt-1">If you can’t log in, your email may not be added as an admin in the backend database.</p>
         </div>
 
         {/* Footer */}

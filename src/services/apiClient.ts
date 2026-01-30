@@ -62,8 +62,13 @@ class AdminApiClient {
 
       if (!response.ok) {
         if (response.status === 401) {
+          console.log('🔴 [AdminAPI] 401 Unauthorized on GET', endpoint);
           this.clearToken();
-          window.location.href = '/login';
+          localStorage.removeItem('admin_user');
+          // Only redirect if not already on login page
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
         }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
@@ -93,8 +98,13 @@ class AdminApiClient {
 
       if (!response.ok) {
         if (response.status === 401) {
+          console.log('🔴 [AdminAPI] 401 Unauthorized on POST', endpoint);
           this.clearToken();
-          window.location.href = '/login';
+          localStorage.removeItem('admin_user');
+          // Only redirect if not already on login page
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
         }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
@@ -124,8 +134,13 @@ class AdminApiClient {
 
       if (!response.ok) {
         if (response.status === 401) {
+          console.log('🔴 [AdminAPI] 401 Unauthorized on PATCH', endpoint);
           this.clearToken();
-          window.location.href = '/login';
+          localStorage.removeItem('admin_user');
+          // Only redirect if not already on login page
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
         }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
@@ -154,8 +169,13 @@ class AdminApiClient {
 
       if (!response.ok) {
         if (response.status === 401) {
+          console.log('🔴 [AdminAPI] 401 Unauthorized on DELETE', endpoint);
           this.clearToken();
-          window.location.href = '/login';
+          localStorage.removeItem('admin_user');
+          // Only redirect if not already on login page
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
         }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }

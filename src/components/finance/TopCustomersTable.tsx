@@ -1,21 +1,34 @@
 import React, { useState, useEffect } from "react";
 import financeService, { type TopCustomer } from "../../services/financeService";
 
+const REFRESH_INTERVAL = 15 * 60 * 1000; // 15 minutes for customer data
+
 const TopCustomersTable: React.FC = () => {
   const [customers, setCustomers] = useState<TopCustomer[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTopCustomers();
+
+    // Set up auto-refresh interval
+    const interval = setInterval(() => {
+      fetchTopCustomers();
+    }, REFRESH_INTERVAL);
+
+    return () => clearInterval(interval);
   }, []);
 
   const fetchTopCustomers = async () => {
     try {
       setLoading(true);
+      setError(null);
       const topCustomers = await financeService.getTopCustomers(6);
       setCustomers(topCustomers);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to fetch top customers:", error);
+      setError(error?.message || "Failed to load top customers");
+      setCustomers([]);
     } finally {
       setLoading(false);
     }
@@ -24,7 +37,12 @@ const TopCustomersTable: React.FC = () => {
   return (
     <div className="bg-white rounded-xl shadow p-6 mb-8 overflow-x-auto">
       <h3 className="text-lg font-semibold mb-4">Top Customers</h3>
-      {loading ? (
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm">
+          ⚠️ {error}
+        </div>
+      )}
+      {loading && !customers.length ? (
         <div className="flex items-center justify-center py-8">
           <svg className="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

@@ -13,12 +13,21 @@ interface KPICard {
   color: string;
 }
 
+const REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes for main dashboard
+
 const DashboardPage: React.FC = () => {
   const [kpis, setKpis] = useState<KPICard[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
+
+    // Set up auto-refresh interval
+    const interval = setInterval(() => {
+      fetchDashboardData();
+    }, REFRESH_INTERVAL);
+
+    return () => clearInterval(interval);
   }, []);
 
   const fetchDashboardData = async () => {
