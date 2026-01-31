@@ -1,5 +1,4 @@
 import React from "react";
-import FinanceFilterBar from "./finance/FinanceFilterBar";
 import FinanceKpiRow from "./finance/FinanceKpiRow";
 import RevenueTrendsChart from "./finance/RevenueTrendsChart";
 import RevenueByZoneChart from "./finance/RevenueByZoneChart";
@@ -12,10 +11,6 @@ const FinancePage: React.FC = () => {
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
       <div className="max-w-screen-2xl mx-auto">
-        {/* Filters Section */}
-        <div className="mb-8">
-          <FinanceFilterBar />
-        </div>
         {/* KPI Grid */}
         <div className="mb-8">
           {/* First row: 4 KPI cards */}
