@@ -111,7 +111,7 @@ const OrdersTable: React.FC<Props> = ({
                   </span>
                 </td>
                 <td className="py-2 px-2 text-center">
-                  {!order.rider && order.orderStatus !== 'Cancelled' ? (
+                  {!order.rider && order.orderStatus !== 'Canceled' ? (
                     <button
                       onClick={(e) => handleAssignRider(parseInt(order.id.replace('DW-ORD-', '')), e)}
                       className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200"

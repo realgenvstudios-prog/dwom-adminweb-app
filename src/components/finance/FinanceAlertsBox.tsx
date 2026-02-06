@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import financeService, { type FinanceKPIs } from "../../services/financeService";
+import financeService from "../../services/financeService";
 
 const FinanceAlertsBox: React.FC = () => {
   const [alerts, setAlerts] = useState<string[]>([]);

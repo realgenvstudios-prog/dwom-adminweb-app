@@ -17,7 +17,6 @@ const RidersPage: React.FC = () => {
   const [isCreateRiderModalOpen, setIsCreateRiderModalOpen] = useState(false);
   const [isAssignZoneModalOpen, setIsAssignZoneModalOpen] = useState(false);
   const [selectedRiderForZone, setSelectedRiderForZone] = useState<RiderData | null>(null);
-  const [users, setUsers] = useState<any[]>([]);
   const [isRiderDetailsOpen, setIsRiderDetailsOpen] = useState(false);
   const [selectedRiderForDetails, setSelectedRiderForDetails] = useState<RiderData | null>(null);
   const [isZoneManagementOpen, setIsZoneManagementOpen] = useState(false);
@@ -32,10 +31,9 @@ const RidersPage: React.FC = () => {
       setError(null);
       console.log("🚴 [RidersPage] Fetching riders and zones");
 
-      const [ridersData, zonesData, usersData] = await Promise.all([
+      const [ridersData, zonesData] = await Promise.all([
         ridersService.getAllRiders(),
         ridersService.getAllZones(),
-        ridersService.getAllUsers(),
       ]);
 
       console.log("✅ [RidersPage] Data loaded");
