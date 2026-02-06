@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import marketingService, { type NotificationTemplate } from "../../services/marketingService";
+import ridersService from "../../services/ridersService";
+import type { Zone } from "../../services/ridersService";
 
 interface SendNotificationModalProps {
   open: boolean;
@@ -10,6 +12,7 @@ interface SendNotificationModalProps {
 const SendNotificationModal: React.FC<SendNotificationModalProps> = ({ open, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [templates, setTemplates] = useState<NotificationTemplate[]>([]);
+  const [zones, setZones] = useState<Zone[]>([]);
   const [notificationType, setNotificationType] = useState<'template' | 'custom'>('template');
   const [formData, setFormData] = useState({
     templateId: 0,
@@ -24,6 +27,7 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({ open, onC
   useEffect(() => {
     if (open) {
       fetchTemplates();
+      fetchZones();
     }
   }, [open]);
 
@@ -36,6 +40,15 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({ open, onC
       }
     } catch (error) {
       console.error("Failed to fetch templates:", error);
+    }
+  };
+
+  const fetchZones = async () => {
+    try {
+      const data = await ridersService.getAllZones();
+      setZones(data);
+    } catch (error) {
+      console.error("Failed to fetch zones:", error);
     }
   };
 
@@ -226,25 +239,29 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({ open, onC
           {notificationType === 'template' && (
             <div>
               <label className="block text-sm font-medium mb-2">Target Zones (Optional - all if empty)</label>
-              <div className="space-y-2">
-                {["Accra Central", "East Legon", "Osu", "Airport", "Tema"].map((zone, idx) => (
-                  <label key={zone} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={formData.targetZones.includes(idx)}
-                      onChange={() => {
-                        setFormData(prev => ({
-                          ...prev,
-                          targetZones: prev.targetZones.includes(idx)
-                            ? prev.targetZones.filter(z => z !== idx)
-                            : [...prev.targetZones, idx],
-                        }));
-                      }}
-                    />
-                    <span className="text-sm">{zone}</span>
-                  </label>
-                ))}
-              </div>
+              {zones.length === 0 ? (
+                <p className="text-sm text-gray-500">No zones available. Create zones in the Riders Management section.</p>
+              ) : (
+                <div className="space-y-2">
+                  {zones.map((zone) => (
+                    <label key={zone.id} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.targetZones.includes(zone.id)}
+                        onChange={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            targetZones: prev.targetZones.includes(zone.id)
+                              ? prev.targetZones.filter(z => z !== zone.id)
+                              : [...prev.targetZones, zone.id],
+                          }));
+                        }}
+                      />
+                      <span className="text-sm">{zone.name}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

@@ -108,6 +108,35 @@ class RidersService {
   }
 
   /**
+   * Create a new zone
+   */
+  async createZone(dto: { name: string; description?: string; lat: number; lng: number; radius: number; deliveryFee?: number }): Promise<Zone> {
+    try {
+      console.log('🗺️ [RidersService] Creating new zone');
+      const response = await fetch(`${API_BASE_URL}/riders/zones`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+        },
+        body: JSON.stringify(dto),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.message || `Failed to create zone: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ [RidersService] Zone created successfully');
+      return data;
+    } catch (error: any) {
+      console.error('❌ [RidersService] Failed to create zone:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Update rider status (offline, available, busy, on_delivery)
    */
   async updateRiderStatus(riderId: number, status: string): Promise<RiderData> {
@@ -186,6 +215,35 @@ class RidersService {
       return data;
     } catch (error: any) {
       console.error(`❌ [RidersService] Failed to register rider:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create a new rider as admin (simplified flow)
+   */
+  async createRiderAdmin(dto: { name: string; phone: string; email?: string; vehicleType: string; licenseNumber?: string }): Promise<RiderData> {
+    try {
+      console.log(`🚴 [RidersService] Creating new rider as admin`);
+      const response = await fetch(`${API_BASE_URL}/riders/admin/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+        },
+        body: JSON.stringify(dto),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.message || `Failed to create rider: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(`✅ [RidersService] Rider created successfully`);
+      return data;
+    } catch (error: any) {
+      console.error(`❌ [RidersService] Failed to create rider:`, error);
       throw error;
     }
   }

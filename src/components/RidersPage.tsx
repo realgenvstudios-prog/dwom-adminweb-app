@@ -3,6 +3,8 @@ import ridersService from "../services/ridersService";
 import type { RiderData, Zone } from "../services/ridersService";
 import CreateRiderModal from "./riders/CreateRiderModal";
 import AssignZoneModal from "./riders/AssignZoneModal";
+import RiderDetailsModal from "./riders/RiderDetailsModal";
+import ZoneManagementModal from "./riders/ZoneManagementModal";
 
 const RidersPage: React.FC = () => {
   const [riders, setRiders] = useState<RiderData[]>([]);
@@ -15,7 +17,9 @@ const RidersPage: React.FC = () => {
   const [isCreateRiderModalOpen, setIsCreateRiderModalOpen] = useState(false);
   const [isAssignZoneModalOpen, setIsAssignZoneModalOpen] = useState(false);
   const [selectedRiderForZone, setSelectedRiderForZone] = useState<RiderData | null>(null);
-  const [users, setUsers] = useState<any[]>([]);
+  const [isRiderDetailsOpen, setIsRiderDetailsOpen] = useState(false);
+  const [selectedRiderForDetails, setSelectedRiderForDetails] = useState<RiderData | null>(null);
+  const [isZoneManagementOpen, setIsZoneManagementOpen] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -27,16 +31,14 @@ const RidersPage: React.FC = () => {
       setError(null);
       console.log("🚴 [RidersPage] Fetching riders and zones");
 
-      const [ridersData, zonesData, usersData] = await Promise.all([
+      const [ridersData, zonesData] = await Promise.all([
         ridersService.getAllRiders(),
         ridersService.getAllZones(),
-        ridersService.getAllUsers(),
       ]);
 
       console.log("✅ [RidersPage] Data loaded");
       setRiders(ridersData || []);
       setZones(zonesData || []);
-      setUsers(usersData || []);
     } catch (err: any) {
       console.error("❌ [RidersPage] Failed to fetch data:", err);
       setError(err.message || "Failed to load riders data");
@@ -126,6 +128,31 @@ const RidersPage: React.FC = () => {
     }
   };
 
+  const handleReactivate = async (rider: RiderData) => {
+    if (
+      !window.confirm(`Are you sure you want to reactivate ${rider.name}?`)
+    ) {
+      return;
+    }
+
+    try {
+      await ridersService.reactivateRider(rider.id);
+      setRiders(
+        riders.map((r) =>
+          r.id === rider.id ? { ...r, isActive: true, status: "available" } : r
+        )
+      );
+    } catch (err: any) {
+      console.error("Failed to reactivate rider:", err);
+      alert("Failed to reactivate rider");
+    }
+  };
+
+  const handleViewDetails = (rider: RiderData) => {
+    setSelectedRiderForDetails(rider);
+    setIsRiderDetailsOpen(true);
+  };
+
   const handleCreateRider = () => {
     setIsCreateRiderModalOpen(true);
   };
@@ -149,6 +176,15 @@ const RidersPage: React.FC = () => {
             <p className="text-gray-600 mt-1">Manage delivery riders and track performance</p>
           </div>
           <div className="flex gap-2">
+            <button
+              onClick={() => setIsZoneManagementOpen(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.3A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z" />
+              </svg>
+              Manage Zones
+            </button>
             <button
               onClick={handleCreateRider}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
@@ -279,7 +315,7 @@ const RidersPage: React.FC = () => {
                       </tr>
                     ) : (
                       filteredRiders.map((rider) => (
-                        <tr key={rider.id} className="border-b hover:bg-gray-50">
+                        <tr key={rider.id} className="border-b hover:bg-gray-50 cursor-pointer" onClick={() => handleViewDetails(rider)}>
                           <td className="py-4 px-4 font-medium">{rider.name}</td>
                           <td className="py-4 px-4 text-gray-600">
                             <div className="text-sm">{rider.phone}</div>
@@ -323,14 +359,14 @@ const RidersPage: React.FC = () => {
                               {rider.isActive ? (
                                 <>
                                   <button
-                                    onClick={() => handleAssignZone(rider)}
+                                    onClick={(e) => {e.stopPropagation(); handleAssignZone(rider);}}
                                     className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200"
                                     title="Assign to zone"
                                   >
                                     Zone
                                   </button>
                                   <button
-                                    onClick={() => handleDeactivate(rider)}
+                                    onClick={(e) => {e.stopPropagation(); handleDeactivate(rider);}}
                                     className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200"
                                     title="Deactivate rider"
                                   >
@@ -338,9 +374,13 @@ const RidersPage: React.FC = () => {
                                   </button>
                                 </>
                               ) : (
-                                <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600">
-                                  Inactive
-                                </span>
+                                <button
+                                  onClick={(e) => {e.stopPropagation(); handleReactivate(rider);}}
+                                  className="text-xs px-2 py-1 rounded bg-green-100 text-green-700 hover:bg-green-200"
+                                  title="Reactivate rider"
+                                >
+                                  Reactivate
+                                </button>
                               )}
                             </div>
                           </td>
@@ -358,8 +398,6 @@ const RidersPage: React.FC = () => {
         <CreateRiderModal
           isOpen={isCreateRiderModalOpen}
           onClose={() => setIsCreateRiderModalOpen(false)}
-          zones={zones}
-          users={users}
           onSuccess={handleModalSuccess}
         />
 
@@ -369,6 +407,20 @@ const RidersPage: React.FC = () => {
           onClose={() => setIsAssignZoneModalOpen(false)}
           rider={selectedRiderForZone}
           zones={zones}
+          onSuccess={handleModalSuccess}
+        />
+
+        {/* Rider Details Modal */}
+        <RiderDetailsModal
+          isOpen={isRiderDetailsOpen}
+          onClose={() => setIsRiderDetailsOpen(false)}
+          rider={selectedRiderForDetails}
+        />
+
+        {/* Zone Management Modal */}
+        <ZoneManagementModal
+          isOpen={isZoneManagementOpen}
+          onClose={() => setIsZoneManagementOpen(false)}
           onSuccess={handleModalSuccess}
         />
       </div>

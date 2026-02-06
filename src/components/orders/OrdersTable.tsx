@@ -9,8 +9,6 @@ interface Props {
   pageSize: number;
   total: number;
   onPageChange: (page: number) => void;
-  onStatusUpdate?: (orderId: number, newStatus: string) => void;
-  onRiderAssign?: (orderId: number, riderId: number) => void;
 }
 
 const statusColors: Record<string, string> = {
@@ -43,9 +41,7 @@ const OrdersTable: React.FC<Props> = ({
   page, 
   pageSize, 
   total, 
-  onPageChange,
-  onStatusUpdate,
-  onRiderAssign 
+  onPageChange
 }) => {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
@@ -96,13 +92,13 @@ const OrdersTable: React.FC<Props> = ({
                   {order.rider ? (
                     <div className="text-sm">
                       <div className="font-medium">{order.rider.name}</div>
-                      <div className="text-xs text-gray-500">{order.phone}</div>
+                      <div className="text-xs text-gray-500">{order.phone || '—'}</div>
                     </div>
                   ) : (
                     <span className="text-gray-400">—</span>
                   )}
                 </td>
-                <td className="py-2 px-2 text-right">{order.itemsCount ?? order.items.length}</td>
+                <td className="py-2 px-2 text-right">{order.itemsCount ?? order.items?.length ?? 0}</td>
                 <td className="py-2 px-2 text-right">GHS {order.total.toLocaleString()}</td>
                 <td className="py-2 px-2 text-center">
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${paymentColors[order.paymentStatus] || 'bg-gray-100 text-gray-700'}`}>

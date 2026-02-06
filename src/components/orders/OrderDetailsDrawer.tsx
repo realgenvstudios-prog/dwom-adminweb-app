@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import type { Order } from "./OrderTypes";
 import ordersService from "../../services/ordersService";
+import ridersService, { type RiderData } from "../../services/ridersService";
 
 interface Props {
   open: boolean;
@@ -18,6 +19,12 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
   const [paymentDropdownOpen, setPaymentDropdownOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>(order?.orderStatus || "sorting");
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<string>(order?.paymentStatus || "pending");
+  
+  // Rider assignment modal state
+  const [riderModalOpen, setRiderModalOpen] = useState(false);
+  const [availableRiders, setAvailableRiders] = useState<RiderData[]>([]);
+  const [ridersLoading, setRidersLoading] = useState(false);
+  const [selectedRiderId, setSelectedRiderId] = useState<number | null>(null);
 
   const orderIdNum = useMemo(() => {
     if (!order?.id) return null;
@@ -25,9 +32,18 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
     return Number.isFinite(idNum) ? idNum : null;
   }, [order?.id]);
 
+  // Normalize old status values to new format
+  const normalizeStatus = (status: string): string => {
+    const statusMap: Record<string, string> = {
+      'on_the_way': 'rider on the way',
+      'arrived': 'rider has arrived',
+    };
+    return statusMap[status] || status;
+  };
+
   useEffect(() => {
     if (!order) return;
-    setSelectedStatus(order.orderStatus || 'sorting');
+    setSelectedStatus(normalizeStatus(order.orderStatus || 'sorting'));
     setSelectedPaymentStatus(order.paymentStatus || 'pending');
   }, [order]);
 
@@ -68,8 +84,8 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
     fetchDetails();
   }, [open, orderIdNum]);
 
-  // New order statuses: sorting → ready → on_the_way → arrived → delivered (+ cancelled anytime)
-  const statuses = ["sorting", "ready", "on_the_way", "arrived", "delivered", "cancelled"];
+  // New order statuses: sorting → ready → rider on the way → rider has arrived → delivered (+ cancelled anytime)
+  const statuses = ["sorting", "ready", "rider on the way", "rider has arrived", "delivered", "cancelled"];
   const paymentStatuses = ["pending", "paid", "failed"];
 
   // Map internal status values to display labels
@@ -77,10 +93,13 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
     const labels: Record<string, string> = {
       "sorting": "Sorting",
       "ready": "Ready",
-      "on_the_way": "On the way",
-      "arrived": "Arrived",
+      "rider on the way": "Rider on the Way",
+      "rider has arrived": "Rider Has Arrived",
       "delivered": "Delivered",
       "cancelled": "Cancelled",
+      // Fallback for old statuses
+      "on_the_way": "Rider on the Way",
+      "arrived": "Rider Has Arrived",
     };
     return labels[status] || status;
   };
@@ -136,19 +155,41 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
     }
   };
 
-  const handleReassignRider = async () => {
-    if (!order) return;
-    const riderId = prompt('Enter Rider ID:');
-    if (!riderId) return;
+  // Fetch available riders when modal opens
+  const openRiderModal = async () => {
+    setRiderModalOpen(true);
+    setRidersLoading(true);
+    try {
+      console.log('🚴 [OrderDetailsDrawer] Fetching available riders');
+      const riders = await ridersService.getAllRiders();
+      // Filter to only show active/available riders
+      const activeRiders = riders.filter(r => r.isActive);
+      setAvailableRiders(activeRiders);
+      console.log('✅ [OrderDetailsDrawer] Loaded', activeRiders.length, 'active riders');
+    } catch (error) {
+      console.error('❌ [OrderDetailsDrawer] Failed to fetch riders:', error);
+      setAvailableRiders([]);
+    } finally {
+      setRidersLoading(false);
+    }
+  };
+
+  const handleAssignRider = async () => {
+    if (!order || !selectedRiderId) return;
 
     try {
       setLoading(true);
-      console.log(`📦 [OrderDetailsDrawer] Assigning rider ${riderId} to order ${order.id}`);
-      await ordersService.assignRider(parseInt(order.id), parseInt(riderId));
+      console.log(`📦 [OrderDetailsDrawer] Assigning rider ${selectedRiderId} to order ${order.id}`);
+      await ordersService.assignRider(parseInt(order.id), selectedRiderId);
+      
+      const assignedRider = availableRiders.find(r => r.id === selectedRiderId);
       console.log('✅ [OrderDetailsDrawer] Rider assigned');
-      onOrderUpdated?.({});
-      setPaymentDropdownOpen(false);
-      alert('Rider assigned successfully');
+      
+      onOrderUpdated?.({ 
+        rider: assignedRider ? { id: String(assignedRider.id), name: assignedRider.name } : null 
+      });
+      setRiderModalOpen(false);
+      setSelectedRiderId(null);
     } catch (error) {
       console.error('❌ [OrderDetailsDrawer] Failed to assign rider:', error);
       alert('Failed to assign rider');
@@ -159,144 +200,80 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
 
   if (!open || !order) return null;
 
+  const getStatusColor = (status: string): string => {
+    const colorMap: Record<string, string> = {
+      'sorting': 'bg-blue-100 text-blue-800 border-blue-300',
+      'ready': 'bg-yellow-100 text-yellow-800 border-yellow-300',
+      'rider on the way': 'bg-purple-100 text-purple-800 border-purple-300',
+      'rider has arrived': 'bg-orange-100 text-orange-800 border-orange-300',
+      'delivered': 'bg-green-100 text-green-800 border-green-300',
+      'cancelled': 'bg-red-100 text-red-800 border-red-300',
+    };
+    return colorMap[status] || 'bg-gray-100 text-gray-800';
+  };
+
+  const getPaymentColor = (status: string): string => {
+    const colorMap: Record<string, string> = {
+      'pending': 'bg-yellow-100 text-yellow-800 border-yellow-300',
+      'paid': 'bg-green-100 text-green-800 border-green-300',
+      'failed': 'bg-red-100 text-red-800 border-red-300',
+    };
+    return colorMap[status] || 'bg-gray-100 text-gray-800';
+  };
+
   return (
     <div className="fixed inset-0 z-40 flex">
       {/* Overlay */}
       <div className="fixed inset-0 bg-black bg-opacity-30 transition-opacity pointer-events-auto" onClick={onClose} />
       {/* Drawer */}
-      <div className="ml-auto w-full max-w-xl bg-white h-full shadow-xl flex flex-col pointer-events-auto" style={{zIndex: 50}}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <div className="text-lg font-bold text-gray-900">Order Details</div>
-          <button className="text-gray-400 hover:text-gray-700" onClick={onClose} aria-label="Close">
-            <span className="text-2xl">×</span>
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-6">
-          <div>
-            <div className="font-semibold text-gray-700 mb-1">Order ID</div>
-            <div className="text-gray-900 font-bold text-lg">{order.id}</div>
-          </div>
-          <div>
-            <div className="font-semibold text-gray-700 mb-1">Customer</div>
-            <div className="text-gray-900 font-bold text-lg">{order.customer}</div>
-            <div className="text-xs text-gray-500">{order.phone} • {order.address}</div>
-          </div>
-          <div>
-            <div className="font-semibold text-gray-700 mb-1">Zone</div>
-            <div className="text-gray-900 font-medium">{order.zone}</div>
-          </div>
-          <div>
-            <div className="font-semibold text-gray-700 mb-1">Current Status</div>
-            <div className="text-gray-900 font-medium bg-blue-50 px-3 py-2 rounded inline-block">{getStatusLabel(selectedStatus)}</div>
-          </div>
-          <div>
-            <div className="font-semibold text-gray-700 mb-1">Payment Status</div>
-            <div className="text-gray-900 font-medium bg-amber-50 px-3 py-2 rounded inline-block">{getPaymentLabel(selectedPaymentStatus)}</div>
-          </div>
-          <div>
-            <div className="font-semibold text-gray-700 mb-1">Rider</div>
-            <div className="text-gray-900 font-medium">{order.rider?.name || <span className='text-gray-400'>Not assigned</span>}</div>
-          </div>
-          <div>
-            <div className="font-semibold text-gray-700 mb-1">Items</div>
-            {detailsLoading ? (
-              <div className="py-4 text-sm text-gray-500">Loading items…</div>
-            ) : detailsError ? (
-              <div className="py-4 text-sm text-red-600">❌ {detailsError}</div>
-            ) : detailsItems.length === 0 ? (
-              <div className="py-4 text-sm text-gray-400">— No items found for this order</div>
-            ) : (
-              <ul className="divide-y divide-gray-100">
-                {detailsItems.map((item, i) => (
-                  <li key={item.id || i} className="py-2 flex items-center justify-between">
-                    <span className="text-xs text-gray-700">{item.name} × {item.quantity}</span>
-                    <span className="text-xs font-semibold text-gray-700">GHS {item.price.toLocaleString()}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-          <div>
-            <div className="font-semibold text-gray-700 mb-1">Timeline</div>
-            <ul className="divide-y divide-gray-100">
-              {order.timeline.map((t, i) => (
-                <li key={i} className="py-1 flex items-center justify-between">
-                  <span className="text-xs text-gray-500">{t.time}</span>
-                  <span className="text-xs font-semibold text-gray-700">{t.status}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <div className="font-semibold text-gray-700 mb-1">Payment Ref</div>
-            <div className="text-xs text-gray-500">{order.paymentRef || <span className='text-gray-400'>—</span>}</div>
-          </div>
-          <div>
-            <div className="font-semibold text-gray-700 mb-1">Coupon / Subscription</div>
-            <div className="text-xs text-gray-500">{order.coupon || order.subscription || <span className='text-gray-400'>—</span>}</div>
-          </div>
-          {/* Rider Rating */}
-          {order.riderRating && (
+      <div className="ml-auto w-full max-w-2xl bg-white h-full shadow-xl flex flex-col pointer-events-auto" style={{zIndex: 50}}>
+        {/* Sticky Header with Actions */}
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
+          <div className="flex items-start justify-between mb-4">
             <div>
-              <div className="font-semibold text-gray-700 mb-2">Rider Rating</div>
-              <div className="bg-amber-50 p-3 rounded">
-                <div className="flex items-center gap-1 mb-1">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className={`text-lg ${i < (order.riderRating?.rating || 0) ? '⭐' : '☆'}`}>
-                      {i < (order.riderRating?.rating || 0) ? '⭐' : '☆'}
-                    </span>
-                  ))}
-                  <span className="text-xs font-bold text-amber-700 ml-2">{order.riderRating?.rating || 0}/5</span>
-                </div>
-                {order.riderRating?.comment && (
-                  <div className="text-xs text-gray-700 mt-2 italic">"{order.riderRating.comment}"</div>
-                )}
+              <div className="text-2xl font-bold text-gray-900">Order #{order.id}</div>
+              <div className="text-sm text-gray-500">{order.customer}</div>
+            </div>
+            <button className="text-gray-400 hover:text-gray-600 p-1" onClick={onClose} aria-label="Close">
+              <span className="text-2xl font-light">×</span>
+            </button>
+          </div>
+
+          {/* Status Pills */}
+          <div className="flex gap-3 flex-wrap mb-4">
+            <div>
+              <div className="text-xs font-medium text-gray-600 mb-1">Order Status</div>
+              <div className={`px-3 py-1 rounded-full text-sm font-semibold border ${getStatusColor(selectedStatus)}`}>
+                {getStatusLabel(selectedStatus)}
               </div>
             </div>
-          )}
-          {/* Product Reviews */}
-          {order.productReviews && order.productReviews.length > 0 && (
             <div>
-              <div className="font-semibold text-gray-700 mb-2">Product Reviews</div>
-              <div className="space-y-2">
-                {order.productReviews.map((review, i) => (
-                  <div key={i} className="bg-blue-50 p-3 rounded">
-                    <div className="flex items-start justify-between mb-1">
-                      <span className="text-xs font-semibold text-gray-700">{review.productName}</span>
-                      <div className="flex items-center gap-0.5">
-                        {[...Array(5)].map((_, j) => (
-                          <span key={j} className="text-sm">
-                            {j < review.rating ? '⭐' : '☆'}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    {review.comment && (
-                      <div className="text-xs text-gray-700 italic">"{review.comment}"</div>
-                    )}
-                  </div>
-                ))}
+              <div className="text-xs font-medium text-gray-600 mb-1">Payment</div>
+              <div className={`px-3 py-1 rounded-full text-sm font-semibold border ${getPaymentColor(selectedPaymentStatus)}`}>
+                {getPaymentLabel(selectedPaymentStatus)}
               </div>
             </div>
-          )}
-          <div className="flex gap-2 mt-2 flex-wrap">
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2 flex-wrap">
             {/* Update Status */}
             <div className="relative">
               <button 
                 disabled={loading}
                 onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
-                className="px-3 py-1 rounded bg-blue-100 text-blue-700 text-xs font-semibold hover:bg-blue-200 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
-                Update Status
+                📊 Change Status
               </button>
               {statusDropdownOpen && (
-                <div className="absolute top-full mt-1 bg-white border border-gray-200 rounded shadow-lg z-10 min-w-max">
+                <div className="absolute top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-20 min-w-max">
                   {statuses.map(status => (
                     <button
                       key={status}
                       onClick={() => handleUpdateStatus(status)}
                       disabled={loading}
-                      className="block w-full text-left px-4 py-2 text-xs hover:bg-blue-100 disabled:opacity-50"
+                      className="block w-full text-left px-4 py-2.5 text-sm hover:bg-blue-50 disabled:opacity-50 first:rounded-t-lg last:rounded-b-lg border-b last:border-b-0 border-gray-100"
                     >
                       {getStatusLabel(status)}
                     </button>
@@ -310,18 +287,18 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
               <button 
                 disabled={loading}
                 onClick={() => setPaymentDropdownOpen(!paymentDropdownOpen)}
-                className="px-3 py-1 rounded bg-amber-100 text-amber-700 text-xs font-semibold hover:bg-amber-200 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-semibold hover:bg-amber-700 disabled:opacity-50 transition-colors"
               >
-                Update Payment
+                💰 Payment
               </button>
               {paymentDropdownOpen && (
-                <div className="absolute top-full mt-1 bg-white border border-gray-200 rounded shadow-lg z-10 min-w-max">
+                <div className="absolute top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-20 min-w-max">
                   {paymentStatuses.map(status => (
                     <button
                       key={status}
                       onClick={() => handleUpdatePaymentStatus(status)}
                       disabled={loading}
-                      className="block w-full text-left px-4 py-2 text-xs hover:bg-amber-100 disabled:opacity-50"
+                      className="block w-full text-left px-4 py-2.5 text-sm hover:bg-amber-50 disabled:opacity-50 first:rounded-t-lg last:rounded-b-lg border-b last:border-b-0 border-gray-100"
                     >
                       {getPaymentLabel(status)}
                     </button>
@@ -330,16 +307,207 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
               )}
             </div>
 
-            {/* Reassign Rider */}
+            {/* Assign/Reassign Rider */}
             <button 
               disabled={loading}
-              onClick={handleReassignRider}
-              className="px-3 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 disabled:opacity-50"
+              onClick={openRiderModal}
+              className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 disabled:opacity-50 transition-colors"
             >
-              Reassign Rider
+              🚴 {order.rider ? 'Reassign' : 'Assign'} Rider
             </button>
           </div>
         </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6 space-y-6">
+            {/* Customer & Delivery Info */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="text-xs font-semibold text-gray-600 mb-2">CUSTOMER</div>
+                <div className="text-lg font-bold text-gray-900">{order.customer}</div>
+                <div className="text-sm text-gray-600 mt-1">{order.phone}</div>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="text-xs font-semibold text-gray-600 mb-2">RIDER</div>
+                <div className="text-lg font-bold text-gray-900">{order.rider?.name || '—'}</div>
+                <div className={`text-sm mt-1 ${order.rider ? 'text-green-700' : 'text-gray-600'}`}>
+                  {order.rider ? '✓ Assigned' : 'Not assigned'}
+                </div>
+              </div>
+            </div>
+
+            {/* Delivery Address */}
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <div className="text-xs font-semibold text-blue-700 mb-2">📍 DELIVERY ADDRESS</div>
+              <div className="text-gray-900 font-medium">{order.address}</div>
+              <div className="text-sm text-gray-600 mt-1">{order.zone}</div>
+            </div>
+
+            {/* Items */}
+            <div>
+              <div className="text-sm font-bold text-gray-900 mb-3">📦 ORDER ITEMS ({detailsItems.length})</div>
+              {detailsLoading ? (
+                <div className="py-4 text-sm text-gray-500 text-center">Loading items…</div>
+              ) : detailsError ? (
+                <div className="py-4 text-sm text-red-600 text-center">❌ {detailsError}</div>
+              ) : detailsItems.length === 0 ? (
+                <div className="py-4 text-sm text-gray-400 text-center">— No items found</div>
+              ) : (
+                <div className="bg-gray-50 rounded-lg divide-y">
+                  {detailsItems.map((item, i) => (
+                    <div key={item.id || i} className="p-3 flex items-center justify-between">
+                      <span className="text-sm text-gray-700"><strong>{item.quantity}x</strong> {item.name}</span>
+                      <span className="text-sm font-bold text-gray-900">GHS {item.price.toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Timeline */}
+            {order.timeline && order.timeline.length > 0 && (
+              <div>
+                <div className="text-sm font-bold text-gray-900 mb-3">⏱️ TIMELINE</div>
+                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                  {order.timeline.map((t, i) => (
+                    <div key={i} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">{t.time}</span>
+                      <span className="font-semibold text-gray-900">{t.status}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Payment & References */}
+            <div className="grid grid-cols-2 gap-4">
+              {order.paymentRef && (
+                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                  <div className="text-xs font-semibold text-purple-700 mb-2">PAYMENT REF</div>
+                  <div className="text-sm font-mono text-gray-900 break-all">{order.paymentRef}</div>
+                </div>
+              )}
+              {(order.coupon || order.subscription) && (
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <div className="text-xs font-semibold text-green-700 mb-2">PROMO/SUBSCRIPTION</div>
+                  <div className="text-sm text-gray-900">{order.coupon || order.subscription || '—'}</div>
+                </div>
+              )}
+            </div>
+
+            {/* Ratings */}
+            {(order.riderRating || (order.productReviews && order.productReviews.length > 0)) && (
+              <div className="space-y-4">
+                {order.riderRating && (
+                  <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                    <div className="text-xs font-semibold text-amber-700 mb-2">⭐ RIDER RATING</div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{'⭐'.repeat(order.riderRating.rating)}{'☆'.repeat(5 - order.riderRating.rating)}</span>
+                      <span className="text-lg font-bold text-amber-700">{order.riderRating.rating}/5</span>
+                    </div>
+                    {order.riderRating.comment && (
+                      <div className="text-sm text-gray-700 mt-2 italic">"{order.riderRating.comment}"</div>
+                    )}
+                  </div>
+                )}
+                {order.productReviews && order.productReviews.length > 0 && (
+                  <div>
+                    <div className="text-xs font-semibold text-gray-700 mb-2">📝 PRODUCT REVIEWS</div>
+                    <div className="space-y-2">
+                      {order.productReviews.map((review, i) => (
+                        <div key={i} className="bg-blue-50 p-3 rounded border border-blue-200">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm font-semibold text-gray-900">{review.productName}</span>
+                            <span className="text-sm">{'⭐'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>
+                          </div>
+                          {review.comment && (
+                            <div className="text-xs text-gray-700 italic mt-1">"{review.comment}"</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Rider Assignment Modal */}
+        {riderModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setRiderModalOpen(false)} />
+            <div className="relative bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-gray-900">
+                  {order.rider ? 'Reassign Rider' : 'Assign Rider'}
+                </h3>
+                <button 
+                  onClick={() => setRiderModalOpen(false)}
+                  className="text-gray-400 hover:text-gray-600 p-1"
+                >
+                  <span className="text-2xl font-light">×</span>
+                </button>
+              </div>
+
+              {order.rider && (
+                <div className="mb-4 p-3 bg-gray-100 rounded-lg">
+                  <div className="text-xs text-gray-600 font-semibold mb-1">CURRENT RIDER</div>
+                  <div className="text-sm font-bold text-gray-900">{order.rider.name}</div>
+                </div>
+              )}
+
+              <div className="mb-6">
+                <label className="block text-sm font-bold text-gray-900 mb-2">
+                  SELECT RIDER
+                </label>
+                {ridersLoading ? (
+                  <div className="flex items-center justify-center py-6">
+                    <svg className="animate-spin h-5 w-5 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span className="ml-2 text-sm text-gray-600">Loading riders...</span>
+                  </div>
+                ) : availableRiders.length === 0 ? (
+                  <div className="py-6 text-center text-sm text-gray-500 bg-gray-50 rounded-lg">
+                    No active riders available
+                  </div>
+                ) : (
+                  <select
+                    value={selectedRiderId || ''}
+                    onChange={(e) => setSelectedRiderId(Number(e.target.value) || null)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                  >
+                    <option value="">Choose a rider...</option>
+                    {availableRiders.map((rider) => (
+                      <option key={rider.id} value={rider.id}>
+                        {rider.name} • {rider.status} • {rider.zone || 'No zone'}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setRiderModalOpen(false)}
+                  className="flex-1 px-4 py-2 rounded-lg bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAssignRider}
+                  disabled={loading || !selectedRiderId}
+                  className="flex-1 px-4 py-2 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {loading ? 'Assigning...' : 'Confirm'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,44 +1,39 @@
 import React, { useState, useEffect } from "react";
 import ridersService from "../../services/ridersService";
-import type { Zone } from "../../services/ridersService";
 
 interface CreateRiderModalProps {
   isOpen: boolean;
   onClose: () => void;
-  zones: Zone[];
-  users: any[];
   onSuccess: () => void;
 }
 
 const CreateRiderModal: React.FC<CreateRiderModalProps> = ({
   isOpen,
   onClose,
-  zones,
-  users,
   onSuccess,
 }) => {
   const [formData, setFormData] = useState({
-    userId: "",
-    zoneId: "",
-    vehicleType: "motorcycle",
+    name: "",
+    phone: "",
+    email: "",
+    vehicleType: "motor",
     licenseNumber: "",
-    bankAccount: "",
-    accountName: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showLicense, setShowLicense] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setError(null);
       setFormData({
-        userId: "",
-        zoneId: "",
-        vehicleType: "motorcycle",
+        name: "",
+        phone: "",
+        email: "",
+        vehicleType: "motor",
         licenseNumber: "",
-        bankAccount: "",
-        accountName: "",
       });
+      setShowLicense(false);
     }
   }, [isOpen]);
 
@@ -52,9 +47,9 @@ const CreateRiderModal: React.FC<CreateRiderModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.userId || !formData.zoneId || !formData.licenseNumber) {
-      setError("Please fill in all required fields");
+
+    if (!formData.name || !formData.phone || !formData.vehicleType) {
+      setError("Please fill in all required fields (Name, Phone, Vehicle Type)");
       return;
     }
 
@@ -62,13 +57,12 @@ const CreateRiderModal: React.FC<CreateRiderModalProps> = ({
       setLoading(true);
       setError(null);
 
-      await ridersService.registerRider({
-        userId: parseInt(formData.userId),
-        zoneId: parseInt(formData.zoneId),
+      await ridersService.createRiderAdmin({
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email || undefined,
         vehicleType: formData.vehicleType,
-        licenseNumber: formData.licenseNumber,
-        bankAccount: formData.bankAccount || undefined,
-        accountName: formData.accountName || undefined,
+        licenseNumber: formData.licenseNumber || undefined,
       });
 
       console.log("✅ Rider created successfully");
@@ -98,40 +92,44 @@ const CreateRiderModal: React.FC<CreateRiderModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select User *
+              Name *
             </label>
-            <select
-              name="userId"
-              value={formData.userId}
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
               onChange={handleChange}
+              placeholder="e.g., John Doe"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Choose a user...</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name} ({user.phoneNumber})
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Assign to Zone *
+              Phone Number *
             </label>
-            <select
-              name="zoneId"
-              value={formData.zoneId}
+            <input
+              type="tel"
+              name="phone"
+              value={formData.phone}
               onChange={handleChange}
+              placeholder="e.g., +233501234567"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Choose a zone...</option>
-              {zones.map((zone) => (
-                <option key={zone.id} value={zone.id}>
-                  {zone.name}
-                </option>
-              ))}
-            </select>
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Email Address (Optional)
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="e.g., john@example.com"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
 
           <div>
@@ -144,54 +142,38 @@ const CreateRiderModal: React.FC<CreateRiderModalProps> = ({
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="motorcycle">Motorcycle</option>
+              <option value="motor">Motor</option>
               <option value="car">Car</option>
-              <option value="bicycle">Bicycle</option>
-              <option value="van">Van</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              License Number *
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showLicense}
+                onChange={(e) => setShowLicense(e.target.checked)}
+                className="rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-600">Add License Number</span>
             </label>
-            <input
-              type="text"
-              name="licenseNumber"
-              value={formData.licenseNumber}
-              onChange={handleChange}
-              placeholder="e.g., DL123456"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Bank Account
-            </label>
-            <input
-              type="text"
-              name="bankAccount"
-              value={formData.bankAccount}
-              onChange={handleChange}
-              placeholder="Account number"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Account Name
-            </label>
-            <input
-              type="text"
-              name="accountName"
-              value={formData.accountName}
-              onChange={handleChange}
-              placeholder="Name on account"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+          {showLicense && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                License Number
+              </label>
+              <input
+                type="text"
+                name="licenseNumber"
+                value={formData.licenseNumber}
+                onChange={handleChange}
+                placeholder="e.g., DL123456"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          )}
 
           <div className="flex gap-3 pt-4">
             <button
