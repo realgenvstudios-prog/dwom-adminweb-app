@@ -39,7 +39,6 @@ const RidersPage: React.FC = () => {
       console.log("✅ [RidersPage] Data loaded");
       setRiders(ridersData || []);
       setZones(zonesData || []);
-      setUsers(usersData || []);
     } catch (err: any) {
       console.error("❌ [RidersPage] Failed to fetch data:", err);
       setError(err.message || "Failed to load riders data");
