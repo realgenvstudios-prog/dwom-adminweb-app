@@ -15,6 +15,8 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState<string | null>(null);
   const [detailsItems, setDetailsItems] = useState<Order['items']>([]);
+  const [riderRatingData, setRiderRatingData] = useState<{ rating: number; comment?: string } | null>(null);
+  const [productReviewsData, setProductReviewsData] = useState<Array<{ productId: number; productName: string; rating: number; comment?: string }>>([]);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const [paymentDropdownOpen, setPaymentDropdownOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>(order?.orderStatus || "sorting");
@@ -56,22 +58,55 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
         console.log(`📦 [OrderDetailsDrawer] Fetching full order details for ${orderIdNum}`);
         const fullOrder: any = await ordersService.getById(orderIdNum);
 
-        const productItems = (fullOrder?.OrderItem || []).map((item: any) => ({
-          id: item.id?.toString() || `product-${item.productId}`,
-          name: item.Product?.nameEnglish || `Product ${item.productId}`,
-          quantity: item.quantity || 0,
-          price: item.unitPrice || 0,
-        }));
+        const productItems = (fullOrder?.OrderItem || []).map((item: any) => {
+          const unitPrice = Number(item.unitPrice || 0);
+          const discountPercent = Number(item.discount || 0);
+          const discountedPrice = Number(item.discountedPrice || item.discounted_price || 0);
+          const effectivePrice = discountedPrice > 0 ? discountedPrice
+            : (discountPercent > 0 ? unitPrice * (1 - discountPercent / 100) : unitPrice);
+          return {
+            id: item.id?.toString() || `product-${item.productId}`,
+            name: item.Product?.nameEnglish || `Product ${item.productId}`,
+            quantity: item.quantity || 0,
+            price: effectivePrice,
+            originalPrice: effectivePrice < unitPrice ? unitPrice : undefined,
+          };
+        });
 
-        const bundleItems = (fullOrder?.BundleOrderItem || []).map((item: any) => ({
-          id: `bundle-${item.id}`,
-          name: item.Bundle?.name || `Bundle ${item.bundleId}`,
-          quantity: item.quantity || 0,
-          price: item.unitPrice || 0,
-        }));
+        const bundleItems = (fullOrder?.BundleOrderItem || []).map((item: any) => {
+          const unitPrice = Number(item.unitPrice || 0);
+          const discountPercent = Number(item.discount || 0);
+          const discountedPrice = Number(item.discountedPrice || item.discounted_price || 0);
+          const effectivePrice = discountedPrice > 0 ? discountedPrice
+            : (discountPercent > 0 ? unitPrice * (1 - discountPercent / 100) : unitPrice);
+          return {
+            id: `bundle-${item.id}`,
+            name: `📦 ${item.Bundle?.name || `Bundle ${item.bundleId}`}`,
+            quantity: item.quantity || 0,
+            price: effectivePrice,
+            originalPrice: effectivePrice < unitPrice ? unitPrice : undefined,
+          };
+        });
 
         setDetailsItems([...productItems, ...bundleItems]);
-        console.log('✅ [OrderDetailsDrawer] Loaded items:', productItems.length + bundleItems.length);
+
+        // Extract ratings from full order data
+        const riderRating = fullOrder?.RiderRating?.[0];
+        if (riderRating) {
+          setRiderRatingData({ rating: riderRating.rating, comment: riderRating.comment });
+        } else {
+          setRiderRatingData(null);
+        }
+
+        const reviews = (fullOrder?.ProductReview || []).map((review: any) => ({
+          productId: review.productId,
+          productName: review.Product?.nameEnglish || `Product ${review.productId}`,
+          rating: review.rating,
+          comment: review.comment,
+        }));
+        setProductReviewsData(reviews);
+
+        console.log('✅ [OrderDetailsDrawer] Loaded items:', productItems.length + bundleItems.length, 'ratings:', riderRating ? 'yes' : 'no', 'reviews:', reviews.length);
       } catch (e: any) {
         console.error('❌ [OrderDetailsDrawer] Failed to load order details:', e);
         setDetailsError(e?.message || 'Failed to load order items');
@@ -358,7 +393,16 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
                   {detailsItems.map((item, i) => (
                     <div key={item.id || i} className="p-3 flex items-center justify-between">
                       <span className="text-sm text-gray-700"><strong>{item.quantity}x</strong> {item.name}</span>
-                      <span className="text-sm font-bold text-gray-900">GHS {item.price.toLocaleString()}</span>
+                      <span className="text-sm font-bold text-gray-900">
+                        {(item as any).originalPrice ? (
+                          <>
+                            <span className="line-through text-gray-400 font-normal mr-1">GHS {(item as any).originalPrice.toLocaleString()}</span>
+                            GHS {item.price.toLocaleString()}
+                          </>
+                        ) : (
+                          `GHS ${item.price.toLocaleString()}`
+                        )}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -396,26 +440,26 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
               )}
             </div>
 
-            {/* Ratings */}
-            {(order.riderRating || (order.productReviews && order.productReviews.length > 0)) && (
+            {/* Ratings - use fresh data from getById fetch */}
+            {(riderRatingData || productReviewsData.length > 0) ? (
               <div className="space-y-4">
-                {order.riderRating && (
+                {riderRatingData && (
                   <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
                     <div className="text-xs font-semibold text-amber-700 mb-2">⭐ RIDER RATING</div>
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl">{'⭐'.repeat(order.riderRating.rating)}{'☆'.repeat(5 - order.riderRating.rating)}</span>
-                      <span className="text-lg font-bold text-amber-700">{order.riderRating.rating}/5</span>
+                      <span className="text-2xl">{'⭐'.repeat(riderRatingData.rating)}{'☆'.repeat(5 - riderRatingData.rating)}</span>
+                      <span className="text-lg font-bold text-amber-700">{riderRatingData.rating}/5</span>
                     </div>
-                    {order.riderRating.comment && (
-                      <div className="text-sm text-gray-700 mt-2 italic">"{order.riderRating.comment}"</div>
+                    {riderRatingData.comment && (
+                      <div className="text-sm text-gray-700 mt-2 italic">"{riderRatingData.comment}"</div>
                     )}
                   </div>
                 )}
-                {order.productReviews && order.productReviews.length > 0 && (
+                {productReviewsData.length > 0 && (
                   <div>
                     <div className="text-xs font-semibold text-gray-700 mb-2">📝 PRODUCT REVIEWS</div>
                     <div className="space-y-2">
-                      {order.productReviews.map((review, i) => (
+                      {productReviewsData.map((review, i) => (
                         <div key={i} className="bg-blue-50 p-3 rounded border border-blue-200">
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-sm font-semibold text-gray-900">{review.productName}</span>
@@ -429,6 +473,11 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
                     </div>
                   </div>
                 )}
+              </div>
+            ) : (
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <div className="text-xs font-semibold text-gray-500 mb-1">⭐ CUSTOMER FEEDBACK</div>
+                <div className="text-sm text-gray-400">No ratings yet</div>
               </div>
             )}
           </div>

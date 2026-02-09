@@ -19,6 +19,7 @@ import CustomersPage from './components/CustomersPage';
 import NotesTrackingPage from './components/NotesTrackingPage';
 import SettingsPage from './components/SettingsPage';
 import SupportPage from './components/SupportPage';
+import DataDeletionRequestsPage from './components/DataDeletionRequestsPage';
 import './App.css';
 
 const App: React.FC = () => {
@@ -181,6 +182,16 @@ const App: React.FC = () => {
           <ProtectedRoute>
             <Layout>
               <SupportPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/data-deletion-requests"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <DataDeletionRequestsPage />
             </Layout>
           </ProtectedRoute>
         }

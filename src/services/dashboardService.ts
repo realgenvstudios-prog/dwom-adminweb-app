@@ -145,17 +145,23 @@ class DashboardService {
     try {
       console.log('📈 [DashboardService] Fetching complete dashboard data...');
       
-      // Fetch all data in parallel
-      const [orderStats, riderStats, productStats] = await Promise.all([
+      // Fetch all data in parallel - use allSettled so one failure doesn't block the rest
+      const [orderResult, riderResult, productResult] = await Promise.allSettled([
         this.getOrderStats(),
         this.getRiderStats(),
         this.getProductStats(),
       ]);
 
       const dashboardData: DashboardData = {
-        stats: orderStats,
-        riderStats,
-        productStats,
+        stats: orderResult.status === 'fulfilled' ? orderResult.value : {
+          totalOrdersToday: 0, completedOrders: 0, canceledOrders: 0, revenueToday: 0, allOrdersCount: 0,
+        },
+        riderStats: riderResult.status === 'fulfilled' ? riderResult.value : {
+          totalRiders: 0, activeRiders: 0, inactiveRiders: 0, averageRating: 0,
+        },
+        productStats: productResult.status === 'fulfilled' ? productResult.value : {
+          totalProducts: 0, lowStockProducts: 0, outOfStockProducts: 0,
+        },
       };
 
       console.log('✅ [DashboardService] Complete dashboard data loaded');
