@@ -8,6 +8,7 @@ interface Customer {
   phone: string;
   role: string;
   createdAt: string;
+  address: string | null;
   totalOrders: number;
   totalSpend: number;
   avgOrder: number;
@@ -60,6 +61,7 @@ const CustomersPage: React.FC = () => {
         phone: user.phone || user.phoneNumber || 'N/A',
         role: user.role,
         createdAt: user.createdAt,
+        address: user.address || null,
         totalOrders: 0, // Will be updated if we fetch orders
         totalSpend: 0,
         avgOrder: 0,
@@ -298,6 +300,10 @@ const CustomersPage: React.FC = () => {
                         <div className="flex items-center gap-3 text-sm">
                           <span className="text-gray-400">🆔</span>
                           <span className="text-gray-900">Customer #{selectedCustomer.id}</span>
+                        </div>
+                        <div className="flex items-start gap-3 text-sm">
+                          <span className="text-gray-400 mt-0.5">📍</span>
+                          <span className="text-gray-900">{selectedCustomer.address || 'No address saved'}</span>
                         </div>
                       </div>
                     </div>

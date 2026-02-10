@@ -51,7 +51,7 @@ class BundlesService {
   async getAll(): Promise<Bundle[]> {
     try {
       console.log('📦 [BundlesService] Fetching all bundles');
-      const response = await fetch(`${API_BASE_URL}/bundles`, {
+      const response = await fetch(`${API_BASE_URL}/bundles?includeInactive=true`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -158,7 +158,7 @@ class BundlesService {
   /**
    * Delete bundle
    */
-  async delete(id: number): Promise<void> {
+  async delete(id: number): Promise<{ message: string }> {
     try {
       console.log(`🗑️ [BundlesService] Deleting bundle ${id}`);
       const response = await fetch(`${API_BASE_URL}/bundles/${id}`, {
@@ -173,7 +173,9 @@ class BundlesService {
         throw new Error(`Failed to delete bundle: ${response.status}`);
       }
 
-      console.log(`✅ [BundlesService] Bundle ${id} deleted`);
+      const data = await response.json();
+      console.log(`✅ [BundlesService] Bundle ${id}:`, data.message);
+      return data;
     } catch (error: any) {
       console.error(`❌ [BundlesService] Failed to delete bundle ${id}:`, error);
       throw error;

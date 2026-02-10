@@ -55,9 +55,9 @@ const BundlesPage: React.FC = () => {
     if (confirm(`Are you sure you want to delete "${bundle.name}"?`)) {
       try {
         console.log(`🗑️ [BundlesPage] Deleting bundle ${bundle.id}`);
-        await bundlesService.delete(bundle.id);
+        const result = await bundlesService.delete(bundle.id);
         console.log('✅ [BundlesPage] Bundle deleted');
-        alert('Bundle deleted successfully!');
+        alert(result.message || 'Bundle deleted successfully!');
         await fetchBundles();
       } catch (err: any) {
         console.error('❌ [BundlesPage] Failed to delete bundle:', err);
@@ -70,8 +70,9 @@ const BundlesPage: React.FC = () => {
     await fetchBundles();
   };
 
-  // Filter bundles based on search
+  // Filter bundles: hide inactive (soft-deleted) and apply search
   const filtered = bundles.filter(bundle =>
+    bundle.active !== false &&
     bundle.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 

@@ -3,6 +3,7 @@ import bundlesService from '../../services/bundlesService';
 import productsService from '../../services/productsService';
 import type { Bundle } from '../../services/bundlesService';
 import type { Product } from './BundleTypes';
+import type { Category } from '../../services/productsService';
 
 interface CreateBundleModalProps {
   open: boolean;
@@ -23,6 +24,9 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
   const [imageUrl, setImageUrl] = useState('');
   const [bundleItems, setBundleItems] = useState<Array<{ productId: number; quantity: number }>>([]);
   const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [productSearch, setProductSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,10 +56,18 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
   const finalPrice = calculateFinalPrice();
   const savingsAmount = originalTotal - finalPrice;
 
-  // Fetch available products
+  // Pre-fetch products on mount so they're ready instantly when modal opens
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  // Reset form when modal opens
   useEffect(() => {
     if (open) {
-      fetchProducts();
+      // Re-fetch only if we have no products yet (first load failed etc.)
+      if (availableProducts.length === 0) {
+        fetchProducts();
+      }
       if (editingBundle) {
         setName(editingBundle.name);
         setDescription(editingBundle.description || '');
@@ -82,6 +94,17 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
     try {
       const products = await productsService.getAll();
       setAvailableProducts(products as any);
+
+      // Extract unique categories from products (since backend includes Category in each product)
+      const catMap = new Map<number, Category>();
+      (products as any[]).forEach((p: any) => {
+        if (p.Category && p.Category.id && !catMap.has(p.Category.id)) {
+          catMap.set(p.Category.id, { id: p.Category.id, name: p.Category.name, description: p.Category.description });
+        } else if (p.categoryId && p.category && !catMap.has(p.categoryId)) {
+          catMap.set(p.categoryId, { id: p.categoryId, name: p.category.name || p.category, description: '' });
+        }
+      });
+      setCategories(Array.from(catMap.values()).sort((a, b) => a.name.localeCompare(b.name)));
     } catch (err) {
       console.error('Failed to fetch products:', err);
     }
@@ -287,48 +310,147 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Add Products * ({bundleItems.length} selected)
             </label>
-            <div className="border border-gray-300 rounded-lg p-3 space-y-3 max-h-64 overflow-y-auto">
-              {availableProducts.length === 0 ? (
-                <p className="text-gray-500 text-sm">No products available</p>
-              ) : (
-                availableProducts.map((product) => {
-                  const bundleItem = bundleItems.find(item => item.productId === product.id);
+
+            {/* Selected Products Summary */}
+            {bundleItems.length > 0 && (
+              <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-xs font-semibold text-blue-700 mb-2">Selected Products:</p>
+                <div className="flex flex-wrap gap-2">
+                  {bundleItems.map(item => {
+                    const product = availableProducts.find(p => p.id === item.productId);
+                    return (
+                      <span key={item.productId} className="inline-flex items-center gap-1 px-2 py-1 bg-white border border-blue-200 rounded-full text-xs text-blue-800">
+                        {product?.nameEnglish || `Product #${item.productId}`} × {item.quantity}
+                        <button
+                          type="button"
+                          onClick={() => toggleProduct(item.productId)}
+                          className="ml-1 text-red-400 hover:text-red-600 font-bold"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Category Tabs + Search */}
+            <div className="border border-gray-300 rounded-lg overflow-hidden">
+              {/* Search bar */}
+              <div className="p-2 border-b border-gray-200 bg-gray-50">
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  value={productSearch}
+                  onChange={(e) => setProductSearch(e.target.value)}
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={loading}
+                />
+              </div>
+
+              {/* Category tabs */}
+              <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 bg-gray-50">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory(null)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                    selectedCategory === null
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'
+                  }`}
+                >
+                  All ({availableProducts.length})
+                </button>
+                {categories.map(cat => {
+                  const count = availableProducts.filter(p => ((p as any).categoryId === cat.id || (p as any).Category?.id === cat.id)).length;
+                  if (count === 0) return null;
                   return (
-                    <div key={product.id} className="border border-gray-200 rounded p-3">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={!!bundleItem}
-                          onChange={() => toggleProduct(product.id as any)}
-                          disabled={loading}
-                          className="w-4 h-4"
-                        />
-                        <div className="flex-1">
-                          <div className="flex justify-between">
-                            <span className="text-sm font-medium">{product.nameEnglish}</span>
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setSelectedCategory(cat.id)}
+                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                        selectedCategory === cat.id
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'
+                      }`}
+                    >
+                      {cat.name} ({count})
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Product list filtered by category and search */}
+              <div className="p-2 space-y-2 max-h-64 overflow-y-auto">
+                {availableProducts.length === 0 ? (
+                  <p className="text-gray-500 text-sm py-4 text-center">No products available</p>
+                ) : (() => {
+                  const filtered = availableProducts.filter(product => {
+                    const matchesCategory = selectedCategory === null || (product as any).categoryId === selectedCategory || (product as any).Category?.id === selectedCategory;
+                    const matchesSearch = !productSearch.trim() || 
+                      product.nameEnglish?.toLowerCase().includes(productSearch.toLowerCase()) ||
+                      product.nameLocal?.toLowerCase().includes(productSearch.toLowerCase());
+                    return matchesCategory && matchesSearch;
+                  });
+
+                  if (filtered.length === 0) {
+                    return (
+                      <p className="text-gray-500 text-sm py-4 text-center">
+                        No products match your search{selectedCategory ? ' in this category' : ''}
+                      </p>
+                    );
+                  }
+
+                  return filtered.map((product) => {
+                    const bundleItem = bundleItems.find(item => item.productId === product.id);
+                    const price = typeof product.pricePerUnit === 'string' 
+                      ? parseFloat(product.pricePerUnit) 
+                      : (product.pricePerUnit as number);
+                    return (
+                      <div key={product.id as number} className={`border rounded p-3 transition-colors ${bundleItem ? 'border-blue-400 bg-blue-50' : 'border-gray-200'}`}>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={!!bundleItem}
+                            onChange={() => toggleProduct(product.id as any)}
+                            disabled={loading}
+                            className="w-4 h-4 accent-blue-600"
+                          />
+                          <div className="flex-1">
+                            <div className="flex justify-between">
+                              <span className="text-sm font-medium">{product.nameEnglish}</span>
+                              <span className="text-xs text-gray-500">
+                                GHS {price.toFixed(2)}
+                              </span>
+                            </div>
+                            {product.nameLocal && product.nameLocal !== product.nameEnglish && (
+                              <p className="text-xs text-gray-400">{product.nameLocal}</p>
+                            )}
+                          </div>
+                        </label>
+                        {bundleItem && (
+                          <div className="mt-2 ml-6 flex items-center gap-2">
+                            <label className="text-xs text-gray-600">Qty:</label>
+                            <input
+                              type="number"
+                              min="1"
+                              value={bundleItem.quantity}
+                              onChange={(e) => updateProductQuantity(product.id as any, parseInt(e.target.value))}
+                              className="w-16 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              disabled={loading}
+                            />
                             <span className="text-xs text-gray-500">
-                              GHS {typeof product.pricePerUnit === 'string' ? parseFloat(product.pricePerUnit).toFixed(2) : (product.pricePerUnit as number).toFixed(2)}
+                              = GHS {(price * bundleItem.quantity).toFixed(2)}
                             </span>
                           </div>
-                        </div>
-                      </label>
-                      {bundleItem && (
-                        <div className="mt-2 ml-6 flex items-center gap-2">
-                          <label className="text-xs text-gray-600">Qty:</label>
-                          <input
-                            type="number"
-                            min="1"
-                            value={bundleItem.quantity}
-                            onChange={(e) => updateProductQuantity(product.id as any, parseInt(e.target.value))}
-                            className="w-12 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            disabled={loading}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })
-              )}
+                        )}
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
             </div>
           </div>
 
