@@ -12,6 +12,7 @@ const CreateProductModal: React.FC<Props> = ({ open, onClose, onProductCreated, 
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     nameEnglish: '',
+    nameFrench: '',
     nameLocal: '',
     categoryId: '',
     pricePerUnit: '',
@@ -35,6 +36,7 @@ const CreateProductModal: React.FC<Props> = ({ open, onClose, onProductCreated, 
 
       const payload = {
         nameEnglish: formData.nameEnglish,
+        nameFrench: formData.nameFrench || undefined,
         nameLocal: formData.nameLocal,
         categoryId: parseInt(formData.categoryId),
         pricePerUnit: parseFloat(formData.pricePerUnit),
@@ -51,6 +53,7 @@ const CreateProductModal: React.FC<Props> = ({ open, onClose, onProductCreated, 
       // Reset form
       setFormData({
         nameEnglish: '',
+        nameFrench: '',
         nameLocal: '',
         categoryId: '',
         pricePerUnit: '',
@@ -112,6 +115,18 @@ const CreateProductModal: React.FC<Props> = ({ open, onClose, onProductCreated, 
               onChange={(e) => setFormData({ ...formData, nameLocal: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., Ntoosi"
+            />
+          </div>
+
+          {/* French Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Product Name (French)</label>
+            <input
+              type="text"
+              value={formData.nameFrench}
+              onChange={(e) => setFormData({ ...formData, nameFrench: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., Tomates"
             />
           </div>
 

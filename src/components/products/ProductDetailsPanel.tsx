@@ -24,6 +24,7 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     nameEnglish: product?.nameEnglish || '',
+    nameFrench: (product as any)?.nameFrench || '',
     nameLocal: product?.nameLocal || '',
     pricePerUnit: typeof product?.pricePerUnit === 'string' ? parseFloat(product.pricePerUnit) : (product?.pricePerUnit || 0),
     unitType: product?.unitType || '',
@@ -37,6 +38,7 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
     if (product) {
       setFormData({
         nameEnglish: product.nameEnglish,
+        nameFrench: (product as any).nameFrench || '',
         nameLocal: product.nameLocal,
         pricePerUnit: typeof product.pricePerUnit === 'string' ? parseFloat(product.pricePerUnit) : product.pricePerUnit,
         unitType: product.unitType,
@@ -59,6 +61,7 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
       // Update product details
       await productsService.update(productId, {
         nameEnglish: formData.nameEnglish,
+        nameFrench: formData.nameFrench || undefined,
         nameLocal: formData.nameLocal,
         pricePerUnit: formData.pricePerUnit,
         unitType: formData.unitType,
@@ -138,6 +141,7 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
             <>
               <div className="mb-4">
                 <div className="text-lg font-semibold text-gray-900">{product.nameEnglish}</div>
+                {(product as any).nameFrench && <div className="text-sm text-blue-600">{(product as any).nameFrench} (FR)</div>}
                 <div className="text-sm text-gray-500">{product.nameLocal}</div>
               </div>
               <div className="mb-2 text-sm"><span className="font-medium">Category:</span> {typeof product.category === 'object' && product.category?.name ? product.category.name : (typeof (product as any).Category === 'object' && (product as any).Category?.name ? (product as any).Category.name : 'N/A')}</div>
@@ -181,6 +185,16 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
                     value={formData.nameLocal}
                     onChange={(e) => setFormData({ ...formData, nameLocal: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">French Name</label>
+                  <input
+                    type="text"
+                    value={formData.nameFrench}
+                    onChange={(e) => setFormData({ ...formData, nameFrench: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g., Tomates"
                   />
                 </div>
                 <div>

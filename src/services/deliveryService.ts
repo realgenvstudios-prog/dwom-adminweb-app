@@ -162,6 +162,60 @@ const deliveryService = {
       throw error;
     }
   },
+
+  /**
+   * Google Places Autocomplete (proxied through backend to avoid CORS)
+   */
+  async placesAutocomplete(input: string): Promise<{
+    status: string;
+    predictions: { place_id: string; description: string; main_text: string; secondary_text: string }[];
+  }> {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/delivery/geocode/autocomplete?input=${encodeURIComponent(input)}`,
+        {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Autocomplete failed: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error: any) {
+      console.error('❌ [DeliveryService] Autocomplete failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Google Place Details (proxied through backend to avoid CORS)
+   */
+  async placeDetails(placeId: string): Promise<{
+    status: string;
+    result: { name: string; formatted_address: string; lat: number; lng: number } | null;
+  }> {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/delivery/geocode/details?placeId=${encodeURIComponent(placeId)}`,
+        {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Place details failed: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error: any) {
+      console.error('❌ [DeliveryService] Place details failed:', error);
+      throw error;
+    }
+  },
 };
 
 export default deliveryService;

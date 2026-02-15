@@ -25,6 +25,10 @@ const DeliveryZonesPage: React.FC = () => {
   // Test delivery check
   const [testLat, setTestLat] = useState("");
   const [testLng, setTestLng] = useState("");
+  const [testAddress, setTestAddress] = useState("");
+  const [geocoding, setGeocoding] = useState(false);
+  const [geocodedLabel, setGeocodedLabel] = useState("");
+  const [geocodeResults, setGeocodeResults] = useState<any[]>([]);
   const [testResult, setTestResult] = useState<any>(null);
   const [testing, setTesting] = useState(false);
 
@@ -168,7 +172,7 @@ const DeliveryZonesPage: React.FC = () => {
 
   const handleTestDelivery = async () => {
     if (!testLat || !testLng) {
-      setError("Enter latitude and longitude to test");
+      setError("Enter an address or coordinates to test");
       return;
     }
 
@@ -178,6 +182,88 @@ const DeliveryZonesPage: React.FC = () => {
       const result = await deliveryService.checkDelivery(parseFloat(testLat), parseFloat(testLng));
       setTestResult(result);
     } catch (err: any) {
+      setError("Failed to check delivery");
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const handleGeocodeAddress = async () => {
+    if (!testAddress.trim()) {
+      setError("Enter an address or landmark to search");
+      return;
+    }
+
+    try {
+      setGeocoding(true);
+      setGeocodedLabel("");
+      setGeocodeResults([]);
+      setTestResult(null);
+
+      const input = testAddress.trim();
+
+      // Use Google Places Autocomplete via backend proxy (avoids CORS)
+      const data = await deliveryService.placesAutocomplete(input);
+
+      if (data.status !== "OK" || !data.predictions || data.predictions.length === 0) {
+        setError(
+          `Could not find "${input}". Tips:\n• Try a more specific name, e.g., "${input}, East Legon"\n• Use a nearby known place like "East Legon" or "Accra Mall"\n• Or enter coordinates directly below`
+        );
+        return;
+      }
+
+      const predictions = data.predictions;
+
+      if (predictions.length === 1) {
+        // Single result — get details and check immediately
+        const details = await deliveryService.placeDetails(predictions[0].place_id);
+
+        if (details.status === "OK" && details.result) {
+          const { lat, lng, formatted_address, name } = details.result;
+          const label = formatted_address || name || predictions[0].description;
+          setTestLat(lat.toFixed(4));
+          setTestLng(lng.toFixed(4));
+          setGeocodedLabel(label);
+          setGeocodeResults([]);
+
+          const result = await deliveryService.checkDelivery(lat, lng);
+          setTestResult(result);
+        } else {
+          setError("Found the place but couldn't get its coordinates. Try another search.");
+        }
+      } else {
+        // Multiple results — let user pick
+        setGeocodeResults(predictions);
+        setGeocodedLabel("");
+      }
+    } catch (err: any) {
+      setError("Failed to look up address. Check your internet connection.");
+    } finally {
+      setGeocoding(false);
+    }
+  };
+
+  const handlePickGeoResult = async (place: any) => {
+    try {
+      setTesting(true);
+      setGeocodeResults([]);
+
+      // Fetch place details via backend proxy
+      const details = await deliveryService.placeDetails(place.place_id);
+
+      if (details.status === "OK" && details.result) {
+        const { lat, lng, formatted_address, name } = details.result;
+        const label = formatted_address || name || place.description;
+        setTestLat(lat.toFixed(4));
+        setTestLng(lng.toFixed(4));
+        setGeocodedLabel(label);
+
+        const result = await deliveryService.checkDelivery(lat, lng);
+        setTestResult(result);
+      } else {
+        setError("Could not get coordinates for this place. Try another option.");
+      }
+    } catch {
       setError("Failed to check delivery");
     } finally {
       setTesting(false);
@@ -451,8 +537,65 @@ const DeliveryZonesPage: React.FC = () => {
       <div className="mt-10 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-bold text-gray-900 mb-1">Test Delivery Check</h3>
         <p className="text-sm text-gray-600 mb-4">
-          Enter coordinates to test if an address falls within a delivery zone and see the fee.
+          Search by address/landmark or enter coordinates to check if a location falls within a delivery zone.
         </p>
+
+        {/* Address / Landmark Search */}
+        <div className="mb-4">
+          <label className="block text-xs font-medium text-gray-600 mb-1">Search by Address or Landmark</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={testAddress}
+              onChange={(e) => setTestAddress(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleGeocodeAddress()}
+              placeholder='e.g. "East Legon", "Accra Mall", "Tema Community 1"'
+              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              onClick={handleGeocodeAddress}
+              disabled={geocoding || testing}
+              className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
+            >
+              {geocoding ? "Searching..." : "Search & Check"}
+            </button>
+          </div>
+          {geocodedLabel && (
+            <div className="mt-2 text-xs text-gray-500 bg-gray-50 rounded px-3 py-2">
+              📍 Found: {geocodedLabel}
+            </div>
+          )}
+          {geocodeResults.length > 1 && (
+            <div className="mt-2 border border-blue-200 rounded-lg overflow-hidden">
+              <div className="px-3 py-2 bg-blue-50 text-xs font-semibold text-blue-700">
+                Multiple locations found — pick the right one:
+              </div>
+              {geocodeResults.map((place, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handlePickGeoResult(place)}
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 border-t border-blue-100 flex items-start gap-2 transition"
+                >
+                  <span className="text-blue-600 font-bold mt-0.5">{idx + 1}.</span>
+                  <div>
+                    <span className="text-gray-900 font-medium">{place.main_text}</span>
+                    {place.secondary_text && (
+                      <span className="text-gray-500 ml-1 text-xs">{place.secondary_text}</span>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex-1 border-t border-gray-200"></div>
+          <span className="text-xs text-gray-400 font-medium">OR use coordinates</span>
+          <div className="flex-1 border-t border-gray-200"></div>
+        </div>
+
+        {/* Manual Coordinates */}
         <div className="flex flex-wrap gap-3 items-end">
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Latitude</label>
@@ -478,10 +621,10 @@ const DeliveryZonesPage: React.FC = () => {
           </div>
           <button
             onClick={handleTestDelivery}
-            disabled={testing}
-            className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            disabled={testing || geocoding}
+            className="px-5 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50"
           >
-            {testing ? "Checking..." : "Check"}
+            {testing ? "Checking..." : "Check Coordinates"}
           </button>
         </div>
 

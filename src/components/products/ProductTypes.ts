@@ -21,6 +21,7 @@ export interface InventoryData {
 export interface Product {
   id: string | number;
   nameEnglish: string;
+  nameFrench?: string;
   nameLocal: string;
   categoryId: number;  // Backend field name
   category?: ProductCategory;  // Optional populated category object

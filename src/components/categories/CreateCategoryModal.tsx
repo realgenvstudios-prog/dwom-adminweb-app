@@ -16,6 +16,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
   editingCategory 
 }) => {
   const [name, setName] = useState('');
+  const [nameFrench, setNameFrench] = useState('');
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,10 +26,12 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
   useEffect(() => {
     if (open && editingCategory) {
       setName(editingCategory.name);
+      setNameFrench((editingCategory as any).nameFrench || '');
       setDescription(editingCategory.description || '');
       setImageUrl(editingCategory.imageUrl || '');
     } else if (open) {
       setName('');
+      setNameFrench('');
       setDescription('');
       setImageUrl('');
     }
@@ -51,6 +54,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
         console.log(`✏️ [CreateCategoryModal] Updating category ${editingCategory.id}`);
         await categoriesService.update(editingCategory.id, {
           name: name.trim(),
+          nameFrench: nameFrench.trim() || undefined,
           description: description.trim() || undefined,
           imageUrl: imageUrl.trim() || undefined,
         });
@@ -60,6 +64,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
         console.log('📂 [CreateCategoryModal] Creating new category');
         await categoriesService.create({
           name: name.trim(),
+          nameFrench: nameFrench.trim() || undefined,
           description: description.trim() || undefined,
           imageUrl: imageUrl.trim() || undefined,
         });
@@ -68,6 +73,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
       }
 
       setName('');
+      setNameFrench('');
       setDescription('');
       setImageUrl('');
       onCategoryCreated();
@@ -114,6 +120,20 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
               onChange={(e) => setName(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., Vegetables, Grains, Spices"
+              disabled={loading}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Category Name (French)
+            </label>
+            <input
+              type="text"
+              value={nameFrench}
+              onChange={(e) => setNameFrench(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., Légumes, Céréales, Épices"
               disabled={loading}
             />
           </div>

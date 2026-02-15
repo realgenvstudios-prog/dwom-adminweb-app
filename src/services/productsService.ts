@@ -3,6 +3,7 @@ import adminApiClient from './apiClient';
 export interface Product {
   id: number;
   nameEnglish: string;
+  nameFrench?: string;
   nameLocal: string;
   categoryId: number;
   category?: any;
@@ -23,6 +24,7 @@ export interface Category {
 
 export interface CreateProductDto {
   nameEnglish: string;
+  nameFrench?: string;
   nameLocal: string;
   categoryId: number;
   description?: string;
@@ -34,6 +36,7 @@ export interface CreateProductDto {
 
 export interface UpdateProductDto {
   nameEnglish?: string;
+  nameFrench?: string;
   nameLocal?: string;
   categoryId?: number;
   description?: string;

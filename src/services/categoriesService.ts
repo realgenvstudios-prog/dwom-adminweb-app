@@ -3,6 +3,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://dwom-backend.onren
 export interface Category {
   id: number;
   name: string;
+  nameFrench?: string;
   description?: string;
   imageUrl?: string;
   createdAt?: string;
@@ -11,12 +12,14 @@ export interface Category {
 
 export interface CreateCategoryDto {
   name: string;
+  nameFrench?: string;
   description?: string;
   imageUrl?: string;
 }
 
 export interface UpdateCategoryDto {
   name?: string;
+  nameFrench?: string;
   description?: string;
   imageUrl?: string;
 }
