@@ -20,6 +20,7 @@ import NotesTrackingPage from './components/NotesTrackingPage';
 import SettingsPage from './components/SettingsPage';
 import SupportPage from './components/SupportPage';
 import DataDeletionRequestsPage from './components/DataDeletionRequestsPage';
+import DeliveryZonesPage from './components/DeliveryZonesPage';
 import './App.css';
 
 const App: React.FC = () => {
@@ -192,6 +193,16 @@ const App: React.FC = () => {
           <ProtectedRoute>
             <Layout>
               <DataDeletionRequestsPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/delivery-zones"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <DeliveryZonesPage />
             </Layout>
           </ProtectedRoute>
         }

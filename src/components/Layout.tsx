@@ -13,6 +13,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const menuItems = [
     { path: '/dashboard', label: 'Dashboard' },
     { path: '/orders', label: 'Orders' },
+    { path: '/delivery-zones', label: 'Delivery Zones' },
     { path: '/warehouse', label: 'Warehouse Operations' },
     { path: '/products', label: 'Products' },
     { path: '/categories', label: 'Categories' },
