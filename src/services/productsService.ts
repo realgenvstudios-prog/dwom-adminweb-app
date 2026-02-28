@@ -32,6 +32,8 @@ export interface CreateProductDto {
   unitType: string;
   imageUrl?: string;
   inventoryQuantity?: number;
+  showPreparationOptions?: boolean;
+  variationGroups?: any[];
 }
 
 export interface UpdateProductDto {
@@ -45,6 +47,8 @@ export interface UpdateProductDto {
   active?: boolean;
   imageUrl?: string;
   discount?: number;
+  showPreparationOptions?: boolean;
+  variationGroups?: any[];
 }
 
 export const productsService = {
