@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import productsService from '../../services/productsService';
+import VariationGroupsEditor from './VariationGroupsEditor';
+import type { VariationGroup } from './VariationGroupsEditor';
 
 interface Props {
   open: boolean;
@@ -21,6 +23,8 @@ const CreateProductModal: React.FC<Props> = ({ open, onClose, onProductCreated, 
     imageUrl: '',
     inventoryQuantity: '',
   });
+  const [variationGroups, setVariationGroups] = useState<VariationGroup[]>([]);
+  const [showPreparationOptions, setShowPreparationOptions] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +48,8 @@ const CreateProductModal: React.FC<Props> = ({ open, onClose, onProductCreated, 
         description: formData.description || undefined,
         imageUrl: formData.imageUrl || undefined,
         inventoryQuantity: formData.inventoryQuantity ? parseInt(formData.inventoryQuantity) : 0,
+        showPreparationOptions,
+        variationGroups: variationGroups.length > 0 ? variationGroups : undefined,
       };
 
       const response = await productsService.create(payload);
@@ -62,6 +68,8 @@ const CreateProductModal: React.FC<Props> = ({ open, onClose, onProductCreated, 
         imageUrl: '',
         inventoryQuantity: '',
       });
+      setVariationGroups([]);
+      setShowPreparationOptions(false);
       
       onProductCreated?.();
       onClose();
@@ -232,6 +240,17 @@ const CreateProductModal: React.FC<Props> = ({ open, onClose, onProductCreated, 
                 <span className="text-xs text-gray-500">Preview</span>
               </div>
             )}
+          </div>
+
+          {/* Variation Groups */}
+          <div className="border-t pt-4">
+            <VariationGroupsEditor
+              groups={variationGroups}
+              onChange={setVariationGroups}
+              showPreparationOptions={showPreparationOptions}
+              onShowPrepChange={setShowPreparationOptions}
+              basePrice={parseFloat(formData.pricePerUnit) || 0}
+            />
           </div>
 
           {/* Buttons */}

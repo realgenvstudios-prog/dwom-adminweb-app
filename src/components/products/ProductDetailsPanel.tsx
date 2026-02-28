@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import productsService from "../../services/productsService";
 import inventoryService from "../../services/inventoryService";
+import VariationGroupsEditor from "./VariationGroupsEditor";
+import type { VariationGroup } from "./VariationGroupsEditor";
 import type { Product, ProductCategory } from "./ProductTypes";
 
 interface ProductDetailsPanelProps {
@@ -33,6 +35,27 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
     categoryId: '',
     inventoryQuantity: product?.inventory?.quantity || 0,
   });
+  const [variationGroups, setVariationGroups] = useState<VariationGroup[]>([]);
+  const [showPreparationOptions, setShowPreparationOptions] = useState(false);
+
+  const extractVariations = (prod: any): VariationGroup[] => {
+    const groups = prod?.VariationGroup || [];
+    return groups.map((g: any) => ({
+      name: g.name,
+      nameFrench: g.nameFrench || '',
+      type: g.type,
+      required: g.required,
+      sortOrder: g.sortOrder,
+      options: (g.options || []).map((o: any) => ({
+        label: o.label,
+        labelFrench: o.labelFrench || '',
+        priceMultiplier: o.priceMultiplier,
+        extraCharge: o.extraCharge || 0,
+        isDefault: o.isDefault || false,
+        sortOrder: o.sortOrder,
+      })),
+    }));
+  };
 
   React.useEffect(() => {
     if (product) {
@@ -47,6 +70,8 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
         categoryId: (product as any).categoryId?.toString() || (product as any).Category?.id?.toString() || '',
         inventoryQuantity: product.inventory?.quantity || 0,
       });
+      setVariationGroups(extractVariations(product));
+      setShowPreparationOptions((product as any).showPreparationOptions ?? false);
       setEditing(false);
     }
   }, [product]);
@@ -68,6 +93,8 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
         description: formData.description || undefined,
         imageUrl: formData.imageUrl || undefined,
         categoryId: formData.categoryId ? parseInt(formData.categoryId, 10) : undefined,
+        showPreparationOptions,
+        variationGroups,
       });
       
       // Update inventory if it changed
@@ -149,6 +176,26 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
               <div className="mb-2 text-sm"><span className="font-medium">Price:</span> GHS {typeof product.pricePerUnit === 'string' ? parseFloat(product.pricePerUnit).toFixed(2) : (product.pricePerUnit as number).toFixed(2)}</div>
               <div className="mb-2 text-sm"><span className="font-medium">Inventory:</span> <span className={`px-2 py-1 rounded text-xs font-semibold ${product.inventory?.status === 'out_of_stock' ? 'bg-red-100 text-red-700' : product.inventory?.status === 'low_stock' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>{product.inventory?.quantity || 0} {product.unitType}</span></div>
               <div className="mb-4 text-sm"><span className="font-medium">Description:</span> {product.description || 'N/A'}</div>
+              {/* Variation Groups Display */}
+              {variationGroups.length > 0 && (
+                <div className="mb-4">
+                  <div className="text-sm font-medium mb-2">Variations:</div>
+                  {variationGroups.map((group, gi) => (
+                    <div key={gi} className="mb-2 ml-2">
+                      <span className="text-xs font-semibold text-gray-600 uppercase">{group.name} ({group.type})</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {group.options.map((opt, oi) => (
+                          <span key={oi} className={`text-xs px-2 py-0.5 rounded-full border ${opt.isDefault ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-gray-50 border-gray-200 text-gray-600'}`}>
+                            {opt.label}
+                            {group.type === 'preparation' && opt.extraCharge ? ` (+GHS ${opt.extraCharge.toFixed(2)})` : ''}
+                            {group.type !== 'preparation' && opt.priceMultiplier ? ` (×${opt.priceMultiplier})` : ''}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="flex gap-2 mt-6">
                 <button 
                   onClick={() => setEditing(true)}
@@ -274,6 +321,16 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
                       <span className="text-xs text-gray-500">Preview</span>
                     </div>
                   )}
+                </div>
+                {/* Variation Groups Editor */}
+                <div className="border-t pt-4">
+                  <VariationGroupsEditor
+                    groups={variationGroups}
+                    onChange={setVariationGroups}
+                    showPreparationOptions={showPreparationOptions}
+                    onShowPrepChange={setShowPreparationOptions}
+                    basePrice={formData.pricePerUnit}
+                  />
                 </div>
               </div>
               <div className="flex gap-2 mt-6">

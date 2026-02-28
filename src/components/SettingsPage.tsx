@@ -310,10 +310,6 @@ const SettingsPage: React.FC = () => {
 							<span className="text-sm">Enable Subscription Billing</span>
 						</div>
 						<div>
-							<label className="block text-sm font-medium mb-1">Default Delivery Fee</label>
-							<input type="number" className="border rounded-lg px-4 py-2 w-full" value={defaultDeliveryFee} onChange={e => setDefaultDeliveryFee(Number(e.target.value))} />
-						</div>
-						<div>
 							<label className="block text-sm font-medium mb-1">Default Service Fee</label>
 							<input type="number" className="border rounded-lg px-4 py-2 w-full" value={defaultServiceFee} onChange={e => setDefaultServiceFee(Number(e.target.value))} />
 						</div>
