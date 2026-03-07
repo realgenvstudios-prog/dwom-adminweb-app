@@ -86,7 +86,6 @@ class MarketingService {
    */
   async getCampaignMetrics(): Promise<CampaignMetrics> {
     try {
-      console.log('📊 [MarketingService] Fetching campaign metrics...');
       const metrics = (await adminApiClient.get('/marketing/campaigns/metrics/overview')) as any;
       return metrics;
     } catch (error: any) {
@@ -100,7 +99,6 @@ class MarketingService {
    */
   async getCampaigns(status?: string, channel?: string): Promise<Campaign[]> {
     try {
-      console.log('📢 [MarketingService] Fetching campaigns...');
       const params = new URLSearchParams();
       if (status) params.append('status', status);
       if (channel) params.append('channel', channel);
@@ -119,7 +117,6 @@ class MarketingService {
    */
   async getCampaignById(id: number): Promise<Campaign> {
     try {
-      console.log(`📊 [MarketingService] Fetching campaign ${id}...`);
       const campaign = (await adminApiClient.get(`/marketing/campaigns/${id}`)) as any;
       return campaign;
     } catch (error: any) {
@@ -146,7 +143,6 @@ class MarketingService {
     ctaLink?: string;
   }): Promise<Campaign> {
     try {
-      console.log('✏️ [MarketingService] Creating campaign...');
       const campaign = (await adminApiClient.post('/marketing/campaigns', data)) as any;
       return campaign;
     } catch (error: any) {
@@ -176,7 +172,6 @@ class MarketingService {
     }
   ): Promise<Campaign> {
     try {
-      console.log(`✏️ [MarketingService] Updating campaign ${id}...`);
       const campaign = (await adminApiClient.patch(`/marketing/campaigns/${id}`, data)) as any;
       return campaign;
     } catch (error: any) {
@@ -190,7 +185,6 @@ class MarketingService {
    */
   async deleteCampaign(id: number): Promise<{ message: string }> {
     try {
-      console.log(`🗑️ [MarketingService] Deleting campaign ${id}...`);
       const result = (await adminApiClient.delete(`/marketing/campaigns/${id}`)) as any;
       return result;
     } catch (error: any) {
@@ -206,7 +200,6 @@ class MarketingService {
    */
   async getTemplates(): Promise<NotificationTemplate[]> {
     try {
-      console.log('📬 [MarketingService] Fetching notification templates...');
       const templates = (await adminApiClient.get('/marketing/templates')) as any;
       return templates;
     } catch (error: any) {
@@ -220,7 +213,6 @@ class MarketingService {
    */
   async getTemplateById(id: number): Promise<NotificationTemplate> {
     try {
-      console.log(`📬 [MarketingService] Fetching template ${id}...`);
       const template = (await adminApiClient.get(`/marketing/templates/${id}`)) as any;
       return template;
     } catch (error: any) {
@@ -246,7 +238,6 @@ class MarketingService {
     inAppCtaLink?: string;
   }): Promise<NotificationTemplate> {
     try {
-      console.log('✏️ [MarketingService] Creating notification template...');
       const template = (await adminApiClient.post('/marketing/templates', data)) as any;
       return template;
     } catch (error: any) {
@@ -276,7 +267,6 @@ class MarketingService {
     }
   ): Promise<NotificationTemplate> {
     try {
-      console.log(`✏️ [MarketingService] Updating template ${id}...`);
       const template = (await adminApiClient.patch(`/marketing/templates/${id}`, data)) as any;
       return template;
     } catch (error: any) {
@@ -290,7 +280,6 @@ class MarketingService {
    */
   async deleteTemplate(id: number): Promise<{ message: string }> {
     try {
-      console.log(`🗑️ [MarketingService] Deleting template ${id}...`);
       const result = (await adminApiClient.delete(`/marketing/templates/${id}`)) as any;
       return result;
     } catch (error: any) {
@@ -312,7 +301,6 @@ class MarketingService {
     sendNow?: boolean;
   }): Promise<NotificationSend> {
     try {
-      console.log('📤 [MarketingService] Sending notification...');
       const send = (await adminApiClient.post('/marketing/sends', data)) as any;
       return send;
     } catch (error: any) {
@@ -326,7 +314,6 @@ class MarketingService {
    */
   async getNotificationSends(): Promise<NotificationSend[]> {
     try {
-      console.log('📬 [MarketingService] Fetching notification sends...');
       const sends = (await adminApiClient.get('/marketing/sends')) as any;
       return sends;
     } catch (error: any) {
@@ -340,7 +327,6 @@ class MarketingService {
    */
   async getNotificationSendById(id: number): Promise<NotificationSend> {
     try {
-      console.log(`📬 [MarketingService] Fetching send ${id}...`);
       const send = (await adminApiClient.get(`/marketing/sends/${id}`)) as any;
       return send;
     } catch (error: any) {
@@ -356,7 +342,6 @@ class MarketingService {
    */
   async getAllCartCodeAnalytics(): Promise<CartCodeAnalytics[]> {
     try {
-      console.log('🛒 [MarketingService] Fetching cart code analytics...');
       const analytics = (await adminApiClient.get('/marketing/codes/analytics/all')) as any;
       return analytics;
     } catch (error: any) {
@@ -375,7 +360,6 @@ class MarketingService {
     data?: Record<string, string>;
   }): Promise<{ successCount: number; failureCount: number }> {
     try {
-      console.log('📡 [MarketingService] Sending broadcast notification via Firebase...');
       const result = (await adminApiClient.post('/notifications/broadcast', data)) as any;
       return result;
     } catch (error: any) {
@@ -394,7 +378,6 @@ class MarketingService {
     userIds?: string[];
   }): Promise<{ successCount: number; failureCount: number }> {
     try {
-      console.log('🎉 [MarketingService] Sending promotion notification...');
       const result = (await adminApiClient.post('/notifications/promotion', data)) as any;
       return result;
     } catch (error: any) {
@@ -412,7 +395,6 @@ class MarketingService {
     productId: string;
   }): Promise<{ successCount: number; failureCount: number }> {
     try {
-      console.log('📦 [MarketingService] Sending product update notification...');
       const result = (await adminApiClient.post('/notifications/product-update', data)) as any;
       return result;
     } catch (error: any) {
@@ -432,7 +414,6 @@ class MarketingService {
     data?: Record<string, string>;
   }): Promise<{ successCount: number; failureCount: number }> {
     try {
-      console.log('👥 [MarketingService] Sending notification to users...');
       const result = (await adminApiClient.post('/notifications/send-to-users', data)) as any;
       return result;
     } catch (error: any) {

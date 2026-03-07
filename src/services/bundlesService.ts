@@ -50,7 +50,6 @@ class BundlesService {
    */
   async getAll(): Promise<Bundle[]> {
     try {
-      console.log('📦 [BundlesService] Fetching all bundles');
       const response = await fetch(`${API_BASE_URL}/bundles?includeInactive=true`, {
         method: 'GET',
         headers: {
@@ -64,7 +63,6 @@ class BundlesService {
       }
 
       const data = await response.json();
-      console.log('✅ [BundlesService] Bundles fetched:', data.length);
       return data;
     } catch (error: any) {
       console.error('❌ [BundlesService] Failed to fetch bundles:', error);
@@ -77,7 +75,6 @@ class BundlesService {
    */
   async getById(id: number): Promise<Bundle> {
     try {
-      console.log(`📦 [BundlesService] Fetching bundle ${id}`);
       const response = await fetch(`${API_BASE_URL}/bundles/${id}`, {
         method: 'GET',
         headers: {
@@ -91,7 +88,6 @@ class BundlesService {
       }
 
       const data = await response.json();
-      console.log(`✅ [BundlesService] Bundle ${id} fetched`);
       return data;
     } catch (error: any) {
       console.error(`❌ [BundlesService] Failed to fetch bundle ${id}:`, error);
@@ -104,7 +100,6 @@ class BundlesService {
    */
   async create(dto: CreateBundleDto): Promise<Bundle> {
     try {
-      console.log('📦 [BundlesService] Creating bundle:', dto.name);
       const response = await fetch(`${API_BASE_URL}/bundles`, {
         method: 'POST',
         headers: {
@@ -119,7 +114,6 @@ class BundlesService {
       }
 
       const data = await response.json();
-      console.log('✅ [BundlesService] Bundle created:', data.id);
       return data;
     } catch (error: any) {
       console.error('❌ [BundlesService] Failed to create bundle:', error);
@@ -132,7 +126,6 @@ class BundlesService {
    */
   async update(id: number, dto: UpdateBundleDto): Promise<Bundle> {
     try {
-      console.log(`📦 [BundlesService] Updating bundle ${id}`);
       const response = await fetch(`${API_BASE_URL}/bundles/${id}`, {
         method: 'PATCH',
         headers: {
@@ -147,7 +140,6 @@ class BundlesService {
       }
 
       const data = await response.json();
-      console.log(`✅ [BundlesService] Bundle ${id} updated`);
       return data;
     } catch (error: any) {
       console.error(`❌ [BundlesService] Failed to update bundle ${id}:`, error);
@@ -160,7 +152,6 @@ class BundlesService {
    */
   async delete(id: number): Promise<{ message: string }> {
     try {
-      console.log(`🗑️ [BundlesService] Deleting bundle ${id}`);
       const response = await fetch(`${API_BASE_URL}/bundles/${id}`, {
         method: 'DELETE',
         headers: {
@@ -174,7 +165,6 @@ class BundlesService {
       }
 
       const data = await response.json();
-      console.log(`✅ [BundlesService] Bundle ${id}:`, data.message);
       return data;
     } catch (error: any) {
       console.error(`❌ [BundlesService] Failed to delete bundle ${id}:`, error);

@@ -12,8 +12,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   useEffect(() => {
     const checkAuth = () => {
-      const token = localStorage.getItem('admin_token');
-      const adminUser = localStorage.getItem('admin_user');
+      const token = sessionStorage.getItem('admin_token');
+      const adminUser = sessionStorage.getItem('admin_user');
       
       console.log('🔐 [ProtectedRoute] Checking auth:', { 
         hasToken: !!token, 
@@ -32,7 +32,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       }
     };
 
-    // Small delay to ensure localStorage is fully ready
+    // Small delay to ensure sessionStorage is fully ready
     const timer = setTimeout(checkAuth, 50);
     return () => clearTimeout(timer);
   }, [location.pathname]);

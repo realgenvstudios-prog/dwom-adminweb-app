@@ -55,11 +55,9 @@ class DashboardService {
    */
   async getOrderStats(): Promise<DashboardStats> {
     try {
-      console.log('📊 [DashboardService] Fetching order statistics...');
 
       // Prefer admin dashboard stats endpoint for consistency
       const response = await adminApiClient.get<DashboardStats>('/admin/dashboard/orders');
-      console.log('✅ [DashboardService] Order stats loaded:', response);
       return response;
     } catch (error: any) {
       console.error('❌ [DashboardService] Failed to fetch order stats:', error.message);
@@ -72,7 +70,6 @@ class DashboardService {
    */
   async getRiderStats(): Promise<RiderStats> {
     try {
-      console.log('🚴 [DashboardService] Fetching rider statistics...');
       
       // Fetch all riders
       const riders = (await adminApiClient.get('/riders/admin/all')) as any;
@@ -92,7 +89,6 @@ class DashboardService {
         averageRating,
       };
 
-      console.log('✅ [DashboardService] Rider stats calculated:', stats);
       return stats;
     } catch (error: any) {
       console.error('❌ [DashboardService] Failed to fetch rider stats:', error.message);
@@ -105,7 +101,6 @@ class DashboardService {
    */
   async getProductStats(): Promise<ProductStats> {
     try {
-      console.log('📦 [DashboardService] Fetching product statistics...');
       
       // Fetch all products
       const productsResponse = (await adminApiClient.get('/products')) as any;
@@ -130,7 +125,6 @@ class DashboardService {
         outOfStockProducts,
       };
 
-      console.log('✅ [DashboardService] Product stats calculated:', stats);
       return stats;
     } catch (error: any) {
       console.error('❌ [DashboardService] Failed to fetch product stats:', error.message);
@@ -143,7 +137,6 @@ class DashboardService {
    */
   async getDashboardData(): Promise<DashboardData> {
     try {
-      console.log('📈 [DashboardService] Fetching complete dashboard data...');
       
       // Fetch all data in parallel - use allSettled so one failure doesn't block the rest
       const [orderResult, riderResult, productResult] = await Promise.allSettled([
@@ -164,7 +157,6 @@ class DashboardService {
         },
       };
 
-      console.log('✅ [DashboardService] Complete dashboard data loaded');
       return dashboardData;
     } catch (error: any) {
       console.error('❌ [DashboardService] Failed to fetch dashboard data:', error.message);
@@ -177,7 +169,6 @@ class DashboardService {
    */
   async getPopularProducts(limit: number = 5): Promise<PopularProduct[]> {
     try {
-      console.log('⭐ [DashboardService] Fetching popular products...');
 
       // Use backend dashboard stats endpoint (fast + reliable)
       const topProductsResponse = (await adminApiClient.get(
@@ -194,7 +185,6 @@ class DashboardService {
         imageUrl: p.image,
       }));
 
-      console.log('✅ [DashboardService] Popular products:', popularProducts);
       return popularProducts;
     } catch (error: any) {
       console.error('❌ [DashboardService] Failed to fetch popular products:', error.message);
@@ -207,7 +197,6 @@ class DashboardService {
    */
   async getRevenueOverTime(days: number = 7): Promise<OrderTrend[]> {
     try {
-      console.log(`📊 [DashboardService] Fetching revenue data for last ${days} days...`);
       
       // Fetch all orders
       const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
@@ -242,7 +231,6 @@ class DashboardService {
         .sort((a, b) => a.date.localeCompare(b.date))
         .slice(-days);
 
-      console.log('✅ [DashboardService] Revenue trends:', trends);
       return trends;
     } catch (error: any) {
       console.error('❌ [DashboardService] Failed to fetch revenue trends:', error.message);
@@ -281,10 +269,8 @@ class DashboardService {
    */
   async getTotalCustomers(): Promise<number> {
     try {
-      console.log('👥 [DashboardService] Fetching total customers...');
       const users = (await adminApiClient.get('/users')) as any;
       const customers = users.filter((u: any) => u.role !== 'rider' && u.role !== 'admin').length;
-      console.log('✅ [DashboardService] Total customers:', customers);
       return customers;
     } catch (error: any) {
       console.error('❌ [DashboardService] Failed to fetch customers:', error.message);

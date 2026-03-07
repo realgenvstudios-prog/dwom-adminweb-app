@@ -44,7 +44,6 @@ class AdminsService {
    */
   async getAllAdmins(): Promise<Admin[]> {
     try {
-      console.log('👨‍💼 [AdminsService] Fetching all admins...');
       
       // Fetch all users from backend
       const response = (await adminApiClient.get('/users')) as any;
@@ -66,7 +65,6 @@ class AdminsService {
           updatedAt: user.updatedAt,
         }));
 
-      console.log(`✅ [AdminsService] Fetched ${admins.length} admins`);
       return admins;
     } catch (error) {
       console.error('❌ [AdminsService] Error fetching admins:', error);
@@ -232,7 +230,6 @@ class AdminsService {
     zones?: string;
   }): Promise<Admin | null> {
     try {
-      console.log('📧 [AdminsService] Inviting new admin:', data.email);
 
       const response = (await adminApiClient.post('/users', {
         name: data.name,
@@ -267,7 +264,6 @@ class AdminsService {
    */
   async updateAdminRole(adminId: number, newRole: string): Promise<Admin | null> {
     try {
-      console.log(`👤 [AdminsService] Updating admin ${adminId} role to ${newRole}`);
 
       const response = (await adminApiClient.patch(`/users/${adminId}`, {
         role: this._reverseMapRole(newRole),
@@ -298,7 +294,6 @@ class AdminsService {
    */
   async suspendAdmin(adminId: number): Promise<boolean> {
     try {
-      console.log(`🚫 [AdminsService] Suspending admin ${adminId}`);
 
       await adminApiClient.patch(`/users/${adminId}`, {
         status: 'suspended',
@@ -316,7 +311,6 @@ class AdminsService {
    */
   async reactivateAdmin(adminId: number): Promise<boolean> {
     try {
-      console.log(`✅ [AdminsService] Reactivating admin ${adminId}`);
 
       await adminApiClient.patch(`/users/${adminId}`, {
         status: 'active',

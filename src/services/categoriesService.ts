@@ -30,7 +30,6 @@ class CategoriesService {
    */
   async getAll(): Promise<Category[]> {
     try {
-      console.log('📂 [CategoriesService] Fetching all categories');
       const response = await fetch(`${API_BASE_URL}/categories`, {
         method: 'GET',
         headers: {
@@ -44,7 +43,6 @@ class CategoriesService {
       }
 
       const data = await response.json();
-      console.log('✅ [CategoriesService] Categories fetched:', data.length);
       return data;
     } catch (error: any) {
       console.error('❌ [CategoriesService] Failed to fetch categories:', error);
@@ -57,7 +55,6 @@ class CategoriesService {
    */
   async getById(id: number): Promise<Category> {
     try {
-      console.log(`📂 [CategoriesService] Fetching category ${id}`);
       const response = await fetch(`${API_BASE_URL}/categories/${id}`, {
         method: 'GET',
         headers: {
@@ -71,7 +68,6 @@ class CategoriesService {
       }
 
       const data = await response.json();
-      console.log(`✅ [CategoriesService] Category ${id} fetched`);
       return data;
     } catch (error: any) {
       console.error(`❌ [CategoriesService] Failed to fetch category ${id}:`, error);
@@ -84,7 +80,6 @@ class CategoriesService {
    */
   async create(dto: CreateCategoryDto): Promise<Category> {
     try {
-      console.log('📂 [CategoriesService] Creating category:', dto.name);
       const response = await fetch(`${API_BASE_URL}/categories`, {
         method: 'POST',
         headers: {
@@ -99,7 +94,6 @@ class CategoriesService {
       }
 
       const data = await response.json();
-      console.log('✅ [CategoriesService] Category created:', data.id);
       return data;
     } catch (error: any) {
       console.error('❌ [CategoriesService] Failed to create category:', error);
@@ -112,7 +106,6 @@ class CategoriesService {
    */
   async update(id: number, dto: UpdateCategoryDto): Promise<Category> {
     try {
-      console.log(`📂 [CategoriesService] Updating category ${id}`);
       const response = await fetch(`${API_BASE_URL}/categories/${id}`, {
         method: 'PATCH',
         headers: {
@@ -127,7 +120,6 @@ class CategoriesService {
       }
 
       const data = await response.json();
-      console.log(`✅ [CategoriesService] Category ${id} updated`);
       return data;
     } catch (error: any) {
       console.error(`❌ [CategoriesService] Failed to update category ${id}:`, error);
@@ -140,7 +132,6 @@ class CategoriesService {
    */
   async delete(id: number): Promise<void> {
     try {
-      console.log(`🗑️ [CategoriesService] Deleting category ${id}`);
       const response = await fetch(`${API_BASE_URL}/categories/${id}`, {
         method: 'DELETE',
         headers: {
@@ -153,7 +144,6 @@ class CategoriesService {
         throw new Error(`Failed to delete category: ${response.status}`);
       }
 
-      console.log(`✅ [CategoriesService] Category ${id} deleted`);
     } catch (error: any) {
       console.error(`❌ [CategoriesService] Failed to delete category ${id}:`, error);
       throw error;

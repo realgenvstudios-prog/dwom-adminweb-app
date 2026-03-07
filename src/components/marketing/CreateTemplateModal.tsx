@@ -9,6 +9,7 @@ interface CreateTemplateModalProps {
 
 const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ open, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -27,13 +28,19 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ open, onClose
       ...prev,
       [name]: value,
     }));
+    setError(null); // Clear error when user starts typing
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     try {
       setLoading(true);
-      await marketingService.createTemplate(formData);
+      // Strip empty strings so optional fields aren't sent as ""
+      const payload = Object.fromEntries(
+        Object.entries(formData).filter(([, v]) => v !== '')
+      );
+      await marketingService.createTemplate(payload as any);
       setFormData({
         name: "",
         description: "",
@@ -47,9 +54,10 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ open, onClose
       });
       onSuccess();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to create template:", error);
-      alert("Failed to create template");
+      const errorMessage = error?.response?.data?.message || error?.message || "Failed to create template. Please make sure all required fields are filled.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -61,6 +69,13 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ open, onClose
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-2xl max-h-96 overflow-y-auto">
         <h2 className="text-2xl font-bold mb-4">Create Notification Template</h2>
+        
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-700">❌ {error}</p>
+          </div>
+        )}
+        
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>

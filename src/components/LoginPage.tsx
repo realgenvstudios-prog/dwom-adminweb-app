@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import adminAuthService from '../services/authService';
 
@@ -8,6 +8,14 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
+
+  useEffect(() => {
+    if (sessionStorage.getItem('session_expired')) {
+      setSessionExpired(true);
+      sessionStorage.removeItem('session_expired');
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,8 +32,8 @@ const LoginPage: React.FC = () => {
       const authResponse = await adminAuthService.login(email, password);
       
       // Verify token and user data were saved
-      const savedToken = localStorage.getItem('admin_token');
-      const savedUser = localStorage.getItem('admin_user');
+      const savedToken = sessionStorage.getItem('admin_token');
+      const savedUser = sessionStorage.getItem('admin_user');
       console.log('✅ [LoginPage] Login successful:', { 
         tokenExists: !!savedToken, 
         tokenLength: savedToken?.length || 0,
@@ -57,6 +65,13 @@ const LoginPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900">DWOM</h1>
           <p className="text-gray-600 text-sm mt-2">Admin Dashboard</p>
         </div>
+
+        {/* Session Expired Warning */}
+        {sessionExpired && (
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-yellow-700 text-sm font-medium">Your session has expired. Please sign in again.</p>
+          </div>
+        )}
 
         {/* Error Message */}
         {error && (

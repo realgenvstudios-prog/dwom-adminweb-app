@@ -25,26 +25,26 @@ class AdminApiClient {
   }
 
   /**
-   * Load token from localStorage
+   * Load token from sessionStorage
    */
   private loadToken(): void {
-    this.token = localStorage.getItem('admin_token');
+    this.token = sessionStorage.getItem('admin_token');
   }
 
   /**
-   * Save token to localStorage
+   * Save token to sessionStorage
    */
   public setToken(token: string): void {
     this.token = token;
-    localStorage.setItem('admin_token', token);
+    sessionStorage.setItem('admin_token', token);
   }
 
   /**
-   * Clear token from localStorage
+   * Clear token from sessionStorage
    */
   public clearToken(): void {
     this.token = null;
-    localStorage.removeItem('admin_token');
+    sessionStorage.removeItem('admin_token');
   }
 
   /**
@@ -69,7 +69,6 @@ class AdminApiClient {
     try {
       // Reload token before each request in case it was updated
       this.loadToken();
-      console.log(`📡 [AdminAPI] GET ${endpoint}`, { hasToken: !!this.token });
       const response = await this.fetchWithRetry(`${this.baseURL}${endpoint}`, {
         method: 'GET',
         headers: this.getHeaders(),
@@ -77,11 +76,11 @@ class AdminApiClient {
 
       if (!response.ok) {
         if (response.status === 401) {
-          console.log('🔴 [AdminAPI] 401 Unauthorized on GET', endpoint);
           this.clearToken();
-          localStorage.removeItem('admin_user');
+          sessionStorage.removeItem('admin_user');
           // Only redirect if not already on login page
           if (window.location.pathname !== '/login') {
+            sessionStorage.setItem('session_expired', '1');
             window.location.href = '/login';
           }
         }
@@ -89,7 +88,6 @@ class AdminApiClient {
       }
 
       const data = await response.json();
-      console.log(`✅ [AdminAPI] GET ${endpoint} success`);
       return data;
     } catch (error) {
       console.error(`❌ [AdminAPI] GET ${endpoint} failed:`, error);
@@ -104,7 +102,6 @@ class AdminApiClient {
     try {
       // Reload token before each request in case it was updated
       this.loadToken();
-      console.log(`📡 [AdminAPI] POST ${endpoint}`, { hasToken: !!this.token });
       const response = await this.fetchWithRetry(`${this.baseURL}${endpoint}`, {
         method: 'POST',
         headers: this.getHeaders(),
@@ -113,11 +110,11 @@ class AdminApiClient {
 
       if (!response.ok) {
         if (response.status === 401) {
-          console.log('🔴 [AdminAPI] 401 Unauthorized on POST', endpoint);
           this.clearToken();
-          localStorage.removeItem('admin_user');
+          sessionStorage.removeItem('admin_user');
           // Only redirect if not already on login page
           if (window.location.pathname !== '/login') {
+            sessionStorage.setItem('session_expired', '1');
             window.location.href = '/login';
           }
         }
@@ -125,7 +122,6 @@ class AdminApiClient {
       }
 
       const responseData = await response.json();
-      console.log(`✅ [AdminAPI] POST ${endpoint} success`);
       return responseData;
     } catch (error) {
       console.error(`❌ [AdminAPI] POST ${endpoint} failed:`, error);
@@ -140,7 +136,6 @@ class AdminApiClient {
     try {
       // Reload token before each request in case it was updated
       this.loadToken();
-      console.log(`📡 [AdminAPI] PATCH ${endpoint}`, { hasToken: !!this.token });
       const response = await this.fetchWithRetry(`${this.baseURL}${endpoint}`, {
         method: 'PATCH',
         headers: this.getHeaders(),
@@ -149,11 +144,11 @@ class AdminApiClient {
 
       if (!response.ok) {
         if (response.status === 401) {
-          console.log('🔴 [AdminAPI] 401 Unauthorized on PATCH', endpoint);
           this.clearToken();
-          localStorage.removeItem('admin_user');
+          sessionStorage.removeItem('admin_user');
           // Only redirect if not already on login page
           if (window.location.pathname !== '/login') {
+            sessionStorage.setItem('session_expired', '1');
             window.location.href = '/login';
           }
         }
@@ -161,7 +156,6 @@ class AdminApiClient {
       }
 
       const responseData = await response.json();
-      console.log(`✅ [AdminAPI] PATCH ${endpoint} success`);
       return responseData;
     } catch (error) {
       console.error(`❌ [AdminAPI] PATCH ${endpoint} failed:`, error);
@@ -176,7 +170,6 @@ class AdminApiClient {
     try {
       // Reload token before each request in case it was updated
       this.loadToken();
-      console.log(`📡 [AdminAPI] PUT ${endpoint}`, { hasToken: !!this.token });
       const response = await this.fetchWithRetry(`${this.baseURL}${endpoint}`, {
         method: 'PUT',
         headers: this.getHeaders(),
@@ -185,11 +178,11 @@ class AdminApiClient {
 
       if (!response.ok) {
         if (response.status === 401) {
-          console.log('🔴 [AdminAPI] 401 Unauthorized on PUT', endpoint);
           this.clearToken();
-          localStorage.removeItem('admin_user');
+          sessionStorage.removeItem('admin_user');
           // Only redirect if not already on login page
           if (window.location.pathname !== '/login') {
+            sessionStorage.setItem('session_expired', '1');
             window.location.href = '/login';
           }
         }
@@ -197,7 +190,6 @@ class AdminApiClient {
       }
 
       const responseData = await response.json();
-      console.log(`✅ [AdminAPI] PUT ${endpoint} success`);
       return responseData;
     } catch (error) {
       console.error(`❌ [AdminAPI] PUT ${endpoint} failed:`, error);
@@ -212,7 +204,6 @@ class AdminApiClient {
     try {
       // Reload token before each request in case it was updated
       this.loadToken();
-      console.log(`📡 [AdminAPI] DELETE ${endpoint}`, { hasToken: !!this.token });
       const response = await this.fetchWithRetry(`${this.baseURL}${endpoint}`, {
         method: 'DELETE',
         headers: this.getHeaders(),
@@ -220,11 +211,11 @@ class AdminApiClient {
 
       if (!response.ok) {
         if (response.status === 401) {
-          console.log('🔴 [AdminAPI] 401 Unauthorized on DELETE', endpoint);
           this.clearToken();
-          localStorage.removeItem('admin_user');
+          sessionStorage.removeItem('admin_user');
           // Only redirect if not already on login page
           if (window.location.pathname !== '/login') {
+            sessionStorage.setItem('session_expired', '1');
             window.location.href = '/login';
           }
         }
@@ -232,7 +223,6 @@ class AdminApiClient {
       }
 
       const data = await response.json();
-      console.log(`✅ [AdminAPI] DELETE ${endpoint} success`);
       return data;
     } catch (error) {
       console.error(`❌ [AdminAPI] DELETE ${endpoint} failed:`, error);

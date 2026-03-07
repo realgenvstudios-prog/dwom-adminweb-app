@@ -25,6 +25,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: '/notes', label: 'Notes & Search Tracking' },
     { path: '/finance', label: 'Finance' },
     { path: '/marketing', label: 'Marketing' },
+    { path: '/coupons', label: 'Discount Codes' },
     { path: '/admins', label: 'Admins' },
     { path: '/data-deletion-requests', label: 'Data Deletion Requests' },
     { path: '/support', label: 'Support' },

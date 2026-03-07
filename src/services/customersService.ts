@@ -54,7 +54,6 @@ class CustomersService {
    */
   async getAllCustomers(): Promise<Customer[]> {
     try {
-      console.log('📊 [CustomersService] Fetching all customers...');
       
       // Fetch all users from the backend
       const response = (await apiClient.get('/users')) as any;
@@ -120,7 +119,6 @@ class CustomersService {
         })
       );
 
-      console.log(`✅ [CustomersService] Fetched ${customersWithStats.length} customers`);
       return customersWithStats;
     } catch (error) {
       console.error('❌ [CustomersService] Error fetching customers:', error);

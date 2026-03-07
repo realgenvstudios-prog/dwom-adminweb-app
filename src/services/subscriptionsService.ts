@@ -53,9 +53,7 @@ class SubscriptionsService {
    */
   async getMetrics(): Promise<SubscriptionMetrics> {
     try {
-      console.log('📊 [SubscriptionsService] Fetching subscription metrics...');
       const metrics = (await adminApiClient.get('/subscriptions/admin/dashboard/metrics')) as any;
-      console.log('✅ [SubscriptionsService] Metrics loaded:', metrics);
       return metrics;
     } catch (error: any) {
       console.error('❌ [SubscriptionsService] Failed to fetch metrics:', error.message);
@@ -68,9 +66,7 @@ class SubscriptionsService {
    */
   async getActiveSubscriptions(): Promise<Subscription[]> {
     try {
-      console.log('✅ [SubscriptionsService] Fetching active subscriptions...');
       const subscriptions = (await adminApiClient.get('/subscriptions/admin/dashboard/active')) as any;
-      console.log('✅ [SubscriptionsService] Active subscriptions loaded:', subscriptions);
       return subscriptions || [];
     } catch (error: any) {
       console.error('❌ [SubscriptionsService] Failed to fetch active subscriptions:', error.message);
@@ -79,13 +75,11 @@ class SubscriptionsService {
   }
 
   /**
-   * Get all subscriptions
+   * Get all subscriptions (active, paused, cancelled, failed)
    */
   async getAllSubscriptions(): Promise<Subscription[]> {
     try {
-      console.log('📋 [SubscriptionsService] Fetching all subscriptions...');
-      const subscriptions = (await adminApiClient.get('/subscriptions/admin/dashboard/active')) as any;
-      console.log('✅ [SubscriptionsService] All subscriptions loaded:', subscriptions);
+      const subscriptions = (await adminApiClient.get('/subscriptions/admin/dashboard/all')) as any;
       return subscriptions || [];
     } catch (error: any) {
       console.error('❌ [SubscriptionsService] Failed to fetch subscriptions:', error.message);
@@ -98,9 +92,7 @@ class SubscriptionsService {
    */
   async getSubscriptionsDueToday(): Promise<Subscription[]> {
     try {
-      console.log('🔔 [SubscriptionsService] Fetching subscriptions due today...');
       const subscriptions = (await adminApiClient.get('/subscriptions/admin/dashboard/due-today')) as any;
-      console.log('✅ [SubscriptionsService] Due subscriptions:', subscriptions);
       return subscriptions || [];
     } catch (error: any) {
       console.error('❌ [SubscriptionsService] Failed to fetch due subscriptions:', error.message);
@@ -113,9 +105,7 @@ class SubscriptionsService {
    */
   async getSubscriptionById(id: number): Promise<Subscription | null> {
     try {
-      console.log(`📄 [SubscriptionsService] Fetching subscription ${id}...`);
       const subscription = (await adminApiClient.get(`/subscriptions/${id}`)) as any;
-      console.log('✅ [SubscriptionsService] Subscription loaded:', subscription);
       return subscription;
     } catch (error: any) {
       console.error('❌ [SubscriptionsService] Failed to fetch subscription:', error.message);
@@ -128,9 +118,7 @@ class SubscriptionsService {
    */
   async updateSubscriptionStatus(id: number, status: string): Promise<Subscription | null> {
     try {
-      console.log(`🔄 [SubscriptionsService] Updating subscription ${id} status to ${status}...`);
       const subscription = (await adminApiClient.patch(`/subscriptions/${id}/status`, { status })) as any;
-      console.log('✅ [SubscriptionsService] Subscription updated:', subscription);
       return subscription;
     } catch (error: any) {
       console.error('❌ [SubscriptionsService] Failed to update subscription:', error.message);

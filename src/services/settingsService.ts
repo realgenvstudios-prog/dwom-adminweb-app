@@ -43,9 +43,7 @@ export const settingsService = {
    */
   async getSettings(): Promise<Settings> {
     try {
-      console.log('📊 [SettingsService] Fetching settings from backend');
       const settings = await adminApiClient.get<Settings>('/settings');
-      console.log('✅ [SettingsService] Settings fetched successfully');
       return settings;
     } catch (error: any) {
       console.error('❌ [SettingsService] Failed to fetch settings:', error);
@@ -58,9 +56,7 @@ export const settingsService = {
    */
   async updateSettings(updatedSettings: Partial<Settings>): Promise<Settings> {
     try {
-      console.log('📝 [SettingsService] Updating settings:', { keys: Object.keys(updatedSettings) });
       const response = await adminApiClient.patch<Settings>('/settings', updatedSettings);
-      console.log('✅ [SettingsService] Settings updated successfully');
       return response;
     } catch (error: any) {
       console.error('❌ [SettingsService] Failed to update settings:', error);
@@ -73,9 +69,7 @@ export const settingsService = {
    */
   async getSetting(key: string): Promise<any> {
     try {
-      console.log(`📊 [SettingsService] Fetching setting: ${key}`);
       const value = await adminApiClient.get(`/settings/${key}`);
-      console.log(`✅ [SettingsService] Setting ${key} fetched successfully`);
       return value;
     } catch (error: any) {
       console.error(`❌ [SettingsService] Failed to fetch setting ${key}:`, error);

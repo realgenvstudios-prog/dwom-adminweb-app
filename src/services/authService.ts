@@ -19,7 +19,7 @@ export interface AuthResponse {
 
 export const adminAuthService = {
   /**
-   * Ensure the current Supabase session token is mirrored into adminApiClient/localStorage.
+   * Ensure the current Supabase session token is mirrored into adminApiClient/sessionStorage.
    * (Disabled for now - using hardcoded login instead)
    */
   async syncTokenFromSupabase(): Promise<string | null> {
@@ -29,7 +29,7 @@ export const adminAuthService = {
     //   adminApiClient.setToken(token);
     // } else {
     //   adminApiClient.clearToken();
-    //   localStorage.removeItem('admin_user');
+    //   sessionStorage.removeItem('admin_user');
     // }
     return null;
   },
@@ -39,7 +39,6 @@ export const adminAuthService = {
    */
   async login(email: string, password: string): Promise<AuthResponse> {
     try {
-      console.log('🔐 [AuthService] Attempting admin login with email:', email);
       
       // Hardcoded demo admin credentials
       const DEMO_ADMIN_EMAIL = 'admin@dwom.com';
@@ -47,19 +46,16 @@ export const adminAuthService = {
 
       if (email !== DEMO_ADMIN_EMAIL || password !== DEMO_ADMIN_PASSWORD) {
         console.error('❌ [AuthService] Invalid credentials');
-        throw new Error('Invalid login credentials - please use admin@dwom.com / test@123');
+        throw new Error('Invalid email or password');
       }
 
-      console.log('✅ [AuthService] Credentials validated');
       
       // Try to get token from backend, but fall back to local mock if backend fails
       let accessToken: string;
       let admin: AuthResponse['admin'];
 
       try {
-        console.log('🌐 [AuthService] Calling backend login endpoint...');
         const backendUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/auth/admin/login`;
-        console.log('📍 [AuthService] Backend URL:', backendUrl);
         
         const response = await fetch(backendUrl, {
           method: 'POST',
@@ -71,13 +67,11 @@ export const adminAuthService = {
           const data = await response.json();
           accessToken = data.access_token || data.accessToken || data.token;
           admin = data.admin;
-          console.log('✅ [AuthService] Backend login successful');
         } else {
           console.warn('⚠️ [AuthService] Backend returned status', response.status, '- using local mock');
           throw new Error(`Backend error: ${response.status}`);
         }
       } catch (backendError: any) {
-        console.log('⚠️ [AuthService] Backend unavailable, using local mock token');
         
         // Generate a mock JWT token locally using browser btoa
         // Format: header.payload.signature (not validated, just for testing)
@@ -102,22 +96,12 @@ export const adminAuthService = {
           adminRole: 'super_admin',
         };
         
-        console.log('🔐 [AuthService] Generated local mock token for testing');
       }
       
       // Store the token and user
-      console.log('💾 [AuthService] Saving token and user to localStorage...');
       adminApiClient.setToken(accessToken);
-      localStorage.setItem('admin_user', JSON.stringify(admin));
+      sessionStorage.setItem('admin_user', JSON.stringify(admin));
       
-      // Verify it was saved
-      const savedToken = localStorage.getItem('admin_token');
-      const savedUser = localStorage.getItem('admin_user');
-      console.log('✅ [AuthService] Verified storage:', {
-        tokenSaved: !!savedToken,
-        userSaved: !!savedUser,
-        adminName: admin.name,
-      });
 
       return {
         accessToken,
@@ -153,7 +137,7 @@ export const adminAuthService = {
 
     //   // Fetch admin profile from backend (ensures this Supabase account is authorized as admin)
     //   const admin = (await adminApiClient.get<any>('/auth/admin/profile')) as any;
-    //   localStorage.setItem('admin_user', JSON.stringify(admin));
+    //   sessionStorage.setItem('admin_user', JSON.stringify(admin));
 
     //   return {
     //     accessToken: token,
@@ -171,12 +155,10 @@ export const adminAuthService = {
    */
   logout(): void {
     try {
-      console.log('🚪 [AuthService] Logging out');
       // Logout from Supabase (if enabled in the future)
       // supabase.auth.signOut().catch(() => undefined);
       adminApiClient.clearToken();
-      localStorage.removeItem('admin_user');
-      console.log('✅ [AuthService] Logout successful');
+      sessionStorage.removeItem('admin_user');
     } catch (error) {
       console.error('❌ [AuthService] Logout failed:', error);
     }
@@ -193,7 +175,7 @@ export const adminAuthService = {
    * Get current admin user
    */
   getCurrentAdmin(): any {
-    const userStr = localStorage.getItem('admin_user');
+    const userStr = sessionStorage.getItem('admin_user');
     return userStr ? JSON.parse(userStr) : null;
   },
 
@@ -204,16 +186,13 @@ export const adminAuthService = {
     try {
       await this.syncTokenFromSupabase();
       if (!adminApiClient.isAuthenticated()) {
-        console.log('⚠️ [AuthService] No token found during verification');
         return false;
       }
 
       // Try to fetch admin profile to verify token
-      console.log('🔐 [AuthService] Verifying token with backend...');
       const admin = await adminApiClient.get('/auth/admin/profile');
-      console.log('✅ [AuthService] Token verification successful');
       if (admin) {
-        localStorage.setItem('admin_user', JSON.stringify(admin));
+        sessionStorage.setItem('admin_user', JSON.stringify(admin));
         return true;
       }
       return false;

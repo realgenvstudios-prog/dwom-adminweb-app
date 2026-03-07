@@ -60,7 +60,6 @@ class InventoryService {
    */
   async getAll(): Promise<InventoryItem[]> {
     try {
-      console.log('📦 [InventoryService] Fetching all inventory');
       const response = await fetch(`${API_BASE_URL}/inventory`, {
         method: 'GET',
         headers: {
@@ -74,7 +73,6 @@ class InventoryService {
       }
 
       const data = await response.json();
-      console.log('✅ [InventoryService] Inventory fetched:', data.length);
       return data;
     } catch (error: any) {
       console.error('❌ [InventoryService] Failed to fetch inventory:', error);
@@ -87,7 +85,6 @@ class InventoryService {
    */
   async getByProduct(productId: number): Promise<InventoryItem> {
     try {
-      console.log(`📦 [InventoryService] Fetching inventory for product ${productId}`);
       const response = await fetch(`${API_BASE_URL}/inventory/product/${productId}`, {
         method: 'GET',
         headers: {
@@ -101,7 +98,6 @@ class InventoryService {
       }
 
       const data = await response.json();
-      console.log(`✅ [InventoryService] Inventory for product ${productId} fetched`);
       return data;
     } catch (error: any) {
       console.error(`❌ [InventoryService] Failed to fetch inventory for product ${productId}:`, error);
@@ -114,7 +110,6 @@ class InventoryService {
    */
   async getLowStock(): Promise<InventoryItem[]> {
     try {
-      console.log('📦 [InventoryService] Fetching low stock items');
       const response = await fetch(`${API_BASE_URL}/inventory/low-stock`, {
         method: 'GET',
         headers: {
@@ -128,7 +123,6 @@ class InventoryService {
       }
 
       const data = await response.json();
-      console.log('✅ [InventoryService] Low stock items fetched:', data.length);
       return data;
     } catch (error: any) {
       console.error('❌ [InventoryService] Failed to fetch low stock items:', error);
@@ -141,7 +135,6 @@ class InventoryService {
    */
   async getStats(): Promise<InventoryStats> {
     try {
-      console.log('📦 [InventoryService] Fetching inventory stats');
       const response = await fetch(`${API_BASE_URL}/inventory/stats`, {
         method: 'GET',
         headers: {
@@ -155,7 +148,6 @@ class InventoryService {
       }
 
       const data = await response.json();
-      console.log('✅ [InventoryService] Inventory stats fetched');
       return data;
     } catch (error: any) {
       console.error('❌ [InventoryService] Failed to fetch stats:', error);
@@ -168,7 +160,6 @@ class InventoryService {
    */
   async restock(productId: number, dto: RestockInventoryDto): Promise<InventoryItem> {
     try {
-      console.log(`📦 [InventoryService] Restocking product ${productId}`);
       const response = await fetch(`${API_BASE_URL}/inventory/product/${productId}/restock`, {
         method: 'PATCH',
         headers: {
@@ -183,7 +174,6 @@ class InventoryService {
       }
 
       const data = await response.json();
-      console.log(`✅ [InventoryService] Product ${productId} restocked`);
       return data;
     } catch (error: any) {
       console.error(`❌ [InventoryService] Failed to restock product ${productId}:`, error);
@@ -196,7 +186,6 @@ class InventoryService {
    */
   async recordMovement(productId: number, dto: RecordMovementDto): Promise<MovementRecord> {
     try {
-      console.log(`📦 [InventoryService] Recording movement for product ${productId}`);
       const response = await fetch(`${API_BASE_URL}/inventory/product/${productId}/movement`, {
         method: 'POST',
         headers: {
@@ -211,7 +200,6 @@ class InventoryService {
       }
 
       const data = await response.json();
-      console.log(`✅ [InventoryService] Movement recorded for product ${productId}`);
       return data;
     } catch (error: any) {
       console.error(`❌ [InventoryService] Failed to record movement for product ${productId}:`, error);
@@ -224,7 +212,6 @@ class InventoryService {
    */
   async getMovementHistory(productId: number, limit: number = 20): Promise<MovementRecord[]> {
     try {
-      console.log(`📦 [InventoryService] Fetching movement history for product ${productId}`);
       const response = await fetch(`${API_BASE_URL}/inventory/product/${productId}/history?limit=${limit}`, {
         method: 'GET',
         headers: {
@@ -238,7 +225,6 @@ class InventoryService {
       }
 
       const data = await response.json();
-      console.log(`✅ [InventoryService] Movement history fetched: ${data.length} records`);
       return data;
     } catch (error: any) {
       console.error(`❌ [InventoryService] Failed to fetch movement history for product ${productId}:`, error);
@@ -251,7 +237,6 @@ class InventoryService {
    */
   async create(dto: CreateInventoryDto): Promise<InventoryItem> {
     try {
-      console.log(`📦 [InventoryService] Creating inventory for product ${dto.productId}`);
       const response = await fetch(`${API_BASE_URL}/inventory`, {
         method: 'POST',
         headers: {
@@ -266,7 +251,6 @@ class InventoryService {
       }
 
       const data = await response.json();
-      console.log(`✅ [InventoryService] Inventory created for product ${dto.productId}`);
       return data;
     } catch (error: any) {
       console.error(`❌ [InventoryService] Failed to create inventory:`, error);
@@ -279,7 +263,6 @@ class InventoryService {
    */
   async updateThresholds(productId: number, reorderLevel: number, reorderQuantity: number): Promise<InventoryItem> {
     try {
-      console.log(`📦 [InventoryService] Updating thresholds for product ${productId}`);
       const response = await fetch(`${API_BASE_URL}/inventory/product/${productId}/thresholds`, {
         method: 'PATCH',
         headers: {
@@ -294,7 +277,6 @@ class InventoryService {
       }
 
       const data = await response.json();
-      console.log(`✅ [InventoryService] Thresholds updated for product ${productId}`);
       return data;
     } catch (error: any) {
       console.error(`❌ [InventoryService] Failed to update thresholds for product ${productId}:`, error);

@@ -16,6 +16,28 @@ interface Customer {
   status: 'Active' | 'At Risk' | 'Churned' | 'New';
 }
 
+interface OrderItem {
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+  image: string | null;
+}
+
+interface CustomerOrder {
+  id: number;
+  status: string;
+  paymentStatus: string;
+  paymentMethod: string;
+  subtotal: number;
+  deliveryFee: number;
+  serviceFee: number;
+  total: number;
+  createdAt: string;
+  address: string | null;
+  items: OrderItem[];
+}
+
 const CustomersPage: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,11 +45,28 @@ const CustomersPage: React.FC = () => {
   const [search, setSearch] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [orderHistory, setOrderHistory] = useState<CustomerOrder[]>([]);
+  const [orderHistoryLoading, setOrderHistoryLoading] = useState(false);
+  const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
+  const [detailTab, setDetailTab] = useState<'info' | 'orders'>('info');
   const isFetchingRef = useRef(false);
 
   useEffect(() => {
     fetchCustomers();
   }, []);
+
+  const fetchOrderHistory = async (customerId: number) => {
+    try {
+      setOrderHistoryLoading(true);
+      const data = await apiClient.get<CustomerOrder[]>(`/users/admin/customers/${customerId}/orders`);
+      setOrderHistory(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to fetch order history:', err);
+      setOrderHistory([]);
+    } finally {
+      setOrderHistoryLoading(false);
+    }
+  };
 
   const fetchCustomers = async () => {
     if (isFetchingRef.current) return;
@@ -37,24 +76,19 @@ const CustomersPage: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      console.log('📊 [CustomersPage] Fetching customers...');
+      console.log('📊 [CustomersPage] Fetching customers with stats...');
       
-      // Fetch users directly - apiClient returns data directly, not { data: ... }
-      const users = await apiClient.get<any[]>('/users');
-      console.log('📊 [CustomersPage] Users response:', users);
+      const data = await apiClient.get<any[]>('/users/admin/customers');
+      console.log('📊 [CustomersPage] Response:', data);
       
-      if (!Array.isArray(users)) {
-        console.error('❌ [CustomersPage] Expected array, got:', typeof users);
+      if (!Array.isArray(data)) {
+        console.error('❌ [CustomersPage] Expected array, got:', typeof data);
         setError('Invalid response from server');
         setCustomers([]);
         return;
       }
 
-      // Filter out admin users - only show customers
-      const customerUsers = users.filter(u => u.role === 'user');
-      
-      // Map to customer format with computed fields
-      const mappedCustomers: Customer[] = customerUsers.map(user => ({
+      const mappedCustomers: Customer[] = data.map(user => ({
         id: user.id,
         name: user.name || 'Unknown',
         email: user.email || null,
@@ -62,11 +96,11 @@ const CustomersPage: React.FC = () => {
         role: user.role,
         createdAt: user.createdAt,
         address: user.address || null,
-        totalOrders: 0, // Will be updated if we fetch orders
-        totalSpend: 0,
-        avgOrder: 0,
-        lastOrder: null,
-        status: 'New' as const, // New users with no orders
+        totalOrders: user.totalOrders || 0,
+        totalSpend: user.totalSpend || 0,
+        avgOrder: user.avgOrder || 0,
+        lastOrder: user.lastOrder || null,
+        status: user.status || 'New',
       }));
 
       console.log(`✅ [CustomersPage] Fetched ${mappedCustomers.length} customers`);
@@ -229,7 +263,13 @@ const CustomersPage: React.FC = () => {
                             className={`hover:bg-blue-50 cursor-pointer transition ${
                               selectedCustomer?.id === customer.id ? 'bg-blue-50' : ''
                             }`}
-                            onClick={() => setSelectedCustomer(customer)}
+                            onClick={() => {
+                              setSelectedCustomer(customer);
+                              setDetailTab('info');
+                              setExpandedOrderId(null);
+                              setOrderHistory([]);
+                              fetchOrderHistory(customer.id);
+                            }}
                           >
                             <td className="px-4 py-4">
                               <div className="flex items-center gap-3">
@@ -269,82 +309,196 @@ const CustomersPage: React.FC = () => {
 
             {/* Customer Details Sidebar */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Customer Details</h3>
-                
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 sticky top-6 overflow-hidden">
+
                 {selectedCustomer ? (
-                  <div className="space-y-6">
+                  <>
                     {/* Profile Header */}
-                    <div className="text-center pb-4 border-b border-gray-100">
-                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold mx-auto mb-3">
-                        {selectedCustomer.name.charAt(0).toUpperCase()}
-                      </div>
-                      <h4 className="text-xl font-bold text-gray-900">{selectedCustomer.name}</h4>
-                      <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium ${statusColors[selectedCustomer.status]}`}>
-                        {selectedCustomer.status}
-                      </span>
-                    </div>
-
-                    {/* Contact Info */}
-                    <div className="space-y-3">
-                      <h5 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Contact Information</h5>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-3 text-sm">
-                          <span className="text-gray-400">📧</span>
-                          <span className="text-gray-900">{selectedCustomer.email || 'No email provided'}</span>
+                    <div className="p-6 pb-4 border-b border-gray-100">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold shrink-0">
+                          {selectedCustomer.name.charAt(0).toUpperCase()}
                         </div>
-                        <div className="flex items-center gap-3 text-sm">
-                          <span className="text-gray-400">📱</span>
-                          <span className="text-gray-900">{selectedCustomer.phone}</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-sm">
-                          <span className="text-gray-400">🆔</span>
-                          <span className="text-gray-900">Customer #{selectedCustomer.id}</span>
-                        </div>
-                        <div className="flex items-start gap-3 text-sm">
-                          <span className="text-gray-400 mt-0.5">📍</span>
-                          <span className="text-gray-900">{selectedCustomer.address || 'No address saved'}</span>
+                        <div className="min-w-0">
+                          <h4 className="text-lg font-bold text-gray-900 truncate">{selectedCustomer.name}</h4>
+                          <p className="text-sm text-gray-500 truncate">{selectedCustomer.phone}</p>
+                          <span className={`inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[selectedCustomer.status]}`}>
+                            {selectedCustomer.status}
+                          </span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Stats */}
-                    <div className="space-y-3">
-                      <h5 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Statistics</h5>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-gray-50 rounded-lg p-3 text-center">
-                          <div className="text-2xl font-bold text-gray-900">{selectedCustomer.totalOrders}</div>
-                          <div className="text-xs text-gray-500">Total Orders</div>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg p-3 text-center">
-                          <div className="text-2xl font-bold text-gray-900">GHS {selectedCustomer.totalSpend}</div>
-                          <div className="text-xs text-gray-500">Total Spend</div>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg p-3 text-center">
-                          <div className="text-2xl font-bold text-gray-900">GHS {selectedCustomer.avgOrder}</div>
-                          <div className="text-xs text-gray-500">Avg Order</div>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg p-3 text-center">
-                          <div className="text-sm font-medium text-gray-900">{formatDate(selectedCustomer.createdAt)}</div>
-                          <div className="text-xs text-gray-500">Joined</div>
-                        </div>
-                      </div>
+                    {/* Tabs */}
+                    <div className="flex border-b border-gray-100">
+                      <button
+                        onClick={() => setDetailTab('info')}
+                        className={`flex-1 py-3 text-sm font-medium transition ${detailTab === 'info' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                      >
+                        Info & Stats
+                      </button>
+                      <button
+                        onClick={() => setDetailTab('orders')}
+                        className={`flex-1 py-3 text-sm font-medium transition ${detailTab === 'orders' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                      >
+                        Order History {selectedCustomer.totalOrders > 0 && <span className="ml-1 bg-gray-100 text-gray-600 text-xs px-1.5 py-0.5 rounded-full">{selectedCustomer.totalOrders}</span>}
+                      </button>
                     </div>
 
-                    {/* Last Order */}
-                    <div className="space-y-3">
-                      <h5 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Last Order</h5>
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <div className="text-sm text-gray-900">
-                          {selectedCustomer.lastOrder ? formatDate(selectedCustomer.lastOrder) : 'No orders yet'}
+                    {/* Tab Content */}
+                    <div className="p-6 max-h-[60vh] overflow-y-auto">
+                      {detailTab === 'info' && (
+                        <div className="space-y-5">
+                          {/* Contact Info */}
+                          <div className="space-y-2">
+                            <h5 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Contact</h5>
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2.5 text-sm">
+                                <span className="text-gray-400">📧</span>
+                                <span className="text-gray-800">{selectedCustomer.email || 'No email'}</span>
+                              </div>
+                              <div className="flex items-center gap-2.5 text-sm">
+                                <span className="text-gray-400">🆔</span>
+                                <span className="text-gray-800">Customer #{selectedCustomer.id}</span>
+                              </div>
+                              <div className="flex items-start gap-2.5 text-sm">
+                                <span className="text-gray-400 mt-0.5">📍</span>
+                                <span className="text-gray-800">{selectedCustomer.address || 'No address saved'}</span>
+                              </div>
+                              <div className="flex items-center gap-2.5 text-sm">
+                                <span className="text-gray-400">📅</span>
+                                <span className="text-gray-800">Joined {formatDate(selectedCustomer.createdAt)}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Stats */}
+                          <div className="space-y-2">
+                            <h5 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Statistics</h5>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="bg-gray-50 rounded-lg p-3 text-center">
+                                <div className="text-2xl font-bold text-gray-900">{selectedCustomer.totalOrders}</div>
+                                <div className="text-xs text-gray-500">Orders</div>
+                              </div>
+                              <div className="bg-gray-50 rounded-lg p-3 text-center">
+                                <div className="text-lg font-bold text-gray-900">GHS {selectedCustomer.totalSpend.toFixed(2)}</div>
+                                <div className="text-xs text-gray-500">Total Spent</div>
+                              </div>
+                              <div className="bg-gray-50 rounded-lg p-3 text-center">
+                                <div className="text-lg font-bold text-gray-900">GHS {selectedCustomer.avgOrder.toFixed(2)}</div>
+                                <div className="text-xs text-gray-500">Avg Order</div>
+                              </div>
+                              <div className="bg-gray-50 rounded-lg p-3 text-center">
+                                <div className="text-sm font-medium text-gray-900">{selectedCustomer.lastOrder ? formatDate(selectedCustomer.lastOrder) : '—'}</div>
+                                <div className="text-xs text-gray-500">Last Order</div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      )}
+
+                      {detailTab === 'orders' && (
+                        <div className="space-y-3">
+                          {orderHistoryLoading ? (
+                            <div className="flex items-center justify-center py-10">
+                              <svg className="animate-spin h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                              </svg>
+                            </div>
+                          ) : orderHistory.length === 0 ? (
+                            <div className="text-center py-10">
+                              <div className="text-4xl mb-2">🛒</div>
+                              <p className="text-gray-500 text-sm">No orders yet</p>
+                            </div>
+                          ) : (
+                            orderHistory.map(order => (
+                              <div key={order.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                                {/* Order Header - always visible */}
+                                <button
+                                  className="w-full text-left p-3 hover:bg-gray-50 transition"
+                                  onClick={() => setExpandedOrderId(expandedOrderId === order.id ? null : order.id)}
+                                >
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span className="font-semibold text-gray-900 text-sm">Order #{order.id}</span>
+                                    <span className="text-sm font-bold text-gray-900">GHS {order.total.toFixed(2)}</span>
+                                  </div>
+                                  <div className="flex items-center justify-between text-xs text-gray-500">
+                                    <span>{formatDate(order.createdAt)}</span>
+                                    <div className="flex gap-1.5">
+                                      <span className={`px-1.5 py-0.5 rounded-full font-medium ${
+                                        order.paymentStatus === 'completed' || order.paymentStatus === 'paid'
+                                          ? 'bg-green-100 text-green-700'
+                                          : order.paymentStatus === 'pending'
+                                          ? 'bg-yellow-100 text-yellow-700'
+                                          : 'bg-red-100 text-red-700'
+                                      }`}>{order.paymentStatus}</span>
+                                      <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-medium capitalize">{order.status}</span>
+                                    </div>
+                                  </div>
+                                </button>
+
+                                {/* Expanded Order Details */}
+                                {expandedOrderId === order.id && (
+                                  <div className="border-t border-gray-100 bg-gray-50 p-3 space-y-3">
+                                    {/* Items */}
+                                    <div>
+                                      <p className="text-xs font-semibold text-gray-400 uppercase mb-2">Items</p>
+                                      <div className="space-y-1.5">
+                                        {order.items.map((item, idx) => (
+                                          <div key={idx} className="flex justify-between items-start text-xs">
+                                            <div className="text-gray-800">
+                                              <span className="font-medium">{item.name}</span>
+                                              <span className="text-gray-500 ml-1">× {item.quantity}</span>
+                                            </div>
+                                            <span className="text-gray-700 font-medium ml-2 shrink-0">GHS {item.total.toFixed(2)}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    {/* Breakdown */}
+                                    <div className="border-t border-gray-200 pt-2 space-y-1 text-xs">
+                                      <div className="flex justify-between text-gray-500">
+                                        <span>Subtotal</span><span>GHS {order.subtotal.toFixed(2)}</span>
+                                      </div>
+                                      <div className="flex justify-between text-gray-500">
+                                        <span>Delivery</span><span>GHS {order.deliveryFee.toFixed(2)}</span>
+                                      </div>
+                                      <div className="flex justify-between text-gray-500">
+                                        <span>Service fee</span><span>GHS {order.serviceFee.toFixed(2)}</span>
+                                      </div>
+                                      <div className="flex justify-between font-semibold text-gray-900 border-t border-gray-200 pt-1">
+                                        <span>Total</span><span>GHS {order.total.toFixed(2)}</span>
+                                      </div>
+                                    </div>
+
+                                    {/* Payment & Address */}
+                                    <div className="border-t border-gray-200 pt-2 space-y-1 text-xs text-gray-600">
+                                      <div className="flex gap-1.5 items-center">
+                                        <span>💳</span>
+                                        <span className="capitalize">{order.paymentMethod || 'N/A'}</span>
+                                      </div>
+                                      {order.address && (
+                                        <div className="flex gap-1.5 items-start">
+                                          <span className="mt-0.5">📍</span>
+                                          <span>{order.address}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  </>
                 ) : (
-                  <div className="text-center py-12">
+                  <div className="p-6 text-center py-16">
                     <div className="text-gray-300 text-5xl mb-4">👤</div>
-                    <p className="text-gray-500 text-sm">Select a customer from the list to view their details</p>
+                    <p className="text-gray-500 text-sm">Select a customer to view their details</p>
                   </div>
                 )}
               </div>

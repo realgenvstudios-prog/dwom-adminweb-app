@@ -51,7 +51,6 @@ class FinanceService {
    */
   async getFinanceKPIs(): Promise<FinanceKPIs> {
     try {
-      console.log('💰 [FinanceService] Calculating KPIs from orders...');
 
       // Fetch all orders
       let allOrders: any[] = [];
@@ -115,7 +114,6 @@ class FinanceService {
         failedPaymentRate,
       };
 
-      console.log('✅ [FinanceService] KPIs calculated:', kpis);
       return kpis;
     } catch (error: any) {
       console.error('❌ [FinanceService] Failed to calculate KPIs:', error.message);
@@ -138,7 +136,6 @@ class FinanceService {
    */
   async getRevenueTrends(days: number = 7): Promise<RevenueTrend[]> {
     try {
-      console.log(`📈 [FinanceService] Fetching revenue trends for ${days} days...`);
 
       let allOrders: any[] = [];
       try {
@@ -182,7 +179,6 @@ class FinanceService {
         .sort((a, b) => a.date.localeCompare(b.date))
         .slice(-days);
 
-      console.log('✅ [FinanceService] Revenue trends:', trends);
       return trends;
     } catch (error: any) {
       console.error('❌ [FinanceService] Failed to fetch revenue trends:', error.message);
@@ -195,7 +191,6 @@ class FinanceService {
    */
   async getRevenueByZone(): Promise<RevenueByZone[]> {
     try {
-      console.log('🗺️ [FinanceService] Fetching revenue by zone...');
 
       const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
       const allOrders = asArray<any>(ordersResponse);
@@ -217,7 +212,6 @@ class FinanceService {
         }))
         .sort((a, b) => b.revenue - a.revenue);
 
-      console.log('✅ [FinanceService] Revenue by zone:', zones);
       return zones;
     } catch (error: any) {
       console.error('❌ [FinanceService] Failed to fetch revenue by zone:', error.message);
@@ -230,7 +224,6 @@ class FinanceService {
    */
   async getTopCustomers(limit: number = 10): Promise<TopCustomer[]> {
     try {
-      console.log('👥 [FinanceService] Fetching top customers...');
 
       const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
       const allOrders = asArray<any>(ordersResponse);
@@ -278,7 +271,6 @@ class FinanceService {
         .sort((a, b) => b.totalSpent - a.totalSpent)
         .slice(0, limit);
 
-      console.log('✅ [FinanceService] Top customers:', customers);
       return customers;
     } catch (error: any) {
       console.error('❌ [FinanceService] Failed to fetch top customers:', error.message);
@@ -291,7 +283,6 @@ class FinanceService {
    */
   async getFailedPayments(limit: number = 10): Promise<FailedPayment[]> {
     try {
-      console.log('❌ [FinanceService] Fetching failed payments...');
 
       const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
       const allOrders = asArray<any>(ordersResponse);
@@ -309,7 +300,6 @@ class FinanceService {
         .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, limit);
 
-      console.log('✅ [FinanceService] Failed payments:', failedPayments);
       return failedPayments;
     } catch (error: any) {
       console.error('❌ [FinanceService] Failed to fetch failed payments:', error.message);
@@ -322,12 +312,10 @@ class FinanceService {
    */
   async getActiveSubscriptions(): Promise<number> {
     try {
-      console.log('📋 [FinanceService] Fetching active subscriptions...');
 
       const subscriptions = (await adminApiClient.get('/subscriptions')) as any;
       const activeCount = (subscriptions || []).filter((s: any) => s.status === 'active').length;
 
-      console.log('✅ [FinanceService] Active subscriptions:', activeCount);
       return activeCount;
     } catch (error: any) {
       console.error('❌ [FinanceService] Failed to fetch subscriptions:', error.message);

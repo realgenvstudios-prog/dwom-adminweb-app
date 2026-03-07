@@ -58,7 +58,6 @@ class RidersService {
    */
   async getAllRiders(): Promise<RiderData[]> {
     try {
-      console.log('🚴 [RidersService] Fetching all riders');
       const response = await fetch(`${API_BASE_URL}/riders/admin/all`, {
         method: 'GET',
         headers: {
@@ -72,7 +71,6 @@ class RidersService {
       }
 
       const data = await response.json();
-      console.log('✅ [RidersService] Riders fetched:', data.length);
       return data;
     } catch (error: any) {
       console.error('❌ [RidersService] Failed to fetch riders:', error);
@@ -85,7 +83,6 @@ class RidersService {
    */
   async getAllZones(): Promise<Zone[]> {
     try {
-      console.log('🗺️ [RidersService] Fetching all zones');
       const response = await fetch(`${API_BASE_URL}/riders/zones`, {
         method: 'GET',
         headers: {
@@ -99,7 +96,6 @@ class RidersService {
       }
 
       const data = await response.json();
-      console.log('✅ [RidersService] Zones fetched:', data.length);
       return data;
     } catch (error: any) {
       console.error('❌ [RidersService] Failed to fetch zones:', error);
@@ -112,7 +108,6 @@ class RidersService {
    */
   async createZone(dto: { name: string; description?: string; lat: number; lng: number; radius: number; deliveryFee?: number }): Promise<Zone> {
     try {
-      console.log('🗺️ [RidersService] Creating new zone');
       const response = await fetch(`${API_BASE_URL}/riders/zones`, {
         method: 'POST',
         headers: {
@@ -128,7 +123,6 @@ class RidersService {
       }
 
       const data = await response.json();
-      console.log('✅ [RidersService] Zone created successfully');
       return data;
     } catch (error: any) {
       console.error('❌ [RidersService] Failed to create zone:', error);
@@ -141,7 +135,6 @@ class RidersService {
    */
   async updateRiderStatus(riderId: number, status: string): Promise<RiderData> {
     try {
-      console.log(`🚴 [RidersService] Updating rider ${riderId} status to ${status}`);
       const response = await fetch(`${API_BASE_URL}/riders/admin/${riderId}/status`, {
         method: 'PATCH',
         headers: {
@@ -156,7 +149,6 @@ class RidersService {
       }
 
       const data = await response.json();
-      console.log(`✅ [RidersService] Rider ${riderId} status updated to ${status}`);
       return data;
     } catch (error: any) {
       console.error(`❌ [RidersService] Failed to update rider status:`, error);
@@ -169,7 +161,6 @@ class RidersService {
    */
   async deactivateRider(riderId: number): Promise<RiderData> {
     try {
-      console.log(`🚴 [RidersService] Deactivating rider ${riderId}`);
       const response = await fetch(`${API_BASE_URL}/riders/admin/${riderId}/deactivate`, {
         method: 'PATCH',
         headers: {
@@ -183,7 +174,6 @@ class RidersService {
       }
 
       const data = await response.json();
-      console.log(`✅ [RidersService] Rider ${riderId} deactivated`);
       return data;
     } catch (error: any) {
       console.error(`❌ [RidersService] Failed to deactivate rider:`, error);
@@ -196,7 +186,6 @@ class RidersService {
    */
   async registerRider(dto: CreateRiderDto): Promise<RiderData> {
     try {
-      console.log(`🚴 [RidersService] Registering new rider`);
       const response = await fetch(`${API_BASE_URL}/riders/register`, {
         method: 'POST',
         headers: {
@@ -211,7 +200,6 @@ class RidersService {
       }
 
       const data = await response.json();
-      console.log(`✅ [RidersService] Rider registered successfully`);
       return data;
     } catch (error: any) {
       console.error(`❌ [RidersService] Failed to register rider:`, error);
@@ -224,7 +212,6 @@ class RidersService {
    */
   async createRiderAdmin(dto: { name: string; phone: string; email?: string; vehicleType: string; licenseNumber?: string }): Promise<RiderData> {
     try {
-      console.log(`🚴 [RidersService] Creating new rider as admin`);
       const response = await fetch(`${API_BASE_URL}/riders/admin/create`, {
         method: 'POST',
         headers: {
@@ -240,7 +227,6 @@ class RidersService {
       }
 
       const data = await response.json();
-      console.log(`✅ [RidersService] Rider created successfully`);
       return data;
     } catch (error: any) {
       console.error(`❌ [RidersService] Failed to create rider:`, error);
@@ -253,7 +239,6 @@ class RidersService {
    */
   async getAllUsers(): Promise<User[]> {
     try {
-      console.log('👤 [RidersService] Fetching all users');
       const response = await fetch(`${API_BASE_URL}/users`, {
         method: 'GET',
         headers: {
@@ -267,7 +252,6 @@ class RidersService {
       }
 
       const data = await response.json();
-      console.log('✅ [RidersService] Users fetched:', data.length);
       return data;
     } catch (error: any) {
       console.error('❌ [RidersService] Failed to fetch users:', error);
@@ -280,7 +264,6 @@ class RidersService {
    */
   async reactivateRider(riderId: number): Promise<RiderData> {
     try {
-      console.log(`🚴 [RidersService] Reactivating rider ${riderId}`);
       const response = await fetch(`${API_BASE_URL}/riders/admin/${riderId}/reactivate`, {
         method: 'PATCH',
         headers: {
@@ -294,7 +277,6 @@ class RidersService {
       }
 
       const data = await response.json();
-      console.log(`✅ [RidersService] Rider ${riderId} reactivated`);
       return data;
     } catch (error: any) {
       console.error(`❌ [RidersService] Failed to reactivate rider:`, error);
@@ -307,7 +289,6 @@ class RidersService {
    */
   async assignZone(riderId: number, zoneId: number): Promise<RiderData> {
     try {
-      console.log(`🗺️ [RidersService] Assigning rider ${riderId} to zone ${zoneId}`);
       const response = await fetch(`${API_BASE_URL}/riders/admin/${riderId}/zone`, {
         method: 'PATCH',
         headers: {
@@ -322,7 +303,6 @@ class RidersService {
       }
 
       const data = await response.json();
-      console.log(`✅ [RidersService] Rider ${riderId} assigned to zone ${zoneId}`);
       return data;
     } catch (error: any) {
       console.error(`❌ [RidersService] Failed to assign zone:`, error);

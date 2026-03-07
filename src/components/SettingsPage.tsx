@@ -32,7 +32,6 @@ const SettingsPage: React.FC = () => {
 	const [autoAssignOrders, setAutoAssignOrders] = useState(true);
 	const [autoActivateRiders, setAutoActivateRiders] = useState(false);
 	const [enableSubscriptionBilling, setEnableSubscriptionBilling] = useState(true);
-	const [defaultDeliveryFee, setDefaultDeliveryFee] = useState(5);
 	const [defaultServiceFee, setDefaultServiceFee] = useState(2);
 	const [timezone, setTimezone] = useState("Africa/Accra");
 	const [dateFormat, setDateFormat] = useState("DD/MM/YYYY");
@@ -63,6 +62,7 @@ const SettingsPage: React.FC = () => {
 	// UI State
 	const [loading, setLoading] = useState(false);
 	const [saving, setSaving] = useState(false);
+	const [settingsLoaded, setSettingsLoaded] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [success, setSuccess] = useState(false);
 
@@ -95,7 +95,6 @@ const SettingsPage: React.FC = () => {
 			setAutoAssignOrders(!!s.autoAssignOrders);
 			setAutoActivateRiders(!!s.autoActivateRiders);
 			setEnableSubscriptionBilling(!!s.enableSubscriptionBilling);
-			setDefaultDeliveryFee(s.defaultDeliveryFee ?? 5);
 			setDefaultServiceFee(s.defaultServiceFee ?? 2);
 			setTimezone(s.timezone ?? "Africa/Accra");
 			setDateFormat(s.dateFormat ?? "DD/MM/YYYY");
@@ -109,6 +108,7 @@ const SettingsPage: React.FC = () => {
 			setNotifyNewRiders(!!s.notifyNewRiders);
 			setEnable2FA(!!s.enable2FA);
 			setIpAccessControlList(s.ipAccessControlList ?? []);
+		setSettingsLoaded(true);
 		} catch (err: any) {
 			console.error('❌ Error loading settings:', err);
 			setError(err.message || 'Failed to load settings.');
@@ -123,6 +123,10 @@ const SettingsPage: React.FC = () => {
 
 	// Save handler
 	const handleSave = async () => {
+		if (!settingsLoaded) {
+			setError('Settings failed to load. Please refresh the page before saving.');
+			return;
+		}
 		try {
 			setSaving(true);
 			setError(null);
@@ -137,7 +141,6 @@ const SettingsPage: React.FC = () => {
 				autoAssignOrders,
 				autoActivateRiders,
 				enableSubscriptionBilling,
-				defaultDeliveryFee,
 				defaultServiceFee,
 				timezone,
 				dateFormat,
@@ -171,7 +174,7 @@ const SettingsPage: React.FC = () => {
 			<button
 				className="px-6 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:bg-blue-400 shadow-sm"
 				onClick={handleSave}
-				disabled={saving}
+				disabled={saving || !settingsLoaded}
 			>
 				{saving ? (
 					<>
@@ -310,8 +313,8 @@ const SettingsPage: React.FC = () => {
 							<span className="text-sm">Enable Subscription Billing</span>
 						</div>
 						<div>
-							<label className="block text-sm font-medium mb-1">Default Service Fee</label>
-							<input type="number" className="border rounded-lg px-4 py-2 w-full" value={defaultServiceFee} onChange={e => setDefaultServiceFee(Number(e.target.value))} />
+							<label className="block text-sm font-medium mb-1">Default Service Fee (GHS)</label>
+							<input type="number" min="0" step="0.5" className="border rounded-lg px-4 py-2 w-full" value={defaultServiceFee} onChange={e => setDefaultServiceFee(Number(e.target.value))} />
 						</div>
 						<div>
 							<label className="block text-sm font-medium mb-1">Timezone</label>
