@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import marketingService, { type Campaign, type CartCodeAnalytics, type CampaignMetrics } from "../services/marketingService";
+import marketingService, { type Campaign, type CartCodeAnalytics, type CampaignMetrics, type NotificationSend, type NotificationTemplate } from "../services/marketingService";
 import CreateCampaignModal from "./marketing/CreateCampaignModal";
 import SendNotificationModal from "./marketing/SendNotificationModal";
 import CreateTemplateModal from "./marketing/CreateTemplateModal";
@@ -8,6 +8,8 @@ const MarketingPage: React.FC = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [metrics, setMetrics] = useState<CampaignMetrics | null>(null);
   const [cartCodes, setCartCodes] = useState<CartCodeAnalytics[]>([]);
+  const [notificationSends, setNotificationSends] = useState<NotificationSend[]>([]);
+  const [templates, setTemplates] = useState<NotificationTemplate[]>([]);
   const [loading, setLoading] = useState(false);
   const [dateRange, setDateRange] = useState("last-7-days");
   const [selectedZone, setSelectedZone] = useState("all");
@@ -36,6 +38,14 @@ const MarketingPage: React.FC = () => {
       // Fetch cart code analytics
       const codeData = await marketingService.getAllCartCodeAnalytics();
       setCartCodes(codeData);
+
+      // Fetch notification send history
+      const sendsData = await marketingService.getNotificationSends();
+      setNotificationSends(sendsData);
+
+      // Fetch templates
+      const templateData = await marketingService.getTemplates();
+      setTemplates(templateData);
     } catch (error) {
       console.error("Failed to fetch marketing data:", error);
     } finally {
@@ -226,6 +236,67 @@ const MarketingPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Notification History */}
+        <div className="mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Notification History</h3>
+              <button onClick={() => setNotificationModalOpen(true)} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 text-sm">
+                + Send Notification
+              </button>
+            </div>
+            {templates.length === 0 && notificationSends.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-400 mb-3">No notifications sent yet</p>
+                <div className="flex gap-2 justify-center">
+                  <button onClick={() => setTemplateModalOpen(true)} className="px-3 py-1 border border-gray-300 rounded text-sm text-gray-600 hover:bg-gray-50">Create Template</button>
+                  <button onClick={() => setNotificationModalOpen(true)} className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">Send Notification</button>
+                </div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left text-sm">
+                  <thead>
+                    <tr className="text-gray-500 border-b">
+                      <th className="py-2 pr-4 font-medium">Template</th>
+                      <th className="py-2 pr-4 font-medium">Status</th>
+                      <th className="py-2 pr-4 font-medium">Recipients</th>
+                      <th className="py-2 pr-4 font-medium">Delivered</th>
+                      <th className="py-2 pr-4 font-medium">Failed</th>
+                      <th className="py-2 pr-4 font-medium">Sent At</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {notificationSends.map((send) => (
+                      <tr key={send.id} className="border-b last:border-0 hover:bg-gray-50">
+                        <td className="py-2 pr-4 font-medium">{(send as any).template?.name || `Template #${send.templateId}`}</td>
+                        <td className="py-2 pr-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            send.status === 'sent' ? 'bg-green-100 text-green-700' :
+                            send.status === 'sending' ? 'bg-blue-100 text-blue-700' :
+                            send.status === 'failed' ? 'bg-red-100 text-red-700' :
+                            'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            {send.status}
+                          </span>
+                        </td>
+                        <td className="py-2 pr-4">{send.totalRecipients}</td>
+                        <td className="py-2 pr-4 text-green-600">{send.successCount}</td>
+                        <td className="py-2 pr-4 text-red-500">{send.failureCount}</td>
+                        <td className="py-2 pr-4 text-gray-500">{send.sentAt ? new Date(send.sentAt).toLocaleString() : '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {notificationSends.length === 0 && (
+                  <p className="text-center text-gray-400 py-6 text-sm">No notifications sent yet. <button onClick={() => setNotificationModalOpen(true)} className="text-blue-600 underline">Send one now.</button></p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
       </div>
 
       {/* Modals */}
