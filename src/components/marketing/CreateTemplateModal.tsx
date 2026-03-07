@@ -1,13 +1,15 @@
-import React, { useState } from "react";
-import marketingService from "../../services/marketingService";
+import React, { useState, useEffect } from "react";
+import marketingService, { type NotificationTemplate } from "../../services/marketingService";
 
 interface CreateTemplateModalProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  template?: NotificationTemplate | null; // null = create mode, otherwise edit mode
 }
 
-const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ open, onClose, onSuccess }) => {
+const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ open, onClose, onSuccess, template }) => {
+  const isEditMode = !!template;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -21,6 +23,36 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ open, onClose
     inAppBody: "",
     inAppCtaText: "",
   });
+
+  // Populate form when template changes
+  useEffect(() => {
+    if (template) {
+      setFormData({
+        name: template.name || "",
+        description: template.description || "",
+        title: template.title || "",
+        body: template.body || "",
+        imageUrl: template.imageUrl || "",
+        actionUrl: template.actionUrl || "",
+        inAppTitle: template.inAppTitle || "",
+        inAppBody: template.inAppBody || "",
+        inAppCtaText: template.inAppCtaText || "",
+      });
+    } else {
+      setFormData({
+        name: "",
+        description: "",
+        title: "",
+        body: "",
+        imageUrl: "",
+        actionUrl: "",
+        inAppTitle: "",
+        inAppBody: "",
+        inAppCtaText: "",
+      });
+    }
+    setError(null);
+  }, [template, open]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -40,7 +72,13 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ open, onClose
       const payload = Object.fromEntries(
         Object.entries(formData).filter(([, v]) => v !== '')
       );
-      await marketingService.createTemplate(payload as any);
+      
+      if (isEditMode && template) {
+        await marketingService.updateTemplate(template.id, payload as any);
+      } else {
+        await marketingService.createTemplate(payload as any);
+      }
+      
       setFormData({
         name: "",
         description: "",
@@ -55,8 +93,8 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ open, onClose
       onSuccess();
       onClose();
     } catch (error: any) {
-      console.error("Failed to create template:", error);
-      const errorMessage = error?.response?.data?.message || error?.message || "Failed to create template. Please make sure all required fields are filled.";
+      console.error("Failed to save template:", error);
+      const errorMessage = error?.response?.data?.message || error?.message || "Failed to save template. Please make sure all required fields are filled.";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -68,7 +106,7 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ open, onClose
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-2xl max-h-96 overflow-y-auto">
-        <h2 className="text-2xl font-bold mb-4">Create Notification Template</h2>
+        <h2 className="text-2xl font-bold mb-4">{isEditMode ? 'Edit Template' : 'Create Notification Template'}</h2>
         
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -196,7 +234,7 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ open, onClose
               disabled={loading}
               className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
             >
-              {loading ? "Creating..." : "Create Template"}
+              {loading ? (isEditMode ? "Saving..." : "Creating...") : (isEditMode ? "Save Changes" : "Create Template")}
             </button>
           </div>
         </form>

@@ -17,6 +17,7 @@ const MarketingPage: React.FC = () => {
   const [campaignModalOpen, setCampaignModalOpen] = useState(false);
   const [notificationModalOpen, setNotificationModalOpen] = useState(false);
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<NotificationTemplate | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -297,6 +298,63 @@ const MarketingPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Templates Management */}
+        <div className="mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Notification Templates ({templates.length})</h3>
+              <button onClick={() => { setSelectedTemplate(null); setTemplateModalOpen(true); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">+ New Template</button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead>
+                  <tr className="text-gray-500 border-b">
+                    <th className="py-2 pr-4 font-medium">Name</th>
+                    <th className="py-2 pr-4 font-medium">Title</th>
+                    <th className="py-2 pr-4 font-medium">Description</th>
+                    <th className="py-2 pr-4 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {templates.map((tmpl) => (
+                    <tr key={tmpl.id} className="border-b last:border-0 hover:bg-gray-50">
+                      <td className="py-2 pr-4 font-medium">{tmpl.name}</td>
+                      <td className="py-2 pr-4 text-gray-700">{tmpl.title}</td>
+                      <td className="py-2 pr-4 text-gray-600 text-xs">{tmpl.description || '—'}</td>
+                      <td className="py-2 pr-4 flex gap-2">
+                        <button 
+                          onClick={() => { setSelectedTemplate(tmpl); setTemplateModalOpen(true); }} 
+                          className="text-blue-600 hover:underline text-xs font-medium"
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={async () => {
+                            if (window.confirm(`Delete template "${tmpl.name}"?`)) {
+                              try {
+                                await marketingService.deleteTemplate(tmpl.id);
+                                fetchData();
+                              } catch (error) {
+                                alert('Failed to delete template');
+                              }
+                            }
+                          }} 
+                          className="text-red-600 hover:underline text-xs font-medium"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {templates.length === 0 && (
+                <p className="text-center text-gray-400 py-8">No templates yet. <button onClick={() => { setSelectedTemplate(null); setTemplateModalOpen(true); }} className="text-blue-600 underline">Create one.</button></p>
+              )}
+            </div>
+          </div>
+        </div>
+
       </div>
 
       {/* Modals */}
@@ -313,7 +371,8 @@ const MarketingPage: React.FC = () => {
       <CreateTemplateModal 
         open={templateModalOpen} 
         onClose={() => setTemplateModalOpen(false)} 
-        onSuccess={fetchData} 
+        onSuccess={fetchData}
+        template={selectedTemplate}
       />
     </div>
   );
