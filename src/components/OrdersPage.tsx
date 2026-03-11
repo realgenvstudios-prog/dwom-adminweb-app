@@ -7,6 +7,23 @@ import CreateOrderModal from "./orders/CreateOrderModal";
 import type { Order, OrdersFilterState, RiderSummary } from "./orders/OrderTypes";
 import ordersService from "../services/ordersService";
 
+// Normalize backend order status to consistent lowercase format
+const normalizeOrderStatus = (status: string): string => {
+  const legacyMap: Record<string, string> = {
+    'on_the_way': 'rider on the way',
+    'arrived': 'rider has arrived',
+  };
+  const s = status?.trim() || 'sorting';
+  return legacyMap[s.toLowerCase()] ?? s.toLowerCase();
+};
+
+// Normalize backend payment status — backend uses 'completed', frontend shows 'paid'
+const normalizePaymentStatus = (status: string): string => {
+  const s = status?.toLowerCase()?.trim() || 'pending';
+  if (s === 'completed') return 'paid';
+  return s;
+};
+
 // Get today's date in YYYY-MM-DD format
 const getTodayString = (): string => {
   const today = new Date();
@@ -69,8 +86,9 @@ const OrdersPage: React.FC = () => {
           items: [],
           itemsCount,
           total: order.total || 0,
-          paymentStatus: order.paymentStatus || 'Pending',
-          orderStatus: order.status || 'Pending',
+          paymentStatus: normalizePaymentStatus(order.paymentStatus || 'pending'),
+          paymentMethod: order.paymentMethod || 'cash',
+          orderStatus: normalizeOrderStatus(order.status || 'sorting'),
           source: 'App',
           paymentRef: order.paymentReference,
           coupon: order.Coupon,
