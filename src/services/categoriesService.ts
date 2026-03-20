@@ -34,7 +34,7 @@ class CategoriesService {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
       });
 
@@ -59,7 +59,7 @@ class CategoriesService {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
       });
 
@@ -84,7 +84,7 @@ class CategoriesService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
         body: JSON.stringify(dto),
       });
@@ -110,7 +110,7 @@ class CategoriesService {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
         body: JSON.stringify(dto),
       });
@@ -136,7 +136,7 @@ class CategoriesService {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
       });
 

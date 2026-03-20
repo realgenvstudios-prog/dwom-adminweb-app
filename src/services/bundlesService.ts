@@ -54,7 +54,7 @@ class BundlesService {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
       });
 
@@ -79,7 +79,7 @@ class BundlesService {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
       });
 
@@ -104,7 +104,7 @@ class BundlesService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
         body: JSON.stringify(dto),
       });
@@ -130,7 +130,7 @@ class BundlesService {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
         body: JSON.stringify(dto),
       });
@@ -156,7 +156,7 @@ class BundlesService {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
       });
 

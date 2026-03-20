@@ -64,7 +64,7 @@ class InventoryService {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
       });
 
@@ -89,7 +89,7 @@ class InventoryService {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
       });
 
@@ -114,7 +114,7 @@ class InventoryService {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
       });
 
@@ -139,7 +139,7 @@ class InventoryService {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
       });
 
@@ -164,7 +164,7 @@ class InventoryService {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
         body: JSON.stringify(dto),
       });
@@ -190,7 +190,7 @@ class InventoryService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
         body: JSON.stringify(dto),
       });
@@ -216,7 +216,7 @@ class InventoryService {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
       });
 
@@ -241,7 +241,7 @@ class InventoryService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
         body: JSON.stringify(dto),
       });
@@ -267,7 +267,7 @@ class InventoryService {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
         body: JSON.stringify({ reorderLevel, reorderQuantity }),
       });

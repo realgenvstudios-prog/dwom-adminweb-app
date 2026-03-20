@@ -62,7 +62,7 @@ class RidersService {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
       });
 
@@ -87,7 +87,7 @@ class RidersService {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
       });
 
@@ -112,7 +112,7 @@ class RidersService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
         body: JSON.stringify(dto),
       });
@@ -139,7 +139,7 @@ class RidersService {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
         body: JSON.stringify({ status }),
       });
@@ -165,7 +165,7 @@ class RidersService {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
       });
 
@@ -190,7 +190,7 @@ class RidersService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
         body: JSON.stringify(dto),
       });
@@ -216,7 +216,7 @@ class RidersService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
         body: JSON.stringify(dto),
       });
@@ -243,7 +243,7 @@ class RidersService {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
       });
 
@@ -268,7 +268,7 @@ class RidersService {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
       });
 
@@ -293,7 +293,7 @@ class RidersService {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
         },
         body: JSON.stringify({ zoneId }),
       });
