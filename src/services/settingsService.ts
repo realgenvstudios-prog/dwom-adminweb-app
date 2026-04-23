@@ -34,6 +34,10 @@ export interface Settings {
   enable2FA: boolean;
   ipAccessControlList: string[];
 
+  // Service Availability
+  isServiceClosed: boolean;
+  serviceClosedMessage: string;
+
   updatedAt: Date;
 }
 

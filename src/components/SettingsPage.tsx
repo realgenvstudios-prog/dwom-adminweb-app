@@ -35,6 +35,8 @@ const SettingsPage: React.FC = () => {
 	const [defaultServiceFee, setDefaultServiceFee] = useState(2);
 	const [timezone, setTimezone] = useState("Africa/Accra");
 	const [dateFormat, setDateFormat] = useState("DD/MM/YYYY");
+	const [isServiceClosed, setIsServiceClosed] = useState(false);
+	const [serviceClosedMessage, setServiceClosedMessage] = useState("We're closed for the night. See you tomorrow!");
 
 	// Payment & Billing
 	const [paystackPub, setPaystackPub] = useState("pk_live_************abcd");
@@ -98,6 +100,8 @@ const SettingsPage: React.FC = () => {
 			setDefaultServiceFee(s.defaultServiceFee ?? 2);
 			setTimezone(s.timezone ?? "Africa/Accra");
 			setDateFormat(s.dateFormat ?? "DD/MM/YYYY");
+			setIsServiceClosed(!!s.isServiceClosed);
+			setServiceClosedMessage(s.serviceClosedMessage ?? "We're closed for the night. See you tomorrow!");
 			setTestMode(!!s.testMode);
 			setRetryLogic(s.retryLogic ?? "Exponential");
 			setMaxRetryAttempts(s.maxRetryAttempts ?? 3);
@@ -144,6 +148,8 @@ const SettingsPage: React.FC = () => {
 				defaultServiceFee,
 				timezone,
 				dateFormat,
+				isServiceClosed,
+				serviceClosedMessage,
 				testMode,
 				retryLogic,
 				maxRetryAttempts,
@@ -332,6 +338,32 @@ const SettingsPage: React.FC = () => {
 								<option value="MM/DD/YYYY">MM/DD/YYYY</option>
 								<option value="YYYY-MM-DD">YYYY-MM-DD</option>
 							</select>
+						</div>
+						<div className="md:col-span-2 border border-red-200 rounded-lg p-4 bg-red-50 flex flex-col gap-3">
+							<div className="flex items-center justify-between">
+								<div>
+									<span className="text-sm font-semibold text-red-700">Close Service</span>
+									<p className="text-xs text-red-500 mt-0.5">When on, the app will show a closed message to all signed-in users.</p>
+								</div>
+								<button
+									type="button"
+									onClick={() => setIsServiceClosed(v => !v)}
+									className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isServiceClosed ? 'bg-red-600' : 'bg-gray-300'}`}
+								>
+									<span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${isServiceClosed ? 'translate-x-6' : 'translate-x-1'}`} />
+								</button>
+							</div>
+							{isServiceClosed && (
+								<div>
+									<label className="block text-xs font-medium text-red-700 mb-1">Message shown to users</label>
+									<input
+										className="border border-red-300 rounded-lg px-3 py-2 w-full text-sm bg-white"
+										value={serviceClosedMessage}
+										onChange={e => setServiceClosedMessage(e.target.value)}
+										placeholder="We're closed for the night. See you tomorrow!"
+									/>
+								</div>
+							)}
 						</div>					{renderSaveButton()}					</div>
 				</div>
 				{/* 3. User & Roles Management */}
