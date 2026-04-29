@@ -95,14 +95,25 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
   };
 
   const removeOption = (groupIndex: number, optIndex: number) => {
-    const updated = [...groups];
-    updated[groupIndex].options = updated[groupIndex].options.filter((_, i) => i !== optIndex);
+    const updated = groups.map((group, gi) =>
+      gi === groupIndex
+        ? { ...group, options: group.options.filter((_, i) => i !== optIndex) }
+        : group
+    );
     onChange(updated);
   };
 
   const updateOption = (groupIndex: number, optIndex: number, field: keyof VariationOption, value: any) => {
-    const updated = [...groups];
-    (updated[groupIndex].options[optIndex] as any)[field] = value;
+    const updated = groups.map((group, gi) =>
+      gi === groupIndex
+        ? {
+            ...group,
+            options: group.options.map((opt, oi) =>
+              oi === optIndex ? { ...opt, [field]: value } : opt
+            ),
+          }
+        : group
+    );
     onChange(updated);
   };
 
@@ -233,14 +244,18 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
                       step="0.01"
                       min="0"
                       value={opt.priceMultiplier ?? 1}
-                      onChange={(e) => updateOption(gi, oi, 'priceMultiplier', parseFloat(e.target.value) || 0)}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        const val = raw === '' ? 0 : parseFloat(raw);
+                        updateOption(gi, oi, 'priceMultiplier', isNaN(val) ? 0 : val);
+                      }}
                       className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
                   )}
                 </div>
                 <div className="col-span-2 text-xs text-gray-500 px-1">
                   {group.type !== 'preparation' && basePrice > 0 
-                    ? `GHS ${(basePrice * (opt.priceMultiplier || 1)).toFixed(2)}` 
+                    ? `GHS ${(basePrice * (opt.priceMultiplier ?? 1)).toFixed(2)}` 
                     : group.type === 'preparation' && opt.extraCharge 
                       ? `+GHS ${opt.extraCharge.toFixed(2)}`
                       : ''}
