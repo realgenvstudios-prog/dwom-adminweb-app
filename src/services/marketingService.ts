@@ -50,6 +50,12 @@ export interface NotificationSend {
   totalRecipients: number;
   successCount: number;
   failureCount: number;
+  pushSuccessCount?: number;
+  pushFailureCount?: number;
+  smsSuccessCount?: number;
+  smsFailureCount?: number;
+  emailSuccessCount?: number;
+  emailFailureCount?: number;
   readCount: number;
   clickCount: number;
   createdAt: string;

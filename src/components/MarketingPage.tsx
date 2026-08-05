@@ -298,8 +298,9 @@ const MarketingPage: React.FC = () => {
                       <th className="py-2 pr-4 font-medium">Template</th>
                       <th className="py-2 pr-4 font-medium">Status</th>
                       <th className="py-2 pr-4 font-medium">Recipients</th>
-                      <th className="py-2 pr-4 font-medium">Delivered</th>
-                      <th className="py-2 pr-4 font-medium">Failed</th>
+                      <th className="py-2 pr-4 font-medium">Push</th>
+                      <th className="py-2 pr-4 font-medium">SMS</th>
+                      <th className="py-2 pr-4 font-medium">Email</th>
                       <th className="py-2 pr-4 font-medium">Sent At</th>
                     </tr>
                   </thead>
@@ -318,8 +319,21 @@ const MarketingPage: React.FC = () => {
                           </span>
                         </td>
                         <td className="py-2 pr-4">{send.totalRecipients}</td>
-                        <td className="py-2 pr-4 text-green-600">{send.successCount}</td>
-                        <td className="py-2 pr-4 text-red-500">{send.failureCount}</td>
+                        <td className="py-2 pr-4 whitespace-nowrap">
+                          <span className="text-green-600">{send.pushSuccessCount ?? 0}</span>
+                          {' / '}
+                          <span className="text-red-500">{send.pushFailureCount ?? 0}</span>
+                        </td>
+                        <td className="py-2 pr-4 whitespace-nowrap">
+                          <span className="text-green-600">{send.smsSuccessCount ?? 0}</span>
+                          {' / '}
+                          <span className="text-red-500">{send.smsFailureCount ?? 0}</span>
+                        </td>
+                        <td className="py-2 pr-4 whitespace-nowrap">
+                          <span className="text-green-600">{send.emailSuccessCount ?? 0}</span>
+                          {' / '}
+                          <span className="text-red-500">{send.emailFailureCount ?? 0}</span>
+                        </td>
                         <td className="py-2 pr-4 text-gray-500">{send.sentAt ? new Date(send.sentAt).toLocaleString() : '—'}</td>
                       </tr>
                     ))}
