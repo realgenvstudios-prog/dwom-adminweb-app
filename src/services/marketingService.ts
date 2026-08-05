@@ -193,6 +193,21 @@ class MarketingService {
     }
   }
 
+  /**
+   * Actually dispatches a draft campaign per its channel (push/in-app/SMS
+   * send for real; email errors until a provider is configured; social is
+   * marked active only, since posting there isn't automated).
+   */
+  async launchCampaign(id: number): Promise<{ totalRecipients: number; successCount: number; failureCount: number; status: string }> {
+    try {
+      const result = (await adminApiClient.post(`/marketing/campaigns/${id}/launch`, {})) as any;
+      return result;
+    } catch (error: any) {
+      console.error('❌ Failed to launch campaign:', error.message);
+      throw error;
+    }
+  }
+
   // ==================== NOTIFICATION TEMPLATES ====================
 
   /**
@@ -299,6 +314,7 @@ class MarketingService {
     targetSubscriptionStatus?: string;
     scheduledFor?: string;
     sendNow?: boolean;
+    sendSms?: boolean;
   }): Promise<NotificationSend> {
     try {
       const send = (await adminApiClient.post('/marketing/sends', data)) as any;

@@ -18,10 +18,33 @@ const MarketingPage: React.FC = () => {
   const [notificationModalOpen, setNotificationModalOpen] = useState(false);
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<NotificationTemplate | null>(null);
+  const [launchingId, setLaunchingId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  const handleLaunchCampaign = async (campaign: Campaign) => {
+    const confirmed = window.confirm(
+      `Launch "${campaign.name}" via ${campaign.channel.replace('_', ' ')}?\n\n` +
+      `This will actually send to every matching recipient right now and cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    try {
+      setLaunchingId(campaign.id);
+      const result = await marketingService.launchCampaign(campaign.id);
+      alert(
+        `Campaign launched.\nRecipients: ${result.totalRecipients}\n` +
+        `Successful: ${result.successCount}\nFailed: ${result.failureCount}`
+      );
+      fetchData();
+    } catch (error: any) {
+      alert('Failed to launch campaign: ' + (error?.message || 'Unknown error'));
+    } finally {
+      setLaunchingId(null);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -145,17 +168,18 @@ const MarketingPage: React.FC = () => {
                       <th className="py-2 pr-4 font-medium">Impressions</th>
                       <th className="py-2 pr-4 font-medium">Conversions</th>
                       <th className="py-2 pr-4 font-medium">ROAS</th>
+                      <th className="py-2 pr-4 font-medium">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {campaigns.slice(0, 5).map((campaign) => (
-                      <tr key={campaign.id} className="border-b last:border-0 hover:bg-gray-50 cursor-pointer">
+                      <tr key={campaign.id} className="border-b last:border-0 hover:bg-gray-50">
                         <td className="py-2 pr-4 font-medium">{campaign.name}</td>
                         <td className="py-2 pr-4 capitalize">{campaign.channel.replace('_', ' ')}</td>
                         <td className="py-2 pr-4">
                           <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            campaign.status === 'active' ? 'bg-green-100 text-green-700' : 
-                            campaign.status === 'paused' ? 'bg-yellow-100 text-yellow-700' : 
+                            campaign.status === 'active' ? 'bg-green-100 text-green-700' :
+                            campaign.status === 'paused' ? 'bg-yellow-100 text-yellow-700' :
                             'bg-gray-100 text-gray-700'
                           }`}>
                             {campaign.status}
@@ -165,6 +189,17 @@ const MarketingPage: React.FC = () => {
                         <td className="py-2 pr-4">{campaign.impressions.toLocaleString()}</td>
                         <td className="py-2 pr-4">{campaign.conversions}</td>
                         <td className="py-2 pr-4">{campaign.roas.toFixed(1)}x</td>
+                        <td className="py-2 pr-4">
+                          {campaign.status === 'draft' && (
+                            <button
+                              onClick={() => handleLaunchCampaign(campaign)}
+                              disabled={launchingId === campaign.id}
+                              className="px-3 py-1 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 disabled:opacity-50"
+                            >
+                              {launchingId === campaign.id ? 'Launching…' : 'Launch'}
+                            </button>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
