@@ -38,79 +38,41 @@ export const adminAuthService = {
    * Login with hardcoded credentials (temporary - works without backend)
    */
   async login(email: string, password: string): Promise<AuthResponse> {
-    try {
-      
-      // Hardcoded demo admin credentials
-      const DEMO_ADMIN_EMAIL = 'admin@dwom.com';
-      const DEMO_ADMIN_PASSWORD = 'test@123';
+    // Always go through the real backend — it already validates credentials
+    // and issues a properly signed JWT. A previous version of this method
+    // fabricated an unsigned mock token locally whenever this call failed
+    // (network error, CORS, backend 500, etc.) and reported login as
+    // "successful" anyway. The backend's auth guard rejects that token on
+    // every subsequent request, so any transient failure here used to turn
+    // into silent 401s across the entire dashboard, not just this page.
+    const backendUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/auth/admin/login`;
 
-      if (email !== DEMO_ADMIN_EMAIL || password !== DEMO_ADMIN_PASSWORD) {
-        console.error('❌ [AuthService] Invalid credentials');
-        throw new Error('Invalid email or password');
-      }
+    const response = await fetch(backendUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
 
-      
-      // Try to get token from backend, but fall back to local mock if backend fails
-      let accessToken: string;
-      let admin: AuthResponse['admin'];
-
-      try {
-        const backendUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/auth/admin/login`;
-        
-        const response = await fetch(backendUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          accessToken = data.access_token || data.accessToken || data.token;
-          admin = data.admin;
-        } else {
-          console.warn('⚠️ [AuthService] Backend returned status', response.status, '- using local mock');
-          throw new Error(`Backend error: ${response.status}`);
-        }
-      } catch (backendError: any) {
-        
-        // Generate a mock JWT token locally using browser btoa
-        // Format: header.payload.signature (not validated, just for testing)
-        const now = Math.floor(Date.now() / 1000);
-        const payload = {
-          sub: '1',
-          email: DEMO_ADMIN_EMAIL,
-          name: 'Admin User',
-          iat: now,
-          exp: now + 86400, // 24 hours
-        };
-        
-        const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-        const payloadEncoded = btoa(JSON.stringify(payload));
-        accessToken = `${header}.${payloadEncoded}.mockSignature`;
-        
-        admin = {
-          id: 1,
-          email: DEMO_ADMIN_EMAIL,
-          name: 'Admin User',
-          role: 'Super Admin',
-          adminRole: 'super_admin',
-        };
-        
-      }
-      
-      // Store the token and user
-      adminApiClient.setToken(accessToken);
-      sessionStorage.setItem('admin_user', JSON.stringify(admin));
-      
-
-      return {
-        accessToken,
-        admin,
-      };
-    } catch (error: any) {
-      console.error('❌ [AuthService] Login failed:', error.message);
-      throw error;
+    if (!response.ok) {
+      const message = response.status === 401
+        ? 'Invalid email or password'
+        : `Login failed (server returned ${response.status})`;
+      console.error('❌ [AuthService] Login failed:', message);
+      throw new Error(message);
     }
+
+    const data = await response.json();
+    const accessToken = data.access_token || data.accessToken || data.token;
+    const admin = data.admin;
+
+    if (!accessToken || !admin) {
+      throw new Error('Login response was missing an access token or admin profile');
+    }
+
+    adminApiClient.setToken(accessToken);
+    sessionStorage.setItem('admin_user', JSON.stringify(admin));
+
+    return { accessToken, admin };
   },
   
   /**
