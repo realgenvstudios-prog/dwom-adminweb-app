@@ -320,6 +320,7 @@ class MarketingService {
     targetSubscriptionStatus?: string;
     scheduledFor?: string;
     sendNow?: boolean;
+    sendPush?: boolean;
     sendSms?: boolean;
     sendEmail?: boolean;
   }): Promise<NotificationSend> {

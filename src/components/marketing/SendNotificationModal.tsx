@@ -22,6 +22,7 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({ open, onC
     sendNow: true,
     scheduledFor: new Date().toISOString().split('T')[0],
     targetZones: [] as number[],
+    sendPush: true,
     sendSms: false,
     sendEmail: false,
   });
@@ -78,12 +79,19 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({ open, onC
         console.log('📤 Broadcast notification sent:', result);
         alert(`Notification sent!\nSuccessful: ${result.successCount}\nFailed: ${result.failureCount}`);
       } else {
+        if (!formData.sendPush && !formData.sendSms && !formData.sendEmail) {
+          alert('Select at least one channel (Push, SMS, or Email) before sending.');
+          setLoading(false);
+          return;
+        }
+
         // Send using template (legacy)
         const data = {
           templateId: parseInt(formData.templateId.toString()),
           sendNow: formData.sendNow,
           scheduledFor: !formData.sendNow ? formData.scheduledFor : undefined,
           targetZones: formData.targetZones.length > 0 ? formData.targetZones : undefined,
+          sendPush: formData.sendPush,
           sendSms: formData.sendSms,
           sendEmail: formData.sendEmail,
         };
@@ -98,6 +106,7 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({ open, onC
         sendNow: true,
         scheduledFor: new Date().toISOString().split('T')[0],
         targetZones: [],
+        sendPush: true,
         sendSms: false,
         sendEmail: false,
       });
@@ -247,6 +256,15 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({ open, onC
               <label className="flex items-center gap-2 mb-2">
                 <input
                   type="checkbox"
+                  checked={formData.sendPush}
+                  onChange={(e) => setFormData(prev => ({ ...prev, sendPush: e.target.checked }))}
+                />
+                <span className="text-sm font-medium">Send Push Notification (device push + in-app inbox)</span>
+              </label>
+
+              <label className="flex items-center gap-2 mb-2">
+                <input
+                  type="checkbox"
                   checked={formData.sendSms}
                   onChange={(e) => setFormData(prev => ({ ...prev, sendSms: e.target.checked }))}
                 />
@@ -262,7 +280,9 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({ open, onC
                 <span className="text-sm font-medium">Also send via Email (to each recipient's email address)</span>
               </label>
 
-              <label className="block text-sm font-medium mb-2">Target Zones (Optional - all if empty)</label>
+              <label className="block text-sm font-medium mb-2">
+                Target Zones — leave all unchecked to reach every user, including those outside any delivery zone
+              </label>
               {zones.length === 0 ? (
                 <p className="text-sm text-gray-500">No zones available. Create zones in the Riders Management section.</p>
               ) : (
