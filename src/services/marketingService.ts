@@ -315,6 +315,7 @@ class MarketingService {
     scheduledFor?: string;
     sendNow?: boolean;
     sendSms?: boolean;
+    sendEmail?: boolean;
   }): Promise<NotificationSend> {
     try {
       const send = (await adminApiClient.post('/marketing/sends', data)) as any;

@@ -23,6 +23,7 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({ open, onC
     scheduledFor: new Date().toISOString().split('T')[0],
     targetZones: [] as number[],
     sendSms: false,
+    sendEmail: false,
   });
 
   useEffect(() => {
@@ -84,6 +85,7 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({ open, onC
           scheduledFor: !formData.sendNow ? formData.scheduledFor : undefined,
           targetZones: formData.targetZones.length > 0 ? formData.targetZones : undefined,
           sendSms: formData.sendSms,
+          sendEmail: formData.sendEmail,
         };
         await marketingService.sendNotification(data);
       }
@@ -97,6 +99,7 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({ open, onC
         scheduledFor: new Date().toISOString().split('T')[0],
         targetZones: [],
         sendSms: false,
+        sendEmail: false,
       });
       onSuccess();
       onClose();
@@ -241,13 +244,22 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({ open, onC
 
           {notificationType === 'template' && (
             <div>
-              <label className="flex items-center gap-2 mb-4">
+              <label className="flex items-center gap-2 mb-2">
                 <input
                   type="checkbox"
                   checked={formData.sendSms}
                   onChange={(e) => setFormData(prev => ({ ...prev, sendSms: e.target.checked }))}
                 />
                 <span className="text-sm font-medium">Also send via SMS (to each recipient's phone number)</span>
+              </label>
+
+              <label className="flex items-center gap-2 mb-4">
+                <input
+                  type="checkbox"
+                  checked={formData.sendEmail}
+                  onChange={(e) => setFormData(prev => ({ ...prev, sendEmail: e.target.checked }))}
+                />
+                <span className="text-sm font-medium">Also send via Email (to each recipient's email address)</span>
               </label>
 
               <label className="block text-sm font-medium mb-2">Target Zones (Optional - all if empty)</label>
