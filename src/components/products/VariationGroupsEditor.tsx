@@ -136,17 +136,6 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
         <h3 className="text-sm font-semibold text-gray-900">Product Variations</h3>
       </div>
 
-      {/* Show Preparation Options Toggle */}
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={showPreparationOptions}
-          onChange={(e) => onShowPrepChange(e.target.checked)}
-          className="w-4 h-4 text-blue-600 rounded border-gray-300"
-        />
-        <span className="text-sm text-gray-700">Show preparation options to customers</span>
-      </label>
-
       {/* Existing Groups */}
       {groups.map((group, gi) => (
         <div key={gi} className="border border-gray-200 rounded-lg p-4 space-y-3 bg-gray-50">
@@ -167,6 +156,18 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
               Remove
             </button>
           </div>
+
+          {group.type === 'preparation' && (
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showPreparationOptions}
+                onChange={(e) => onShowPrepChange(e.target.checked)}
+                className="w-4 h-4 text-blue-600 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">Show these preparation options to customers</span>
+            </label>
+          )}
 
           {/* Group Name */}
           <div className="grid grid-cols-2 gap-2">
