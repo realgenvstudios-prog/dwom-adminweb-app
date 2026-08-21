@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import categoriesService from '../../services/categoriesService';
 import type { Category } from '../../services/categoriesService';
+import ImageUpload from '../common/ImageUpload';
 
 interface CreateCategoryModalProps {
   open: boolean;
@@ -152,32 +153,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Image URL
-            </label>
-            <input
-              type="url"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="https://example.com/image.jpg"
-              disabled={loading}
-            />
-            {imageUrl && (
-              <div className="mt-2 flex items-center gap-2">
-                <img
-                  src={imageUrl}
-                  alt="Preview"
-                  className="w-16 h-16 rounded object-cover border border-gray-300"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-                <span className="text-xs text-gray-500">Preview</span>
-              </div>
-            )}
-          </div>
+          <ImageUpload label="Category Image" value={imageUrl} onChange={setImageUrl} />
 
           <div className="flex gap-2 justify-end pt-4 border-t">
             <button

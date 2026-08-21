@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import productsService from '../../services/productsService';
 import VariationGroupsEditor from './VariationGroupsEditor';
 import type { VariationGroup } from './VariationGroupsEditor';
+import ImageUpload from '../common/ImageUpload';
 
 interface Props {
   open: boolean;
@@ -217,30 +218,12 @@ const CreateProductModal: React.FC<Props> = ({ open, onClose, onProductCreated, 
             />
           </div>
 
-          {/* Image URL */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Image URL (Optional)</label>
-            <input
-              type="url"
-              value={formData.imageUrl}
-              onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="https://example.com/image.jpg"
-            />
-            {formData.imageUrl && (
-              <div className="mt-2 flex items-center gap-2">
-                <img
-                  src={formData.imageUrl}
-                  alt="Preview"
-                  className="w-16 h-16 rounded object-cover border border-gray-300"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-                <span className="text-xs text-gray-500">Preview</span>
-              </div>
-            )}
-          </div>
+          {/* Image */}
+          <ImageUpload
+            label="Product Image (Optional)"
+            value={formData.imageUrl}
+            onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+          />
 
           {/* Variation Groups */}
           <div className="border-t pt-4">

@@ -4,6 +4,7 @@ import productsService from '../../services/productsService';
 import type { Bundle } from '../../services/bundlesService';
 import type { Product } from './BundleTypes';
 import type { Category } from '../../services/productsService';
+import ImageUpload from '../common/ImageUpload';
 
 interface CreateBundleModalProps {
   open: boolean;
@@ -280,31 +281,7 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
             </div>
           )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Image URL
-            </label>
-            <input
-              type="url"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="https://example.com/bundle-image.jpg"
-              disabled={loading}
-            />
-            {imageUrl && (
-              <div className="mt-2 rounded-lg overflow-hidden border border-gray-300">
-                <img
-                  src={imageUrl}
-                  alt="Bundle preview"
-                  className="h-32 w-full object-cover"
-                  onError={() => {
-                    console.log('Image failed to load');
-                  }}
-                />
-              </div>
-            )}
-          </div>
+          <ImageUpload label="Bundle Image" value={imageUrl} onChange={setImageUrl} />
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -130,6 +130,49 @@ class AdminApiClient {
   }
 
   /**
+   * Upload a file as multipart/form-data. Deliberately doesn't reuse
+   * getHeaders() — that always sets Content-Type: application/json, which
+   * would break a multipart body (the browser needs to set its own
+   * Content-Type with the multipart boundary automatically).
+   */
+  async uploadFile<T>(endpoint: string, file: File): Promise<T> {
+    try {
+      this.loadToken();
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const headers: HeadersInit = {};
+      if (this.token) {
+        (headers as any)['Authorization'] = `Bearer ${this.token}`;
+      }
+
+      const response = await this.fetchWithRetry(`${this.baseURL}${endpoint}`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.clearToken();
+          sessionStorage.removeItem('admin_user');
+          if (window.location.pathname !== '/login') {
+            sessionStorage.setItem('session_expired', '1');
+            window.location.href = '/login';
+          }
+        }
+        const errorBody = await response.json().catch(() => null);
+        throw new Error(errorBody?.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error(`❌ [AdminAPI] Upload ${endpoint} failed:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Make a PATCH request
    */
   async patch<T>(endpoint: string, data?: any): Promise<T> {

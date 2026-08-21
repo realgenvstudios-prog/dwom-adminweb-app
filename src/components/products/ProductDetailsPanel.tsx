@@ -4,6 +4,7 @@ import inventoryService from "../../services/inventoryService";
 import VariationGroupsEditor from "./VariationGroupsEditor";
 import type { VariationGroup } from "./VariationGroupsEditor";
 import type { Product, ProductCategory } from "./ProductTypes";
+import ImageUpload from "../common/ImageUpload";
 
 interface ProductDetailsPanelProps {
   product: Product | null;
@@ -299,29 +300,11 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
                     rows={3}
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                  <input
-                    type="url"
-                    value={formData.imageUrl}
-                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="https://example.com/image.jpg"
-                  />
-                  {formData.imageUrl && (
-                    <div className="mt-2 flex items-center gap-2">
-                      <img
-                        src={formData.imageUrl}
-                        alt="Preview"
-                        className="w-16 h-16 rounded object-cover border border-gray-300"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                      <span className="text-xs text-gray-500">Preview</span>
-                    </div>
-                  )}
-                </div>
+                <ImageUpload
+                  label="Product Image"
+                  value={formData.imageUrl}
+                  onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+                />
                 {/* Variation Groups Editor */}
                 <div className="border-t pt-4">
                   <VariationGroupsEditor
