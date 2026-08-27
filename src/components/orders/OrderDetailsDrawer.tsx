@@ -16,6 +16,7 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
   const [detailsError, setDetailsError] = useState<string | null>(null);
   const [detailsItems, setDetailsItems] = useState<Order['items']>([]);
   const [riderRatingData, setRiderRatingData] = useState<{ rating: number; comment?: string } | null>(null);
+  const [recipientInfo, setRecipientInfo] = useState<{ name?: string; phone?: string } | null>(null);
   const [productReviewsData, setProductReviewsData] = useState<Array<{ productId: number; productName: string; rating: number; comment?: string }>>([]);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const [paymentDropdownOpen, setPaymentDropdownOpen] = useState(false);
@@ -70,6 +71,7 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
             quantity: item.quantity || 0,
             price: effectivePrice,
             originalPrice: effectivePrice < unitPrice ? unitPrice : undefined,
+            notes: item.notes || undefined,
           };
         });
 
@@ -85,10 +87,20 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
             quantity: item.quantity || 0,
             price: effectivePrice,
             originalPrice: effectivePrice < unitPrice ? unitPrice : undefined,
+            notes: item.notes || undefined,
           };
         });
 
         setDetailsItems([...productItems, ...bundleItems]);
+
+        // Who this specific order was actually handed to (snapshotted at
+        // order time — see backend OrdersService.resolveRecipient), not
+        // necessarily the account holder.
+        if (fullOrder?.recipientName || fullOrder?.recipientPhone) {
+          setRecipientInfo({ name: fullOrder.recipientName, phone: fullOrder.recipientPhone });
+        } else {
+          setRecipientInfo(null);
+        }
 
         // Extract ratings from full order data
         const riderRating = fullOrder?.RiderRating?.[0];
@@ -377,6 +389,15 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
               <div className="text-xs font-semibold text-blue-700 mb-2">📍 DELIVERY ADDRESS</div>
               <div className="text-gray-900 font-medium">{order.address}</div>
               <div className="text-sm text-gray-600 mt-1">{order.zone}</div>
+              {recipientInfo && (
+                <div className="mt-3 pt-3 border-t border-blue-200">
+                  <div className="text-xs font-semibold text-blue-700 mb-1">HAND TO</div>
+                  <div className="text-sm text-gray-900">
+                    {recipientInfo.name || '—'}
+                    {recipientInfo.phone ? ` · ${recipientInfo.phone}` : ''}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Items */}
@@ -391,18 +412,25 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
               ) : (
                 <div className="bg-gray-50 rounded-lg divide-y">
                   {detailsItems.map((item, i) => (
-                    <div key={item.id || i} className="p-3 flex items-center justify-between">
-                      <span className="text-sm text-gray-700"><strong>{item.quantity}x</strong> {item.name}</span>
-                      <span className="text-sm font-bold text-gray-900">
-                        {(item as any).originalPrice ? (
-                          <>
-                            <span className="line-through text-gray-400 font-normal mr-1">GHS {(item as any).originalPrice.toLocaleString()}</span>
-                            GHS {item.price.toLocaleString()}
-                          </>
-                        ) : (
-                          `GHS ${item.price.toLocaleString()}`
-                        )}
-                      </span>
+                    <div key={item.id || i} className="p-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-700"><strong>{item.quantity}x</strong> {item.name}</span>
+                        <span className="text-sm font-bold text-gray-900">
+                          {(item as any).originalPrice ? (
+                            <>
+                              <span className="line-through text-gray-400 font-normal mr-1">GHS {(item as any).originalPrice.toLocaleString()}</span>
+                              GHS {item.price.toLocaleString()}
+                            </>
+                          ) : (
+                            `GHS ${item.price.toLocaleString()}`
+                          )}
+                        </span>
+                      </div>
+                      {(item as any).notes && (
+                        <div className="mt-1.5 flex items-start gap-1.5 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                          <span className="text-xs text-amber-800">📝 <strong>Note:</strong> {(item as any).notes}</span>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
