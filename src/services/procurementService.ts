@@ -25,6 +25,20 @@ export interface CreateProcurementDto {
   notes?: string;
 }
 
+export interface BatchProcurementItemDto {
+  productId: number;
+  quantity: number;
+  unitCost: number;
+}
+
+export interface CreateBatchProcurementDto {
+  supplierId: number;
+  orderId?: number;
+  items: BatchProcurementItemDto[];
+  purchasedBy?: string;
+  notes?: string;
+}
+
 export interface PriceHistoryEntry {
   id: number;
   productId: number;
@@ -38,6 +52,11 @@ export interface PriceHistoryEntry {
 export const procurementService = {
   async recordPurchase(dto: CreateProcurementDto): Promise<{ procurement: ProcurementRecord; inventory: any }> {
     return adminApiClient.post('/procurement', dto);
+  },
+
+  // One supplier, several products, one trip — recorded atomically.
+  async recordBatchPurchase(dto: CreateBatchProcurementDto): Promise<{ procurement: ProcurementRecord; inventory: any }[]> {
+    return adminApiClient.post('/procurement/batch', dto);
   },
 
   async getAll(filters?: { productId?: number; supplierId?: number; take?: number; skip?: number }): Promise<{ items: ProcurementRecord[]; total: number }> {

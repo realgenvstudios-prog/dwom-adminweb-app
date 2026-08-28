@@ -6,7 +6,13 @@ import type { ProcurementRecord } from "../services/procurementService";
 import productsService from "../services/productsService";
 
 const emptySupplierForm = { name: "", contactName: "", phone: "", location: "", notes: "" };
-const emptyPurchaseForm = { productId: "", supplierId: "", quantity: "", unitCost: "", purchasedBy: "", notes: "" };
+
+// A purchase is one trip to one supplier that can cover several products —
+// the trip-level fields (supplier, who bought it, trip notes) are shared,
+// while each product gets its own line item.
+type PurchaseLineItem = { productId: string; quantity: string; unitCost: string };
+const emptyLineItem: PurchaseLineItem = { productId: "", quantity: "", unitCost: "" };
+const emptyPurchaseTrip = { supplierId: "", purchasedBy: "", notes: "" };
 
 const SuppliersPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"purchases" | "suppliers">("purchases");
@@ -21,8 +27,9 @@ const SuppliersPage: React.FC = () => {
   // Products (for the purchase form's product picker)
   const [products, setProducts] = useState<any[]>([]);
 
-  // Record a purchase
-  const [purchaseForm, setPurchaseForm] = useState(emptyPurchaseForm);
+  // Record a purchase — one supplier/trip, one or more product line items
+  const [purchaseTrip, setPurchaseTrip] = useState(emptyPurchaseTrip);
+  const [purchaseItems, setPurchaseItems] = useState<PurchaseLineItem[]>([{ ...emptyLineItem }]);
   const [recordingPurchase, setRecordingPurchase] = useState(false);
   const [purchaseError, setPurchaseError] = useState<string | null>(null);
   const [purchaseSuccess, setPurchaseSuccess] = useState<string | null>(null);
@@ -117,33 +124,51 @@ const SuppliersPage: React.FC = () => {
     }
   };
 
+  const updateLineItem = (index: number, field: keyof PurchaseLineItem, value: string) => {
+    setPurchaseItems((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
+  };
+
+  const addLineItem = () => setPurchaseItems((prev) => [...prev, { ...emptyLineItem }]);
+
+  const removeLineItem = (index: number) =>
+    setPurchaseItems((prev) => (prev.length === 1 ? prev : prev.filter((_, i) => i !== index)));
+
   const handleRecordPurchase = async (e: React.FormEvent) => {
     e.preventDefault();
     setPurchaseError(null);
     setPurchaseSuccess(null);
 
-    const productId = parseInt(purchaseForm.productId, 10);
-    const supplierId = parseInt(purchaseForm.supplierId, 10);
-    const quantity = parseFloat(purchaseForm.quantity);
-    const unitCost = parseFloat(purchaseForm.unitCost);
-
-    if (!productId || !supplierId || !quantity || quantity <= 0 || isNaN(unitCost) || unitCost < 0) {
-      setPurchaseError("Please select a product and supplier, and enter a positive quantity and a valid cost.");
+    const supplierId = parseInt(purchaseTrip.supplierId, 10);
+    if (!supplierId) {
+      setPurchaseError("Please select a supplier.");
       return;
+    }
+
+    const parsedItems: { productId: number; quantity: number; unitCost: number }[] = [];
+    for (const item of purchaseItems) {
+      const productId = parseInt(item.productId, 10);
+      const quantity = parseFloat(item.quantity);
+      const unitCost = parseFloat(item.unitCost);
+      if (!productId || !quantity || quantity <= 0 || isNaN(unitCost) || unitCost < 0) {
+        setPurchaseError("Every product row needs a product selected, a positive quantity, and a valid cost.");
+        return;
+      }
+      parsedItems.push({ productId, quantity, unitCost });
     }
 
     try {
       setRecordingPurchase(true);
-      await procurementService.recordPurchase({
-        productId,
+      await procurementService.recordBatchPurchase({
         supplierId,
-        quantity,
-        unitCost,
-        purchasedBy: purchaseForm.purchasedBy || undefined,
-        notes: purchaseForm.notes || undefined,
+        items: parsedItems,
+        purchasedBy: purchaseTrip.purchasedBy || undefined,
+        notes: purchaseTrip.notes || undefined,
       });
-      setPurchaseSuccess("Purchase recorded — inventory updated.");
-      setPurchaseForm(emptyPurchaseForm);
+      setPurchaseSuccess(
+        `Purchase recorded — ${parsedItems.length} product${parsedItems.length > 1 ? "s" : ""}, inventory updated.`,
+      );
+      setPurchaseTrip(emptyPurchaseTrip);
+      setPurchaseItems([{ ...emptyLineItem }]);
       await loadPurchases();
     } catch (err: any) {
       setPurchaseError(err.message || "Failed to record purchase");
@@ -152,7 +177,11 @@ const SuppliersPage: React.FC = () => {
     }
   };
 
-  const totalCost = (parseFloat(purchaseForm.quantity) || 0) * (parseFloat(purchaseForm.unitCost) || 0);
+  const combinedTotal = purchaseItems.reduce((sum, item) => {
+    const q = parseFloat(item.quantity) || 0;
+    const c = parseFloat(item.unitCost) || 0;
+    return sum + q * c;
+  }, 0);
 
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
@@ -187,103 +216,142 @@ const SuppliersPage: React.FC = () => {
           <>
             <section className="bg-white rounded-xl shadow p-6 mb-8">
               <h2 className="text-xl font-bold mb-4">Record a Purchase</h2>
-              <form onSubmit={handleRecordPurchase} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Product</label>
-                  <select
-                    value={purchaseForm.productId}
-                    onChange={(e) => setPurchaseForm({ ...purchaseForm, productId: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  >
-                    <option value="">Select product…</option>
-                    {products.map((p: any) => (
-                      <option key={p.id} value={p.id}>
-                        {p.nameEnglish}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
-                  <select
-                    value={purchaseForm.supplierId}
-                    onChange={(e) => setPurchaseForm({ ...purchaseForm, supplierId: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  >
-                    <option value="">Select supplier…</option>
-                    {suppliers.filter((s) => s.active).map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                  {suppliers.filter((s) => s.active).length === 0 && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      No suppliers yet — add one under the "Suppliers" tab first.
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                  <input
-                    type="number"
-                    min="1"
-                    step="1"
-                    value={purchaseForm.quantity}
-                    onChange={(e) => setPurchaseForm({ ...purchaseForm, quantity: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Unit Cost (GH₵)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={purchaseForm.unitCost}
-                    onChange={(e) => setPurchaseForm({ ...purchaseForm, unitCost: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Purchased By (optional)</label>
-                  <input
-                    type="text"
-                    value={purchaseForm.purchasedBy}
-                    onChange={(e) => setPurchaseForm({ ...purchaseForm, purchasedBy: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. Ama"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Total Cost</label>
-                  <div className="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-gray-700 font-semibold">
-                    GH₵ {totalCost.toFixed(2)}
+              <p className="text-sm text-gray-500 mb-5">
+                One supplier, one trip — add every product you bought from them below.
+              </p>
+              <form onSubmit={handleRecordPurchase}>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
+                    <select
+                      value={purchaseTrip.supplierId}
+                      onChange={(e) => setPurchaseTrip({ ...purchaseTrip, supplierId: e.target.value })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    >
+                      <option value="">Select supplier…</option>
+                      {suppliers.filter((s) => s.active).map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name}
+                        </option>
+                      ))}
+                    </select>
+                    {suppliers.filter((s) => s.active).length === 0 && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        No suppliers yet — add one under the "Suppliers" tab first.
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Purchased By (optional)</label>
+                    <input
+                      type="text"
+                      value={purchaseTrip.purchasedBy}
+                      onChange={(e) => setPurchaseTrip({ ...purchaseTrip, purchasedBy: e.target.value })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="e.g. Ama"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Trip Notes (optional)</label>
+                    <input
+                      type="text"
+                      value={purchaseTrip.notes}
+                      onChange={(e) => setPurchaseTrip({ ...purchaseTrip, notes: e.target.value })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="e.g. Bought early to beat weekend price rise"
+                    />
                   </div>
                 </div>
-                <div className="md:col-span-3">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
-                  <input
-                    type="text"
-                    value={purchaseForm.notes}
-                    onChange={(e) => setPurchaseForm({ ...purchaseForm, notes: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. Bought early to beat weekend price rise"
-                  />
+
+                <div className="space-y-3 mb-4">
+                  {purchaseItems.map((item, index) => {
+                    const lineTotal = (parseFloat(item.quantity) || 0) * (parseFloat(item.unitCost) || 0);
+                    return (
+                      <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end bg-gray-50 rounded-lg p-3">
+                        <div className="md:col-span-4">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Product</label>
+                          <select
+                            value={item.productId}
+                            onChange={(e) => updateLineItem(index, "productId", e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                          >
+                            <option value="">Select product…</option>
+                            {products.map((p: any) => (
+                              <option key={p.id} value={p.id}>
+                                {p.nameEnglish}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Quantity</label>
+                          <input
+                            type="number"
+                            min="1"
+                            step="1"
+                            value={item.quantity}
+                            onChange={(e) => updateLineItem(index, "quantity", e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Unit Cost (GH₵)</label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={item.unitCost}
+                            onChange={(e) => updateLineItem(index, "unitCost", e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                          />
+                        </div>
+                        <div className="md:col-span-3">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Line Total</label>
+                          <div className="w-full border border-gray-200 bg-white rounded-lg px-3 py-2 text-sm text-gray-700 font-semibold">
+                            GH₵ {lineTotal.toFixed(2)}
+                          </div>
+                        </div>
+                        <div className="md:col-span-1 flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => removeLineItem(index)}
+                            disabled={purchaseItems.length === 1}
+                            className="text-xs px-2 py-2 rounded bg-red-100 text-red-700 hover:bg-red-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                            title="Remove this product"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                {purchaseError && <div className="md:col-span-3 text-red-600 text-sm">{purchaseError}</div>}
-                {purchaseSuccess && <div className="md:col-span-3 text-green-600 text-sm">{purchaseSuccess}</div>}
-                <div className="md:col-span-3">
+
+                <button
+                  type="button"
+                  onClick={addLineItem}
+                  className="mb-6 text-sm px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 font-medium"
+                >
+                  + Add another product
+                </button>
+
+                {purchaseError && <div className="text-red-600 text-sm mb-4">{purchaseError}</div>}
+                {purchaseSuccess && <div className="text-green-600 text-sm mb-4">{purchaseSuccess}</div>}
+
+                <div className="flex items-center justify-between border-t pt-4">
+                  <div className="text-lg font-bold text-gray-900">Trip Total: GH₵ {combinedTotal.toFixed(2)}</div>
                   <button
                     type="submit"
                     disabled={recordingPurchase}
                     className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50"
                   >
-                    {recordingPurchase ? "Recording…" : "Record Purchase"}
+                    {recordingPurchase
+                      ? "Recording…"
+                      : `Record Purchase${purchaseItems.length > 1 ? ` (${purchaseItems.length} items)` : ""}`}
                   </button>
                 </div>
               </form>
