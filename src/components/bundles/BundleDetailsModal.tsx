@@ -186,6 +186,35 @@ const BundleDetailsModal: React.FC<BundleDetailsModalProps> = ({
               )}
             </div>
 
+            {/* Variation Groups */}
+            {bundle.BundleVariationGroup && bundle.BundleVariationGroup.length > 0 && (
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Variations</h4>
+                <div className="space-y-3">
+                  {bundle.BundleVariationGroup.map((group) => (
+                    <div key={group.id} className="border border-gray-200 rounded-lg p-4">
+                      <p className="text-sm font-semibold text-gray-900">
+                        {group.name}
+                        {group.required && (
+                          <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Required</span>
+                        )}
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {group.options.map((opt, i) => (
+                          <span key={i} className="px-2 py-1 bg-gray-100 rounded text-xs text-gray-700">
+                            {opt.label}
+                            {opt.isDefault ? ' ★' : ''}
+                            {opt.priceMultiplier != null ? ` ×${opt.priceMultiplier}` : ''}
+                            {opt.extraCharge ? ` +GHS ${opt.extraCharge.toFixed(2)}` : ''}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Metadata */}
             {bundle.createdAt && (
               <div className="pt-4 border-t border-gray-200 text-sm text-gray-600">

@@ -1,3 +1,5 @@
+import type { VariationGroup } from '../components/products/VariationGroupsEditor';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://dwom-backend.onrender.com';
 
 export interface BundleItem {
@@ -18,7 +20,9 @@ export interface Bundle {
   imageUrl?: string;
   discount: number;
   active: boolean;
+  showPreparationOptions?: boolean;
   BundleItem?: BundleItem[];
+  BundleVariationGroup?: (VariationGroup & { id: number })[];
   items?: Array<{ productId: number; quantity: number }>;
   createdAt?: string;
   updatedAt?: string;
@@ -34,6 +38,8 @@ export interface CreateBundleDto {
     productId: number;
     quantity: number;
   }>;
+  showPreparationOptions?: boolean;
+  variationGroups?: VariationGroup[];
 }
 
 export interface UpdateBundleDto {
@@ -42,6 +48,8 @@ export interface UpdateBundleDto {
   price?: number;
   discount?: number;
   imageUrl?: string;
+  showPreparationOptions?: boolean;
+  variationGroups?: VariationGroup[];
 }
 
 class BundlesService {

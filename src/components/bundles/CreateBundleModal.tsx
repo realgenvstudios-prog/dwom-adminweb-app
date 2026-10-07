@@ -5,6 +5,8 @@ import type { Bundle } from '../../services/bundlesService';
 import type { Product } from './BundleTypes';
 import type { Category } from '../../services/productsService';
 import ImageUpload from '../common/ImageUpload';
+import VariationGroupsEditor from '../products/VariationGroupsEditor';
+import type { VariationGroup } from '../products/VariationGroupsEditor';
 
 interface CreateBundleModalProps {
   open: boolean;
@@ -24,6 +26,8 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
   const [discount, setDiscount] = useState('0');
   const [imageUrl, setImageUrl] = useState('');
   const [bundleItems, setBundleItems] = useState<Array<{ productId: number; quantity: number }>>([]);
+  const [variationGroups, setVariationGroups] = useState<VariationGroup[]>([]);
+  const [showPreparationOptions, setShowPreparationOptions] = useState(false);
   const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
@@ -80,12 +84,18 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
           productId: item.productId,
           quantity: item.quantity
         })));
+        setVariationGroups(
+          (editingBundle.BundleVariationGroup || []).map(({ id, ...group }) => group)
+        );
+        setShowPreparationOptions(editingBundle.showPreparationOptions || false);
       } else {
         setName('');
         setDescription('');
         setDiscount('0');
         setImageUrl('');
         setBundleItems([]);
+        setVariationGroups([]);
+        setShowPreparationOptions(false);
       }
       setError(null);
     }
@@ -141,6 +151,8 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
           price: parseFloat(finalPrice.toFixed(2)),
           discount: parseFloat(discount) || undefined,
           imageUrl: imageUrl.trim() || undefined,
+          showPreparationOptions,
+          variationGroups,
         });
         console.log('✅ [CreateBundleModal] Bundle updated');
         alert('Bundle updated successfully!');
@@ -153,6 +165,8 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
           discount: parseFloat(discount) || undefined,
           imageUrl: imageUrl.trim() || undefined,
           items: bundleItems,
+          showPreparationOptions,
+          variationGroups: variationGroups.length > 0 ? variationGroups : undefined,
         });
         console.log('✅ [CreateBundleModal] Bundle created');
         alert('Bundle created successfully!');
@@ -429,6 +443,17 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
                 })()}
               </div>
             </div>
+          </div>
+
+          {/* Variation Groups */}
+          <div className="border-t pt-6">
+            <VariationGroupsEditor
+              groups={variationGroups}
+              onChange={setVariationGroups}
+              showPreparationOptions={showPreparationOptions}
+              onShowPrepChange={setShowPreparationOptions}
+              basePrice={finalPrice}
+            />
           </div>
 
           <div className="flex gap-2 justify-end pt-4 border-t">
