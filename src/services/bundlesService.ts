@@ -10,6 +10,10 @@ export interface BundleItem {
   unitPrice?: number;
   totalItemPrice?: number;
   productImage?: string;
+  // The product's OWN variation groups (not bundle-specific), returned so the
+  // admin can see what's available to toggle for this item.
+  variationGroups?: (VariationGroup & { id: number; options: (VariationGroup['options'][number] & { id: number })[] })[];
+  visibleVariationOptionIds?: number[];
 }
 
 export interface Bundle {
@@ -20,10 +24,8 @@ export interface Bundle {
   imageUrl?: string;
   discount: number;
   active: boolean;
-  showPreparationOptions?: boolean;
   BundleItem?: BundleItem[];
-  BundleVariationGroup?: (VariationGroup & { id: number })[];
-  items?: Array<{ productId: number; quantity: number }>;
+  items?: Array<{ productId: number; quantity: number; visibleVariationOptionIds?: number[] }>;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -37,9 +39,8 @@ export interface CreateBundleDto {
   items: Array<{
     productId: number;
     quantity: number;
+    visibleVariationOptionIds?: number[];
   }>;
-  showPreparationOptions?: boolean;
-  variationGroups?: VariationGroup[];
 }
 
 export interface UpdateBundleDto {
@@ -51,9 +52,8 @@ export interface UpdateBundleDto {
   items?: Array<{
     productId: number;
     quantity: number;
+    visibleVariationOptionIds?: number[];
   }>;
-  showPreparationOptions?: boolean;
-  variationGroups?: VariationGroup[];
 }
 
 class BundlesService {

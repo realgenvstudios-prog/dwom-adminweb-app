@@ -5,8 +5,6 @@ import type { Bundle } from '../../services/bundlesService';
 import type { Product } from './BundleTypes';
 import type { Category } from '../../services/productsService';
 import ImageUpload from '../common/ImageUpload';
-import VariationGroupsEditor from '../products/VariationGroupsEditor';
-import type { VariationGroup } from '../products/VariationGroupsEditor';
 
 interface CreateBundleModalProps {
   open: boolean;
@@ -25,9 +23,7 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
   const [description, setDescription] = useState('');
   const [discount, setDiscount] = useState('0');
   const [imageUrl, setImageUrl] = useState('');
-  const [bundleItems, setBundleItems] = useState<Array<{ productId: number; quantity: number }>>([]);
-  const [variationGroups, setVariationGroups] = useState<VariationGroup[]>([]);
-  const [showPreparationOptions, setShowPreparationOptions] = useState(false);
+  const [bundleItems, setBundleItems] = useState<Array<{ productId: number; quantity: number; visibleVariationOptionIds?: number[] }>>([]);
   const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
@@ -82,20 +78,15 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
         const itemsToLoad = editingBundle.BundleItem || editingBundle.items || [];
         setBundleItems(itemsToLoad.map(item => ({
           productId: item.productId,
-          quantity: item.quantity
+          quantity: item.quantity,
+          visibleVariationOptionIds: (item as any).visibleVariationOptionIds,
         })));
-        setVariationGroups(
-          (editingBundle.BundleVariationGroup || []).map(({ id, ...group }) => group)
-        );
-        setShowPreparationOptions(editingBundle.showPreparationOptions || false);
       } else {
         setName('');
         setDescription('');
         setDiscount('0');
         setImageUrl('');
         setBundleItems([]);
-        setVariationGroups([]);
-        setShowPreparationOptions(false);
       }
       setError(null);
     }
@@ -152,8 +143,6 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
           discount: parseFloat(discount) || undefined,
           imageUrl: imageUrl.trim() || undefined,
           items: bundleItems,
-          showPreparationOptions,
-          variationGroups,
         });
         console.log('✅ [CreateBundleModal] Bundle updated');
         alert('Bundle updated successfully!');
@@ -166,8 +155,6 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
           discount: parseFloat(discount) || undefined,
           imageUrl: imageUrl.trim() || undefined,
           items: bundleItems,
-          showPreparationOptions,
-          variationGroups: variationGroups.length > 0 ? variationGroups : undefined,
         });
         console.log('✅ [CreateBundleModal] Bundle created');
         alert('Bundle created successfully!');
@@ -196,6 +183,23 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
       prev.map(item =>
         item.productId === productId ? { ...item, quantity: Math.max(1, quantity) } : item
       )
+    );
+  };
+
+  // A missing/empty list means "all of this product's variation options are
+  // visible" — the common case. Toggling materializes the explicit list.
+  const toggleVisibleOption = (productId: number, optionId: number, allOptionIds: number[]) => {
+    setBundleItems(prev =>
+      prev.map(item => {
+        if (item.productId !== productId) return item;
+        const current = item.visibleVariationOptionIds && item.visibleVariationOptionIds.length > 0
+          ? item.visibleVariationOptionIds
+          : allOptionIds;
+        const next = current.includes(optionId)
+          ? current.filter(id => id !== optionId)
+          : [...current, optionId];
+        return { ...item, visibleVariationOptionIds: next };
+      })
     );
   };
 
@@ -423,19 +427,61 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
                           </div>
                         </label>
                         {bundleItem && (
-                          <div className="mt-2 ml-6 flex items-center gap-2">
-                            <label className="text-xs text-gray-600">Qty:</label>
-                            <input
-                              type="number"
-                              min="1"
-                              value={bundleItem.quantity}
-                              onChange={(e) => updateProductQuantity(product.id as any, parseInt(e.target.value))}
-                              className="w-16 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              disabled={loading}
-                            />
-                            <span className="text-xs text-gray-500">
-                              = GHS {(price * bundleItem.quantity).toFixed(2)}
-                            </span>
+                          <div className="mt-2 ml-6 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <label className="text-xs text-gray-600">Qty:</label>
+                              <input
+                                type="number"
+                                min="1"
+                                value={bundleItem.quantity}
+                                onChange={(e) => updateProductQuantity(product.id as any, parseInt(e.target.value))}
+                                className="w-16 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                disabled={loading}
+                              />
+                              <span className="text-xs text-gray-500">
+                                = GHS {(price * bundleItem.quantity).toFixed(2)}
+                              </span>
+                            </div>
+
+                            {/* This product's own variations — pick which stay visible in this bundle */}
+                            {(product as any).VariationGroup && (product as any).VariationGroup.length > 0 && (() => {
+                              const groups = (product as any).VariationGroup;
+                              const allOptionIds = groups.flatMap((g: any) => g.options.map((o: any) => o.id));
+                              return (
+                                <div className="pt-2 border-t border-gray-100 space-y-2">
+                                  <p className="text-xs font-medium text-gray-500">Variations visible in this bundle:</p>
+                                  {groups.map((group: any) => (
+                                    <div key={group.id}>
+                                      <p className="text-xs text-gray-500">{group.name}</p>
+                                      <div className="flex flex-wrap gap-1.5 mt-1">
+                                        {group.options.map((opt: any) => {
+                                          const visible = !bundleItem.visibleVariationOptionIds ||
+                                            bundleItem.visibleVariationOptionIds.length === 0 ||
+                                            bundleItem.visibleVariationOptionIds.includes(opt.id);
+                                          return (
+                                            <label
+                                              key={opt.id}
+                                              className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs border cursor-pointer ${
+                                                visible ? 'bg-blue-50 border-blue-300 text-blue-800' : 'bg-gray-50 border-gray-200 text-gray-400'
+                                              }`}
+                                            >
+                                              <input
+                                                type="checkbox"
+                                                checked={visible}
+                                                onChange={() => toggleVisibleOption(product.id as any, opt.id, allOptionIds)}
+                                                disabled={loading}
+                                                className="w-3 h-3 accent-blue-600"
+                                              />
+                                              {opt.label}
+                                            </label>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              );
+                            })()}
                           </div>
                         )}
                       </div>
@@ -444,17 +490,6 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
                 })()}
               </div>
             </div>
-          </div>
-
-          {/* Variation Groups */}
-          <div className="border-t pt-6">
-            <VariationGroupsEditor
-              groups={variationGroups}
-              onChange={setVariationGroups}
-              showPreparationOptions={showPreparationOptions}
-              onShowPrepChange={setShowPreparationOptions}
-              basePrice={finalPrice}
-            />
           </div>
 
           <div className="flex gap-2 justify-end pt-4 border-t">
