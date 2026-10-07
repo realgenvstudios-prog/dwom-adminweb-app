@@ -151,6 +151,7 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
           price: parseFloat(finalPrice.toFixed(2)),
           discount: parseFloat(discount) || undefined,
           imageUrl: imageUrl.trim() || undefined,
+          items: bundleItems,
           showPreparationOptions,
           variationGroups,
         });

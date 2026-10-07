@@ -48,6 +48,10 @@ export interface UpdateBundleDto {
   price?: number;
   discount?: number;
   imageUrl?: string;
+  items?: Array<{
+    productId: number;
+    quantity: number;
+  }>;
   showPreparationOptions?: boolean;
   variationGroups?: VariationGroup[];
 }
