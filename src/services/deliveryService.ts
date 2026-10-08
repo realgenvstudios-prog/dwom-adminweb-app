@@ -167,7 +167,10 @@ const deliveryService = {
         `${API_BASE_URL}/delivery/geocode/autocomplete?input=${encodeURIComponent(input)}`,
         {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
+          },
         }
       );
 
@@ -194,7 +197,10 @@ const deliveryService = {
         `${API_BASE_URL}/delivery/geocode/details?placeId=${encodeURIComponent(placeId)}`,
         {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
+          },
         }
       );
 
