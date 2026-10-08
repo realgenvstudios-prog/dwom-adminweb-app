@@ -71,6 +71,28 @@ const AdminsPage: React.FC = () => {
   const paged = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage);
   const totalPages = Math.ceil(filtered.length / rowsPerPage);
 
+  const handleToggleSuspend = async (admin: Admin) => {
+    const suspending = admin.status !== 'Suspended';
+    const verb = suspending ? 'suspend' : 'reactivate';
+    if (!window.confirm(`Are you sure you want to ${verb} ${admin.name}'s admin access?`)) {
+      return;
+    }
+
+    try {
+      const ok = suspending
+        ? await adminsService.suspendAdmin(admin.id as number)
+        : await adminsService.reactivateAdmin(admin.id as number);
+      if (!ok) {
+        alert(`Failed to ${verb} ${admin.name}`);
+        return;
+      }
+      fetchData(); // Refresh data
+    } catch (error) {
+      console.error(`Failed to ${verb} admin:`, error);
+      alert(`Failed to ${verb} ${admin.name}`);
+    }
+  };
+
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -174,7 +196,14 @@ const AdminsPage: React.FC = () => {
                         <td className="py-2 pr-4 flex gap-2">
                           <button className="text-blue-600 hover:underline text-xs" onClick={() => console.log('View', a)}>View</button>
                           <button className="text-gray-600 hover:underline text-xs" onClick={() => console.log('Edit', a)}>Edit</button>
-                          <button className="text-red-500 hover:underline text-xs" onClick={() => console.log('Disable', a)}>Disable</button>
+                          {a.status !== 'Pending' && (
+                            <button
+                              className={`hover:underline text-xs ${a.status === 'Suspended' ? 'text-green-600' : 'text-red-500'}`}
+                              onClick={() => handleToggleSuspend(a)}
+                            >
+                              {a.status === 'Suspended' ? 'Reactivate' : 'Suspend'}
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}

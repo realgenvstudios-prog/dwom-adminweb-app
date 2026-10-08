@@ -62,9 +62,12 @@ class AdminsService {
           name: user.name || 'Unknown',
           email: user.email || 'N/A',
           phone: user.phoneNumber || user.phone || 'N/A',
-          role: this._mapRole(user.role),
+          // adminRole is the fine-grained tier (operations/finance/...);
+          // role is just the coarse 'admin' flag and would make every
+          // admin show as "Super Admin" regardless of their real tier.
+          role: this._mapRole(user.adminRole || user.role),
           zones: user.zones || 'All',
-          lastLogin: user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never',
+          lastLogin: user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never',
           status: this._determineStatus(user),
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
@@ -378,22 +381,21 @@ class AdminsService {
   /**
    * Helper: Determine admin status based on last login
    */
+  // Was checking user.status/user.lastLogin, fields the backend never sent
+  // (the real columns are isActive/lastLoginAt) — every real admin showed
+  // as "Pending" regardless of actual state. isActive is a real, explicit
+  // suspend/reactivate flag now; "30 days since login = suspended" was an
+  // inappropriate inference and is gone, not replaced.
   private _determineStatus(user: any): 'Active' | 'Pending' | 'Suspended' {
-    if (user.status === 'suspended') {
+    if (user.isActive === false) {
       return 'Suspended';
     }
 
-    if (!user.lastLogin) {
+    if (!user.lastLoginAt) {
       return 'Pending';
     }
 
-    // Check if last login was within 7 days
-    const lastLoginDate = new Date(user.lastLogin);
-    const daysSinceLogin = Math.floor(
-      (Date.now() - lastLoginDate.getTime()) / (1000 * 60 * 60 * 24)
-    );
-
-    return daysSinceLogin > 30 ? 'Suspended' : 'Active';
+    return 'Active';
   }
 
   /**
