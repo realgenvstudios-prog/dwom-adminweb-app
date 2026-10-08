@@ -1,6 +1,22 @@
-import type { VariationGroup } from '../components/products/VariationGroupsEditor';
+import type { VariationGroup, VariationOption } from '../components/products/VariationGroupsEditor';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://dwom-backend.onrender.com';
+
+// Both VariationGroup and VariationOption are create/edit-flow types with no
+// `id` (a group/option being authored doesn't have one yet). The product's
+// own, already-saved variations do. Using `interface extends` here rather
+// than an `&` intersection — two types that both declare `options` as an
+// array don't merge into the narrower element type through an intersection,
+// which is exactly what broke this file's build (TS2339: Property 'id' does
+// not exist on type 'VariationOption').
+export interface BundleItemVariationOption extends VariationOption {
+  id: number;
+}
+
+export interface BundleItemVariationGroup extends Omit<VariationGroup, 'options'> {
+  id: number;
+  options: BundleItemVariationOption[];
+}
 
 export interface BundleItem {
   id: number;
@@ -12,7 +28,7 @@ export interface BundleItem {
   productImage?: string;
   // The product's OWN variation groups (not bundle-specific), returned so the
   // admin can see what's available to toggle for this item.
-  variationGroups?: (VariationGroup & { id: number; options: (VariationGroup['options'][number] & { id: number })[] })[];
+  variationGroups?: BundleItemVariationGroup[];
   visibleVariationOptionIds?: number[];
 }
 
