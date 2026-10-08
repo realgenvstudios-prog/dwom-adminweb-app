@@ -76,6 +76,38 @@ export const adminAuthService = {
   },
   
   /**
+   * Accept an admin invite — sets a password (and phone, for brand-new
+   * accounts) and logs straight in, same response shape as login().
+   */
+  async acceptInvite(token: string, password: string, phone: string): Promise<AuthResponse> {
+    const backendUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/auth/admin/accept-invite`;
+
+    const response = await fetch(backendUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, password, phone }),
+    });
+
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body.message || `This invite link is invalid or has expired (server returned ${response.status})`);
+    }
+
+    const data = await response.json();
+    const accessToken = data.accessToken;
+    const admin = data.admin;
+
+    if (!accessToken || !admin) {
+      throw new Error('Accept-invite response was missing an access token or admin profile');
+    }
+
+    adminApiClient.setToken(accessToken);
+    sessionStorage.setItem('admin_user', JSON.stringify(admin));
+
+    return { accessToken, admin };
+  },
+
+  /**
    * Alternative Supabase login (commented out for now)
    */
   async loginWithSupabase(_email: string, _password: string): Promise<AuthResponse> {

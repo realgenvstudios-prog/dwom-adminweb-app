@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import LoginPage from './components/LoginPage';
+import AcceptInvitePage from './components/AcceptInvitePage';
 import DashboardPage from './components/DashboardPage';
 import AdminsPage from './components/AdminsPage';
 import OrdersPage from './components/OrdersPage';
@@ -29,6 +30,7 @@ const App: React.FC = () => {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/accept-invite" element={<AcceptInvitePage />} />
       <Route
         path="/dashboard"
         element={

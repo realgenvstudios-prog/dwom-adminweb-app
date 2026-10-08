@@ -1,7 +1,7 @@
 import adminApiClient from './apiClient';
 
 export interface Admin {
-  id: number;
+  id: number | string; // string for a still-pending invite ("invite-5"), see getAllAdmins()
   name: string;
   email: string;
   phone: string;
@@ -32,7 +32,7 @@ export interface AdminAccessAlert {
   id: number;
   type: 'failed_login' | 'suspended' | 'outdated_role' | 'no_activity';
   message: string;
-  adminId: number;
+  adminId: number | string;
   adminName: string;
   severity: 'low' | 'medium' | 'high';
   createdAt: string;
@@ -44,10 +44,15 @@ class AdminsService {
    */
   async getAllAdmins(): Promise<Admin[]> {
     try {
-      
-      // Fetch all users from backend
-      const response = (await adminApiClient.get('/users')) as any;
-      const users = response?.data || [];
+      // Fetch real admin accounts and still-pending invites in parallel —
+      // an invite has no User row until it's accepted, so it's invisible
+      // to /users and would otherwise just vanish from this list the
+      // moment it's sent.
+      const [usersResponse, pendingInvites] = await Promise.all([
+        adminApiClient.get('/users') as Promise<any>,
+        adminApiClient.get('/users/invites/pending').catch(() => []) as Promise<any[]>,
+      ]);
+      const users = usersResponse?.data || [];
 
       // Filter for admin users (role is not 'user')
       const admins = users
@@ -65,7 +70,19 @@ class AdminsService {
           updatedAt: user.updatedAt,
         }));
 
-      return admins;
+      const invitedAdmins = (pendingInvites || []).map((invite: any) => ({
+        id: invite.id,
+        name: invite.name || 'Unknown',
+        email: invite.email || 'N/A',
+        phone: 'N/A',
+        role: this._mapRole(invite.adminRole),
+        zones: 'All',
+        lastLogin: 'Never',
+        status: 'Pending' as const,
+        createdAt: invite.createdAt,
+      }));
+
+      return [...admins, ...invitedAdmins];
     } catch (error) {
       console.error('❌ [AdminsService] Error fetching admins:', error);
       return [];
