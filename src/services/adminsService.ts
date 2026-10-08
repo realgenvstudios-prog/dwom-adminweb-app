@@ -247,7 +247,6 @@ class AdminsService {
     email: string;
     phone?: string;
     role: string;
-    zones?: string;
   }): Promise<Admin | null> {
     try {
 
@@ -256,7 +255,6 @@ class AdminsService {
         email: data.email,
         phoneNumber: data.phone,
         role: this._reverseMapRole(data.role),
-        zones: data.zones,
       })) as any;
 
       if (response?.data) {
@@ -339,6 +337,32 @@ class AdminsService {
       return true;
     } catch (error) {
       console.error('❌ [AdminsService] Error reactivating admin:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Resend a pending invite — issues a fresh link, invalidating the old one
+   */
+  async resendInvite(inviteId: number): Promise<boolean> {
+    try {
+      await adminApiClient.post(`/users/invites/${inviteId}/resend`);
+      return true;
+    } catch (error) {
+      console.error('❌ [AdminsService] Error resending invite:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Cancel a pending invite — the link stops working immediately
+   */
+  async cancelInvite(inviteId: number): Promise<boolean> {
+    try {
+      await adminApiClient.delete(`/users/invites/${inviteId}`);
+      return true;
+    } catch (error) {
+      console.error('❌ [AdminsService] Error cancelling invite:', error);
       return false;
     }
   }

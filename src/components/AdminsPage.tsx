@@ -24,7 +24,7 @@ const AdminsPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState("All");
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [invite, setInvite] = useState({ name: "", email: "", phone: "", role: "", zones: "" });
+  const [invite, setInvite] = useState({ name: "", email: "", phone: "", role: "" });
   const [page, setPage] = useState(1);
   const rowsPerPage = 5;
 
@@ -71,6 +71,43 @@ const AdminsPage: React.FC = () => {
   const paged = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage);
   const totalPages = Math.ceil(filtered.length / rowsPerPage);
 
+  // Pending-invite rows use a synthetic "invite-5" id (see
+  // UsersService.getPendingAdminInvites) since there's no User row yet to
+  // give them a real numeric one — unwrap it back to the real AdminInvite id.
+  const parseInviteId = (id: Admin['id']): number => Number(String(id).replace('invite-', ''));
+
+  const handleResendInvite = async (admin: Admin) => {
+    try {
+      const ok = await adminsService.resendInvite(parseInviteId(admin.id));
+      if (!ok) {
+        alert(`Failed to resend invite to ${admin.name}`);
+        return;
+      }
+      alert(`Invite resent to ${admin.email}`);
+    } catch (error) {
+      console.error('Failed to resend invite:', error);
+      alert(`Failed to resend invite to ${admin.name}`);
+    }
+  };
+
+  const handleCancelInvite = async (admin: Admin) => {
+    if (!window.confirm(`Cancel the pending invite for ${admin.email}? The link they were sent will stop working.`)) {
+      return;
+    }
+
+    try {
+      const ok = await adminsService.cancelInvite(parseInviteId(admin.id));
+      if (!ok) {
+        alert(`Failed to cancel invite for ${admin.name}`);
+        return;
+      }
+      fetchData(); // Refresh data
+    } catch (error) {
+      console.error('Failed to cancel invite:', error);
+      alert(`Failed to cancel invite for ${admin.name}`);
+    }
+  };
+
   const handleToggleSuspend = async (admin: Admin) => {
     const suspending = admin.status !== 'Suspended';
     const verb = suspending ? 'suspend' : 'reactivate';
@@ -101,10 +138,9 @@ const AdminsPage: React.FC = () => {
         email: invite.email,
         phone: invite.phone,
         role: invite.role,
-        zones: invite.zones,
       });
       setShowModal(false);
-      setInvite({ name: "", email: "", phone: "", role: "", zones: "" });
+      setInvite({ name: "", email: "", phone: "", role: "" });
       fetchData(); // Refresh data
     } catch (error) {
       console.error("Failed to invite admin:", error);
@@ -194,15 +230,22 @@ const AdminsPage: React.FC = () => {
                           <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[a.status as keyof typeof statusColors]}`}>{a.status}</span>
                         </td>
                         <td className="py-2 pr-4 flex gap-2">
-                          <button className="text-blue-600 hover:underline text-xs" onClick={() => console.log('View', a)}>View</button>
-                          <button className="text-gray-600 hover:underline text-xs" onClick={() => console.log('Edit', a)}>Edit</button>
-                          {a.status !== 'Pending' && (
-                            <button
-                              className={`hover:underline text-xs ${a.status === 'Suspended' ? 'text-green-600' : 'text-red-500'}`}
-                              onClick={() => handleToggleSuspend(a)}
-                            >
-                              {a.status === 'Suspended' ? 'Reactivate' : 'Suspend'}
-                            </button>
+                          {a.status === 'Pending' ? (
+                            <>
+                              <button className="text-blue-600 hover:underline text-xs" onClick={() => handleResendInvite(a)}>Resend</button>
+                              <button className="text-red-500 hover:underline text-xs" onClick={() => handleCancelInvite(a)}>Remove</button>
+                            </>
+                          ) : (
+                            <>
+                              <button className="text-blue-600 hover:underline text-xs" onClick={() => console.log('View', a)}>View</button>
+                              <button className="text-gray-600 hover:underline text-xs" onClick={() => console.log('Edit', a)}>Edit</button>
+                              <button
+                                className={`hover:underline text-xs ${a.status === 'Suspended' ? 'text-green-600' : 'text-red-500'}`}
+                                onClick={() => handleToggleSuspend(a)}
+                              >
+                                {a.status === 'Suspended' ? 'Reactivate' : 'Suspend'}
+                              </button>
+                            </>
                           )}
                         </td>
                       </tr>
@@ -352,15 +395,6 @@ const AdminsPage: React.FC = () => {
                     <option value="">Select role…</option>
                     {roles.filter(r => r !== "All").map(r => <option key={r}>{r}</option>)}
                   </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Zones</label>
-                  <input
-                    className="border rounded-lg px-4 py-2 w-full"
-                    value={invite.zones}
-                    onChange={e => setInvite({ ...invite, zones: e.target.value })}
-                    placeholder="e.g. East Legon, Airport"
-                  />
                 </div>
                 <div className="flex justify-end gap-3 mt-6">
                   <button
