@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import settingsService, { type Settings } from "../services/settingsService";
+import AdminPushNotificationSettings from "./settings/AdminPushNotificationSettings";
 // import AddAdminModal from "./modals/AddAdminModal";
 // import ManageRolesModal from "./modals/ManageRolesModal";
 // import TemplateManagementModal from "./modals/TemplateManagementModal";
@@ -503,6 +504,7 @@ const SettingsPage: React.FC = () => {
 						</div>
 					</div>
 					{renderSaveButton()}
+					<AdminPushNotificationSettings />
 				</div>
 				{/* 6. Security & Audit */}
 				<div className="bg-white rounded-xl border border-gray-100 shadow-sm p-8 flex flex-col gap-6">
