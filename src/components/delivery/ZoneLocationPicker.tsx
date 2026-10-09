@@ -124,18 +124,45 @@ const ZoneLocationPicker: React.FC<Props> = ({ value, onChange }) => {
   // trusting event args, which this library doesn't pass) and pushing it
   // straight into onChange keeps the displayed km number and the map in
   // sync with the drag in real time.
+  //
+  // These events can fire far more often than the screen can repaint (every
+  // pixel of mouse movement), and each call round-trips through parent
+  // state, a re-render, and this library's prop-diff writing the value back
+  // onto the same native circle mid-gesture. Doing that on every raw event
+  // made the drag feel janky/fast rather than smooth. Throttling to one
+  // commit per animation frame (via rAF, "skip if already scheduled") caps
+  // it at the screen's own refresh rate — still reads as fully live, just
+  // without the redundant work between frames.
+  const radiusRafRef = useRef<number | null>(null);
+  const centerRafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (radiusRafRef.current !== null) cancelAnimationFrame(radiusRafRef.current);
+      if (centerRafRef.current !== null) cancelAnimationFrame(centerRafRef.current);
+    };
+  }, []);
+
   const handleRadiusChanged = useCallback(() => {
-    if (circleRef.current) {
-      const meters = circleRef.current.getRadius();
-      onChange({ ...value, radius: Math.round((meters / 1000) * 10) / 10 });
-    }
+    if (radiusRafRef.current !== null) return;
+    radiusRafRef.current = requestAnimationFrame(() => {
+      radiusRafRef.current = null;
+      if (circleRef.current) {
+        const meters = circleRef.current.getRadius();
+        onChange({ ...value, radius: Math.round((meters / 1000) * 10) / 10 });
+      }
+    });
   }, [value, onChange]);
 
   const handleCenterChanged = useCallback(() => {
-    if (circleRef.current) {
-      const c = circleRef.current.getCenter();
-      if (c) onChange({ ...value, lat: c.lat(), lng: c.lng() });
-    }
+    if (centerRafRef.current !== null) return;
+    centerRafRef.current = requestAnimationFrame(() => {
+      centerRafRef.current = null;
+      if (circleRef.current) {
+        const c = circleRef.current.getCenter();
+        if (c) onChange({ ...value, lat: c.lat(), lng: c.lng() });
+      }
+    });
   }, [value, onChange]);
 
   return (
