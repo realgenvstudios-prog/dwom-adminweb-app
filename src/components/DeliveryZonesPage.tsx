@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import deliveryService from "../services/deliveryService";
 import type { DeliveryZone } from "../services/deliveryService";
 import ridersService from "../services/ridersService";
@@ -29,8 +29,11 @@ const DeliveryZonesPage: React.FC = () => {
   const [geocoding, setGeocoding] = useState(false);
   const [geocodedLabel, setGeocodedLabel] = useState("");
   const [geocodeResults, setGeocodeResults] = useState<any[]>([]);
+  const [showAddressDropdown, setShowAddressDropdown] = useState(false);
   const [testResult, setTestResult] = useState<any>(null);
   const [testing, setTesting] = useState(false);
+  const addressDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const addressLatestQueryRef = useRef("");
 
   useEffect(() => {
     fetchZones();
@@ -188,65 +191,55 @@ const DeliveryZonesPage: React.FC = () => {
     }
   };
 
-  const handleGeocodeAddress = async () => {
-    if (!testAddress.trim()) {
-      setError("Enter an address or landmark to search");
+  // Live, as-you-type suggestions — mirrors ZoneLocationPicker's address
+  // search. Only fetches predictions here; resolving a pick (place details +
+  // the actual delivery check) happens in pickGeoResult below.
+  useEffect(() => {
+    if (addressDebounceRef.current) clearTimeout(addressDebounceRef.current);
+
+    const query = testAddress.trim();
+    if (query.length < 3 || query === geocodedLabel) {
+      setGeocodeResults([]);
+      setShowAddressDropdown(false);
       return;
     }
 
-    try {
+    addressDebounceRef.current = setTimeout(async () => {
+      addressLatestQueryRef.current = query;
       setGeocoding(true);
-      setGeocodedLabel("");
-      setGeocodeResults([]);
-      setTestResult(null);
-
-      const input = testAddress.trim();
-
-      // Use Google Places Autocomplete via backend proxy (avoids CORS)
-      const data = await deliveryService.placesAutocomplete(input);
-
-      if (data.status !== "OK" || !data.predictions || data.predictions.length === 0) {
-        setError(
-          `Could not find "${input}". Tips:\n• Try a more specific name, e.g., "${input}, East Legon"\n• Use a nearby known place like "East Legon" or "Accra Mall"\n• Or enter coordinates directly below`
-        );
-        return;
-      }
-
-      const predictions = data.predictions;
-
-      if (predictions.length === 1) {
-        // Single result — get details and check immediately
-        const details = await deliveryService.placeDetails(predictions[0].place_id);
-
-        if (details.status === "OK" && details.result) {
-          const { lat, lng, formatted_address, name } = details.result;
-          const label = formatted_address || name || predictions[0].description;
-          setTestLat(lat.toFixed(4));
-          setTestLng(lng.toFixed(4));
-          setGeocodedLabel(label);
-          setGeocodeResults([]);
-
-          const result = await deliveryService.checkDelivery(lat, lng);
-          setTestResult(result);
+      try {
+        const data = await deliveryService.placesAutocomplete(query);
+        if (addressLatestQueryRef.current !== query) return; // superseded by a newer keystroke
+        if (data.status === "OK" && data.predictions?.length) {
+          setGeocodeResults(data.predictions);
+          setShowAddressDropdown(true);
         } else {
-          setError("Found the place but couldn't get its coordinates. Try another search.");
+          setGeocodeResults([]);
+          setError(
+            `Could not find "${query}". Tips:\n• Try a more specific name, e.g., "${query}, East Legon"\n• Use a nearby known place like "East Legon" or "Accra Mall"\n• Or enter coordinates directly below`
+          );
         }
-      } else {
-        // Multiple results — let user pick
-        setGeocodeResults(predictions);
-        setGeocodedLabel("");
+      } catch {
+        if (addressLatestQueryRef.current === query) {
+          setError("Failed to look up address. Check your internet connection.");
+        }
+      } finally {
+        if (addressLatestQueryRef.current === query) setGeocoding(false);
       }
-    } catch (err: any) {
-      setError("Failed to look up address. Check your internet connection.");
-    } finally {
-      setGeocoding(false);
-    }
-  };
+    }, 350);
 
-  const handlePickGeoResult = async (place: any) => {
+    return () => {
+      if (addressDebounceRef.current) clearTimeout(addressDebounceRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [testAddress]);
+
+  const pickGeoResult = async (place: any) => {
+    setShowAddressDropdown(false);
+    setGeocodeResults([]);
     try {
       setTesting(true);
-      setGeocodeResults([]);
+      setTestResult(null);
 
       // Fetch place details via backend proxy
       const details = await deliveryService.placeDetails(place.place_id);
@@ -257,6 +250,7 @@ const DeliveryZonesPage: React.FC = () => {
         setTestLat(lat.toFixed(4));
         setTestLng(lng.toFixed(4));
         setGeocodedLabel(label);
+        setTestAddress(label);
 
         const result = await deliveryService.checkDelivery(lat, lng);
         setTestResult(result);
@@ -501,50 +495,62 @@ const DeliveryZonesPage: React.FC = () => {
         </p>
 
         {/* Address / Landmark Search */}
-        <div className="mb-4">
+        <div className="mb-4 relative">
           <label className="block text-xs font-medium text-gray-600 mb-1">Search by Address or Landmark</label>
-          <div className="flex gap-2">
+          <div className="relative">
             <input
               type="text"
               value={testAddress}
-              onChange={(e) => setTestAddress(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleGeocodeAddress()}
-              placeholder='e.g. "East Legon", "Accra Mall", "Tema Community 1"'
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={(e) => {
+                setTestAddress(e.target.value);
+                setGeocodedLabel("");
+              }}
+              onFocus={() => {
+                if (geocodeResults.length > 0) setShowAddressDropdown(true);
+              }}
+              onBlur={() => {
+                // Delay so a click on a suggestion (onMouseDown fires first) still registers.
+                setTimeout(() => setShowAddressDropdown(false), 150);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && showAddressDropdown && geocodeResults.length > 0) {
+                  e.preventDefault();
+                  pickGeoResult(geocodeResults[0]);
+                } else if (e.key === "Escape") {
+                  setShowAddressDropdown(false);
+                }
+              }}
+              placeholder='Start typing… e.g. "East Legon", "Accra Mall"'
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <button
-              onClick={handleGeocodeAddress}
-              disabled={geocoding || testing}
-              className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
-            >
-              {geocoding ? "Searching..." : "Search & Check"}
-            </button>
+            {geocoding && (
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">Searching…</span>
+            )}
+
+            {showAddressDropdown && geocodeResults.length > 0 && (
+              <div className="absolute z-10 mt-1 w-full border border-gray-200 bg-white rounded-lg shadow-lg overflow-hidden">
+                {geocodeResults.map((place, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault(); // keep focus/avoid blur racing the click
+                      pickGeoResult(place);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 border-t border-gray-100 first:border-t-0"
+                  >
+                    <span className="font-medium text-gray-900">{place.main_text}</span>
+                    {place.secondary_text && (
+                      <span className="text-gray-500 ml-1 text-xs">{place.secondary_text}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           {geocodedLabel && (
             <div className="mt-2 text-xs text-gray-500 bg-gray-50 rounded px-3 py-2">
               📍 Found: {geocodedLabel}
-            </div>
-          )}
-          {geocodeResults.length > 1 && (
-            <div className="mt-2 border border-blue-200 rounded-lg overflow-hidden">
-              <div className="px-3 py-2 bg-blue-50 text-xs font-semibold text-blue-700">
-                Multiple locations found — pick the right one:
-              </div>
-              {geocodeResults.map((place, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handlePickGeoResult(place)}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 border-t border-blue-100 flex items-start gap-2 transition"
-                >
-                  <span className="text-blue-600 font-bold mt-0.5">{idx + 1}.</span>
-                  <div>
-                    <span className="text-gray-900 font-medium">{place.main_text}</span>
-                    {place.secondary_text && (
-                      <span className="text-gray-500 ml-1 text-xs">{place.secondary_text}</span>
-                    )}
-                  </div>
-                </button>
-              ))}
             </div>
           )}
         </div>
