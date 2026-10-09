@@ -23,8 +23,6 @@ const DeliveryZonesPage: React.FC = () => {
   const [saving, setSaving] = useState(false);
 
   // Test delivery check
-  const [testLat, setTestLat] = useState("");
-  const [testLng, setTestLng] = useState("");
   const [testAddress, setTestAddress] = useState("");
   const [geocoding, setGeocoding] = useState(false);
   const [geocodedLabel, setGeocodedLabel] = useState("");
@@ -173,24 +171,6 @@ const DeliveryZonesPage: React.FC = () => {
     });
   };
 
-  const handleTestDelivery = async () => {
-    if (!testLat || !testLng) {
-      setError("Enter an address or coordinates to test");
-      return;
-    }
-
-    try {
-      setTesting(true);
-      setTestResult(null);
-      const result = await deliveryService.checkDelivery(parseFloat(testLat), parseFloat(testLng));
-      setTestResult(result);
-    } catch (err: any) {
-      setError("Failed to check delivery");
-    } finally {
-      setTesting(false);
-    }
-  };
-
   // Live, as-you-type suggestions — mirrors ZoneLocationPicker's address
   // search. Only fetches predictions here; resolving a pick (place details +
   // the actual delivery check) happens in pickGeoResult below.
@@ -247,8 +227,6 @@ const DeliveryZonesPage: React.FC = () => {
       if (details.status === "OK" && details.result) {
         const { lat, lng, formatted_address, name } = details.result;
         const label = formatted_address || name || place.description;
-        setTestLat(lat.toFixed(4));
-        setTestLng(lng.toFixed(4));
         setGeocodedLabel(label);
         setTestAddress(label);
 
@@ -491,7 +469,7 @@ const DeliveryZonesPage: React.FC = () => {
       <div className="mt-10 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-bold text-gray-900 mb-1">Test Delivery Check</h3>
         <p className="text-sm text-gray-600 mb-4">
-          Search by address/landmark or enter coordinates to check if a location falls within a delivery zone.
+          Search by address or landmark to check if a location falls within a delivery zone.
         </p>
 
         {/* Address / Landmark Search */}
@@ -555,44 +533,9 @@ const DeliveryZonesPage: React.FC = () => {
           )}
         </div>
 
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex-1 border-t border-gray-200"></div>
-          <span className="text-xs text-gray-400 font-medium">OR use coordinates</span>
-          <div className="flex-1 border-t border-gray-200"></div>
-        </div>
-
-        {/* Manual Coordinates */}
-        <div className="flex flex-wrap gap-3 items-end">
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Latitude</label>
-            <input
-              type="number"
-              step="0.0001"
-              value={testLat}
-              onChange={(e) => setTestLat(e.target.value)}
-              placeholder="5.6037"
-              className="w-40 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Longitude</label>
-            <input
-              type="number"
-              step="0.0001"
-              value={testLng}
-              onChange={(e) => setTestLng(e.target.value)}
-              placeholder="-0.1870"
-              className="w-40 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <button
-            onClick={handleTestDelivery}
-            disabled={testing || geocoding}
-            className="px-5 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50"
-          >
-            {testing ? "Checking..." : "Check Coordinates"}
-          </button>
-        </div>
+        {testing && !testResult && (
+          <div className="mt-4 text-sm text-gray-500">Checking…</div>
+        )}
 
         {testResult && (
           <div className={`mt-4 p-4 rounded-lg border ${testResult.deliverable ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}>
