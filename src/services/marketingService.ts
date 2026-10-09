@@ -1,449 +1,107 @@
-import adminApiClient from './apiClient';
+import type { Campaign, NotificationTemplate, NotificationSend, CartCodeAnalytics, CampaignMetrics } from './marketing/marketingTypes';
+import { CampaignsService } from './marketing/campaignsService';
+import { NotificationTemplatesService } from './marketing/notificationTemplatesService';
+import { NotificationSendsService } from './marketing/notificationSendsService';
+import { CartCodeAnalyticsService } from './marketing/cartCodeAnalyticsService';
 
-export interface Campaign {
-  id: number;
-  name: string;
-  description?: string;
-  channel: 'social' | 'sms' | 'email' | 'in_app' | 'push';
-  objective: 'awareness' | 'conversion' | 'retention' | 'engagement';
-  status: 'draft' | 'active' | 'paused' | 'ended';
-  startDate: string;
-  endDate?: string;
-  budget?: number;
-  actualSpend: number;
-  impressions: number;
-  clicks: number;
-  conversions: number;
-  cac: number;
-  roas: number;
-  content: string;
-  imageUrl?: string;
-  title?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+export type { Campaign, NotificationTemplate, NotificationSend, CartCodeAnalytics, CampaignMetrics };
 
-export interface NotificationTemplate {
-  id: number;
-  name: string;
-  description?: string;
-  title: string;
-  body: string;
-  imageUrl?: string;
-  actionUrl?: string;
-  inAppTitle?: string;
-  inAppBody?: string;
-  inAppImageUrl?: string;
-  inAppCtaText?: string;
-  inAppCtaLink?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface NotificationSend {
-  id: number;
-  templateId: number;
-  status: 'scheduled' | 'sending' | 'sent' | 'failed';
-  scheduledFor?: string;
-  sentAt?: string;
-  totalRecipients: number;
-  successCount: number;
-  failureCount: number;
-  pushSuccessCount?: number;
-  pushFailureCount?: number;
-  smsSuccessCount?: number;
-  smsFailureCount?: number;
-  emailSuccessCount?: number;
-  emailFailureCount?: number;
-  readCount: number;
-  clickCount: number;
-  createdAt: string;
-}
-
-export interface CartCodeAnalytics {
-  id: number;
-  code: string;
-  creator: string;
-  creatorId: number;
-  totalShares: number;
-  totalUsages: number;
-  uniqueUsers: number;
-  totalRevenue: number;
-  lastUsedAt?: string;
-  isActive: boolean;
-  expiresAt?: string;
-  createdAt: string;
-}
-
-export interface CampaignMetrics {
-  totalSpend: number;
-  totalImpressions: number;
-  totalClicks: number;
-  totalConversions: number;
-  conversionRate: number;
-  avgRoas: number;
-  activeCampaigns: number;
-}
-
+// Composes campaigns, notification templates, notification sends, and
+// cart-code analytics into the same flat public API this service exposed
+// before the split — no changes needed at any call site. Split out of
+// the former monolithic MarketingService.
 class MarketingService {
-  /**
-   * Get campaign metrics overview
-   */
-  async getCampaignMetrics(): Promise<CampaignMetrics> {
-    try {
-      const metrics = (await adminApiClient.get('/marketing/campaigns/metrics/overview')) as any;
-      return metrics;
-    } catch (error: any) {
-      console.error('❌ Failed to fetch campaign metrics:', error.message);
-      throw error;
-    }
+  private campaigns = new CampaignsService();
+  private templates = new NotificationTemplatesService();
+  private sends = new NotificationSendsService();
+  private cartCodes = new CartCodeAnalyticsService();
+
+  // ==================== CAMPAIGNS ====================
+
+  getCampaignMetrics(): Promise<CampaignMetrics> {
+    return this.campaigns.getCampaignMetrics();
   }
 
-  /**
-   * Get all campaigns with optional filters
-   */
-  async getCampaigns(status?: string, channel?: string): Promise<Campaign[]> {
-    try {
-      const params = new URLSearchParams();
-      if (status) params.append('status', status);
-      if (channel) params.append('channel', channel);
-      
-      const url = params.toString() ? `/marketing/campaigns?${params.toString()}` : '/marketing/campaigns';
-      const campaigns = (await adminApiClient.get(url)) as any;
-      return campaigns;
-    } catch (error: any) {
-      console.error('❌ Failed to fetch campaigns:', error.message);
-      throw error;
-    }
+  getCampaigns(status?: string, channel?: string): Promise<Campaign[]> {
+    return this.campaigns.getCampaigns(status, channel);
   }
 
-  /**
-   * Get campaign by ID
-   */
-  async getCampaignById(id: number): Promise<Campaign> {
-    try {
-      const campaign = (await adminApiClient.get(`/marketing/campaigns/${id}`)) as any;
-      return campaign;
-    } catch (error: any) {
-      console.error('❌ Failed to fetch campaign:', error.message);
-      throw error;
-    }
+  getCampaignById(id: number): Promise<Campaign> {
+    return this.campaigns.getCampaignById(id);
   }
 
-  /**
-   * Create a new campaign
-   */
-  async createCampaign(data: {
-    name: string;
-    description?: string;
-    channel: string;
-    objective: string;
-    startDate: string;
-    endDate?: string;
-    budget?: number;
-    title?: string;
-    content: string;
-    imageUrl?: string;
-    cta?: string;
-    ctaLink?: string;
-  }): Promise<Campaign> {
-    try {
-      const campaign = (await adminApiClient.post('/marketing/campaigns', data)) as any;
-      return campaign;
-    } catch (error: any) {
-      console.error('❌ Failed to create campaign:', error.message);
-      throw error;
-    }
+  createCampaign(data: Parameters<CampaignsService['createCampaign']>[0]): Promise<Campaign> {
+    return this.campaigns.createCampaign(data);
   }
 
-  /**
-   * Update campaign
-   */
-  async updateCampaign(
-    id: number,
-    data: {
-      name?: string;
-      status?: string;
-      title?: string;
-      content?: string;
-      imageUrl?: string;
-      budget?: number;
-      actualSpend?: number;
-      impressions?: number;
-      clicks?: number;
-      conversions?: number;
-      cac?: number;
-      roas?: number;
-    }
-  ): Promise<Campaign> {
-    try {
-      const campaign = (await adminApiClient.patch(`/marketing/campaigns/${id}`, data)) as any;
-      return campaign;
-    } catch (error: any) {
-      console.error('❌ Failed to update campaign:', error.message);
-      throw error;
-    }
+  updateCampaign(id: number, data: Parameters<CampaignsService['updateCampaign']>[1]): Promise<Campaign> {
+    return this.campaigns.updateCampaign(id, data);
   }
 
-  /**
-   * Delete campaign
-   */
-  async deleteCampaign(id: number): Promise<{ message: string }> {
-    try {
-      const result = (await adminApiClient.delete(`/marketing/campaigns/${id}`)) as any;
-      return result;
-    } catch (error: any) {
-      console.error('❌ Failed to delete campaign:', error.message);
-      throw error;
-    }
+  deleteCampaign(id: number): Promise<{ message: string }> {
+    return this.campaigns.deleteCampaign(id);
   }
 
-  /**
-   * Actually dispatches a draft campaign per its channel (push/in-app/SMS
-   * send for real; email errors until a provider is configured; social is
-   * marked active only, since posting there isn't automated).
-   */
-  async launchCampaign(id: number): Promise<{ totalRecipients: number; successCount: number; failureCount: number; status: string }> {
-    try {
-      const result = (await adminApiClient.post(`/marketing/campaigns/${id}/launch`, {})) as any;
-      return result;
-    } catch (error: any) {
-      console.error('❌ Failed to launch campaign:', error.message);
-      throw error;
-    }
+  launchCampaign(id: number): Promise<{ totalRecipients: number; successCount: number; failureCount: number; status: string }> {
+    return this.campaigns.launchCampaign(id);
   }
 
   // ==================== NOTIFICATION TEMPLATES ====================
 
-  /**
-   * Get all push notification templates
-   */
-  async getTemplates(): Promise<NotificationTemplate[]> {
-    try {
-      const templates = (await adminApiClient.get('/marketing/templates')) as any;
-      return templates;
-    } catch (error: any) {
-      console.error('❌ Failed to fetch templates:', error.message);
-      throw error;
-    }
+  getTemplates(): Promise<NotificationTemplate[]> {
+    return this.templates.getTemplates();
   }
 
-  /**
-   * Get template by ID
-   */
-  async getTemplateById(id: number): Promise<NotificationTemplate> {
-    try {
-      const template = (await adminApiClient.get(`/marketing/templates/${id}`)) as any;
-      return template;
-    } catch (error: any) {
-      console.error('❌ Failed to fetch template:', error.message);
-      throw error;
-    }
+  getTemplateById(id: number): Promise<NotificationTemplate> {
+    return this.templates.getTemplateById(id);
   }
 
-  /**
-   * Create notification template
-   */
-  async createTemplate(data: {
-    name: string;
-    description?: string;
-    title: string;
-    body: string;
-    imageUrl?: string;
-    actionUrl?: string;
-    inAppTitle?: string;
-    inAppBody?: string;
-    inAppImageUrl?: string;
-    inAppCtaText?: string;
-    inAppCtaLink?: string;
-  }): Promise<NotificationTemplate> {
-    try {
-      const template = (await adminApiClient.post('/marketing/templates', data)) as any;
-      return template;
-    } catch (error: any) {
-      console.error('❌ Failed to create template:', error.message);
-      throw error;
-    }
+  createTemplate(data: Parameters<NotificationTemplatesService['createTemplate']>[0]): Promise<NotificationTemplate> {
+    return this.templates.createTemplate(data);
   }
 
-  /**
-   * Update notification template
-   */
-  async updateTemplate(
-    id: number,
-    data: {
-      name?: string;
-      description?: string;
-      title?: string;
-      body?: string;
-      imageUrl?: string;
-      actionUrl?: string;
-      inAppTitle?: string;
-      inAppBody?: string;
-      inAppImageUrl?: string;
-      inAppCtaText?: string;
-      inAppCtaLink?: string;
-      isActive?: boolean;
-    }
-  ): Promise<NotificationTemplate> {
-    try {
-      const template = (await adminApiClient.patch(`/marketing/templates/${id}`, data)) as any;
-      return template;
-    } catch (error: any) {
-      console.error('❌ Failed to update template:', error.message);
-      throw error;
-    }
+  updateTemplate(id: number, data: Parameters<NotificationTemplatesService['updateTemplate']>[1]): Promise<NotificationTemplate> {
+    return this.templates.updateTemplate(id, data);
   }
 
-  /**
-   * Delete notification template
-   */
-  async deleteTemplate(id: number): Promise<{ message: string }> {
-    try {
-      const result = (await adminApiClient.delete(`/marketing/templates/${id}`)) as any;
-      return result;
-    } catch (error: any) {
-      console.error('❌ Failed to delete template:', error.message);
-      throw error;
-    }
+  deleteTemplate(id: number): Promise<{ message: string }> {
+    return this.templates.deleteTemplate(id);
   }
 
   // ==================== NOTIFICATION SENDS ====================
 
-  /**
-   * Send bulk notification
-   */
-  async sendNotification(data: {
-    templateId: number;
-    targetZones?: number[];
-    targetSubscriptionStatus?: string;
-    scheduledFor?: string;
-    sendNow?: boolean;
-    sendPush?: boolean;
-    sendSms?: boolean;
-    sendEmail?: boolean;
-  }): Promise<NotificationSend> {
-    try {
-      const send = (await adminApiClient.post('/marketing/sends', data)) as any;
-      return send;
-    } catch (error: any) {
-      console.error('❌ Failed to send notification:', error.message);
-      throw error;
-    }
+  sendNotification(data: Parameters<NotificationSendsService['sendNotification']>[0]): Promise<NotificationSend> {
+    return this.sends.sendNotification(data);
   }
 
-  /**
-   * Get all notification sends
-   */
-  async getNotificationSends(): Promise<NotificationSend[]> {
-    try {
-      const sends = (await adminApiClient.get('/marketing/sends')) as any;
-      return sends;
-    } catch (error: any) {
-      console.error('❌ Failed to fetch sends:', error.message);
-      throw error;
-    }
+  getNotificationSends(): Promise<NotificationSend[]> {
+    return this.sends.getNotificationSends();
   }
 
-  /**
-   * Get notification send by ID
-   */
-  async getNotificationSendById(id: number): Promise<NotificationSend> {
-    try {
-      const send = (await adminApiClient.get(`/marketing/sends/${id}`)) as any;
-      return send;
-    } catch (error: any) {
-      console.error('❌ Failed to fetch send:', error.message);
-      throw error;
-    }
+  getNotificationSendById(id: number): Promise<NotificationSend> {
+    return this.sends.getNotificationSendById(id);
+  }
+
+  sendBroadcastNotification(data: Parameters<NotificationSendsService['sendBroadcastNotification']>[0]): Promise<{ successCount: number; failureCount: number }> {
+    return this.sends.sendBroadcastNotification(data);
+  }
+
+  sendPromotionNotification(data: Parameters<NotificationSendsService['sendPromotionNotification']>[0]): Promise<{ successCount: number; failureCount: number }> {
+    return this.sends.sendPromotionNotification(data);
+  }
+
+  sendProductUpdateNotification(data: Parameters<NotificationSendsService['sendProductUpdateNotification']>[0]): Promise<{ successCount: number; failureCount: number }> {
+    return this.sends.sendProductUpdateNotification(data);
+  }
+
+  sendToUsers(data: Parameters<NotificationSendsService['sendToUsers']>[0]): Promise<{ successCount: number; failureCount: number }> {
+    return this.sends.sendToUsers(data);
   }
 
   // ==================== CART CODE ANALYTICS ====================
 
-  /**
-   * Get analytics for all cart sharing codes
-   */
-  async getAllCartCodeAnalytics(): Promise<CartCodeAnalytics[]> {
-    try {
-      const analytics = (await adminApiClient.get('/marketing/codes/analytics/all')) as any;
-      return analytics;
-    } catch (error: any) {
-      console.error('❌ Failed to fetch cart code analytics:', error.message);
-      return [];
-    }
-  }
-
-  /**
-   * Send broadcast notification via Firebase
-   */
-  async sendBroadcastNotification(data: {
-    title: string;
-    body: string;
-    type?: 'promotion' | 'product_update' | 'system_message';
-    data?: Record<string, string>;
-  }): Promise<{ successCount: number; failureCount: number }> {
-    try {
-      const result = (await adminApiClient.post('/notifications/broadcast', data)) as any;
-      return result;
-    } catch (error: any) {
-      console.error('❌ Failed to send broadcast notification:', error.message);
-      throw error;
-    }
-  }
-
-  /**
-   * Send promotion notification to specific users
-   */
-  async sendPromotionNotification(data: {
-    title: string;
-    body: string;
-    promotionId?: string;
-    userIds?: string[];
-  }): Promise<{ successCount: number; failureCount: number }> {
-    try {
-      const result = (await adminApiClient.post('/notifications/promotion', data)) as any;
-      return result;
-    } catch (error: any) {
-      console.error('❌ Failed to send promotion notification:', error.message);
-      throw error;
-    }
-  }
-
-  /**
-   * Send product update notification
-   */
-  async sendProductUpdateNotification(data: {
-    title: string;
-    body: string;
-    productId: string;
-  }): Promise<{ successCount: number; failureCount: number }> {
-    try {
-      const result = (await adminApiClient.post('/notifications/product-update', data)) as any;
-      return result;
-    } catch (error: any) {
-      console.error('❌ Failed to send product update notification:', error.message);
-      throw error;
-    }
-  }
-
-  /**
-   * Send notification to multiple users
-   */
-  async sendToUsers(data: {
-    userIds: string[];
-    title: string;
-    body: string;
-    type?: string;
-    data?: Record<string, string>;
-  }): Promise<{ successCount: number; failureCount: number }> {
-    try {
-      const result = (await adminApiClient.post('/notifications/send-to-users', data)) as any;
-      return result;
-    } catch (error: any) {
-      console.error('❌ Failed to send notification to users:', error.message);
-      throw error;
-    }
+  getAllCartCodeAnalytics(): Promise<CartCodeAnalytics[]> {
+    return this.cartCodes.getAllCartCodeAnalytics();
   }
 }
 
