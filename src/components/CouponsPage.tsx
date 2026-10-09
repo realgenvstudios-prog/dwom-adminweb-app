@@ -402,11 +402,19 @@ const CouponsPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
                 <input
                   type="date"
+                  min={new Date().toISOString().split('T')[0]}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                   value={form.expiresAt ?? ''}
                   onChange={e => setForm(f => ({ ...f, expiresAt: e.target.value || null }))}
                 />
-                <p className="text-xs text-gray-400 mt-1">Leave blank for no expiry.</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Valid through the end of this day. Leave blank for no expiry.
+                </p>
+                {form.expiresAt && form.expiresAt < new Date().toISOString().split('T')[0] && (
+                  <p className="text-xs text-red-600 mt-1">
+                    ⚠ This date is in the past — the coupon will be expired immediately.
+                  </p>
+                )}
               </div>
 
               {/* Preview */}
