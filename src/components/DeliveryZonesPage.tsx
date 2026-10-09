@@ -15,7 +15,6 @@ const DeliveryZonesPage: React.FC = () => {
   const [editingZone, setEditingZone] = useState<DeliveryZone | null>(null);
   const [formData, setFormData] = useState({
     name: "",
-    description: "",
     lat: "",
     lng: "",
     radius: "",
@@ -74,7 +73,7 @@ const DeliveryZonesPage: React.FC = () => {
     // Radius defaults to the "Standard" preset so the slider's displayed
     // value always matches real form state — otherwise a new zone could
     // look like 5km is already chosen when nothing's actually been set yet.
-    setFormData({ name: "", description: "", lat: "", lng: "", radius: "5", deliveryFee: "" });
+    setFormData({ name: "", lat: "", lng: "", radius: "5", deliveryFee: "" });
     setShowCreateForm(false);
     setEditingZone(null);
     setError(null);
@@ -93,7 +92,6 @@ const DeliveryZonesPage: React.FC = () => {
 
       await ridersService.createZone({
         name: formData.name,
-        description: formData.description || undefined,
         lat: parseFloat(formData.lat),
         lng: parseFloat(formData.lng),
         radius: parseFloat(formData.radius),
@@ -120,7 +118,6 @@ const DeliveryZonesPage: React.FC = () => {
 
       await deliveryService.updateZone(editingZone.id, {
         name: formData.name || undefined,
-        description: formData.description || undefined,
         lat: formData.lat ? parseFloat(formData.lat) : undefined,
         lng: formData.lng ? parseFloat(formData.lng) : undefined,
         radius: formData.radius ? parseFloat(formData.radius) : undefined,
@@ -166,7 +163,6 @@ const DeliveryZonesPage: React.FC = () => {
     setShowCreateForm(false);
     setFormData({
       name: zone.name,
-      description: zone.description || "",
       lat: zone.lat.toString(),
       lng: zone.lng.toString(),
       radius: zone.radius.toString(),
@@ -358,18 +354,6 @@ const DeliveryZonesPage: React.FC = () => {
                   placeholder="e.g., Accra Central, East Legon, Tema"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
                   required
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  placeholder="Covers areas like Osu, Labone, Cantonments..."
-                  rows={2}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
 
