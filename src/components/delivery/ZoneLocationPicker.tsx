@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { GoogleMap, Circle, Marker, useJsApiLoader } from '@react-google-maps/api';
 import deliveryService from '../../services/deliveryService';
 
@@ -39,7 +39,18 @@ const ZoneLocationPicker: React.FC<Props> = ({ value, onChange }) => {
   const latestQueryRef = useRef('');
 
   const hasLocation = value.lat !== 0 || value.lng !== 0;
-  const center = hasLocation ? { lat: value.lat, lng: value.lng } : DEFAULT_CENTER;
+  // Memoized so the object reference is stable across renders where lat/lng
+  // haven't actually changed — @react-google-maps/api's Circle diffs this
+  // prop by reference and calls setCenter() on the native circle whenever
+  // it changes identity, so a fresh literal every render (even from
+  // unrelated state updates) forces redundant setCenter() calls. During an
+  // active drag those externally-forced resets fight with Google's own
+  // drag handling and re-fire center_changed, which re-triggers onChange
+  // and loops until React throws "Maximum update depth exceeded" (#185).
+  const center = useMemo(
+    () => (hasLocation ? { lat: value.lat, lng: value.lng } : DEFAULT_CENTER),
+    [hasLocation, value.lat, value.lng],
+  );
 
   const pickResult = async (prediction: any) => {
     setShowDropdown(false);
@@ -126,32 +137,6 @@ const ZoneLocationPicker: React.FC<Props> = ({ value, onChange }) => {
       if (c) onChange({ ...value, lat: c.lat(), lng: c.lng() });
     }
   }, [value, onChange]);
-
-  // Keep the circle's center/radius in sync with external changes (search
-  // pick, radius preset, slider) WITHOUT passing center/radius as reactive
-  // props on <Circle>. This library calls setCenter()/setRadius() on the
-  // native circle whenever those props change identity, which itself
-  // re-fires center_changed/radius_changed — if that round-trips back into
-  // onChange unconditionally, parent state updates every render forever
-  // (React error #185, "Maximum update depth exceeded"). The equality
-  // check here makes the write a no-op once the circle already matches,
-  // breaking the loop.
-  useEffect(() => {
-    if (!circleRef.current) return;
-    const current = circleRef.current.getCenter();
-    if (!current || Math.abs(current.lat() - center.lat) > 1e-7 || Math.abs(current.lng() - center.lng) > 1e-7) {
-      circleRef.current.setCenter(center);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [center.lat, center.lng]);
-
-  useEffect(() => {
-    if (!circleRef.current) return;
-    const radiusMeters = (value.radius || 0.5) * 1000;
-    if (Math.abs(circleRef.current.getRadius() - radiusMeters) > 0.5) {
-      circleRef.current.setRadius(radiusMeters);
-    }
-  }, [value.radius]);
 
   return (
     <div className="space-y-4">
@@ -272,10 +257,10 @@ const ZoneLocationPicker: React.FC<Props> = ({ value, onChange }) => {
           >
             <Marker position={center} />
             <Circle
+              center={center}
+              radius={(value.radius || 0.5) * 1000}
               onLoad={(circle) => {
                 circleRef.current = circle;
-                circle.setCenter(center);
-                circle.setRadius((value.radius || 0.5) * 1000);
               }}
               onRadiusChanged={handleRadiusChanged}
               onCenterChanged={handleCenterChanged}
