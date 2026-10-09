@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import deliveryService from "../services/deliveryService";
 import type { DeliveryZone } from "../services/deliveryService";
 import ridersService from "../services/ridersService";
+import ZoneLocationPicker from "./delivery/ZoneLocationPicker";
 
 const DeliveryZonesPage: React.FC = () => {
   const [zones, setZones] = useState<DeliveryZone[]>([]);
@@ -70,7 +71,10 @@ const DeliveryZonesPage: React.FC = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: "", description: "", lat: "", lng: "", radius: "", deliveryFee: "" });
+    // Radius defaults to the "Standard" preset so the slider's displayed
+    // value always matches real form state — otherwise a new zone could
+    // look like 5km is already chosen when nothing's actually been set yet.
+    setFormData({ name: "", description: "", lat: "", lng: "", radius: "5", deliveryFee: "" });
     setShowCreateForm(false);
     setEditingZone(null);
     setError(null);
@@ -369,50 +373,22 @@ const DeliveryZonesPage: React.FC = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Center Latitude *</label>
-                <input
-                  type="number"
-                  step="0.0001"
-                  name="lat"
-                  value={formData.lat}
-                  onChange={handleChange}
-                  placeholder="e.g., 5.6037"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  required
+              <div className="md:col-span-2">
+                <ZoneLocationPicker
+                  value={{
+                    lat: parseFloat(formData.lat) || 0,
+                    lng: parseFloat(formData.lng) || 0,
+                    radius: parseFloat(formData.radius) || 0,
+                  }}
+                  onChange={(v) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      lat: v.lat.toString(),
+                      lng: v.lng.toString(),
+                      radius: v.radius.toString(),
+                    }))
+                  }
                 />
-                <p className="text-xs text-gray-500 mt-1">Center point of the delivery zone</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Center Longitude *</label>
-                <input
-                  type="number"
-                  step="0.0001"
-                  name="lng"
-                  value={formData.lng}
-                  onChange={handleChange}
-                  placeholder="e.g., -0.1870"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  required
-                />
-                <p className="text-xs text-gray-500 mt-1">Center point of the delivery zone</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Radius (km) *</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  min="0.1"
-                  name="radius"
-                  value={formData.radius}
-                  onChange={handleChange}
-                  placeholder="e.g., 5"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  required
-                />
-                <p className="text-xs text-gray-500 mt-1">How far from center we deliver (in kilometers)</p>
               </div>
 
               <div>
