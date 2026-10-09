@@ -127,6 +127,32 @@ const ZoneLocationPicker: React.FC<Props> = ({ value, onChange }) => {
     }
   }, [value, onChange]);
 
+  // Keep the circle's center/radius in sync with external changes (search
+  // pick, radius preset, slider) WITHOUT passing center/radius as reactive
+  // props on <Circle>. This library calls setCenter()/setRadius() on the
+  // native circle whenever those props change identity, which itself
+  // re-fires center_changed/radius_changed — if that round-trips back into
+  // onChange unconditionally, parent state updates every render forever
+  // (React error #185, "Maximum update depth exceeded"). The equality
+  // check here makes the write a no-op once the circle already matches,
+  // breaking the loop.
+  useEffect(() => {
+    if (!circleRef.current) return;
+    const current = circleRef.current.getCenter();
+    if (!current || Math.abs(current.lat() - center.lat) > 1e-7 || Math.abs(current.lng() - center.lng) > 1e-7) {
+      circleRef.current.setCenter(center);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [center.lat, center.lng]);
+
+  useEffect(() => {
+    if (!circleRef.current) return;
+    const radiusMeters = (value.radius || 0.5) * 1000;
+    if (Math.abs(circleRef.current.getRadius() - radiusMeters) > 0.5) {
+      circleRef.current.setRadius(radiusMeters);
+    }
+  }, [value.radius]);
+
   return (
     <div className="space-y-4">
       <div className="relative">
@@ -246,10 +272,10 @@ const ZoneLocationPicker: React.FC<Props> = ({ value, onChange }) => {
           >
             <Marker position={center} />
             <Circle
-              center={center}
-              radius={(value.radius || 0.5) * 1000}
               onLoad={(circle) => {
                 circleRef.current = circle;
+                circle.setCenter(center);
+                circle.setRadius((value.radius || 0.5) * 1000);
               }}
               onRadiusChanged={handleRadiusChanged}
               onCenterChanged={handleCenterChanged}
