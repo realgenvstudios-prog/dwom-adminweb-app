@@ -1,10 +1,34 @@
 import adminApiClient from './apiClient';
 import { logger } from '../utils/logger';
+import type { RiderData } from './ridersService';
+import type { Product } from './productsService';
+import type { AdminOrderSummary } from './ordersService';
 
-function asArray<T>(value: any): T[] {
+function asArray<T>(value: unknown): T[] {
   if (Array.isArray(value)) return value as T[];
-  if (Array.isArray(value?.data)) return value.data as T[];
+  if (value && typeof value === 'object' && Array.isArray((value as { data?: unknown }).data)) {
+    return (value as { data: T[] }).data;
+  }
   return [];
+}
+
+// /products includes each product's inventory row, which Product (from
+// productsService) doesn't model since most consumers don't need it.
+interface ProductWithInventory extends Product {
+  Inventory?: Array<{ quantity: number }>;
+}
+
+interface TopProductSummary {
+  productId: number;
+  name?: string;
+  quantity?: number;
+  revenue?: number;
+  image?: string;
+}
+
+interface DashboardUser {
+  id: number;
+  role: string;
 }
 
 export interface DashboardStats {
@@ -60,8 +84,8 @@ class DashboardService {
       // Prefer admin dashboard stats endpoint for consistency
       const response = await adminApiClient.get<DashboardStats>('/admin/dashboard/orders');
       return response;
-    } catch (error: any) {
-      logger.error('❌ [DashboardService] Failed to fetch order stats:', error.message);
+    } catch (error) {
+      logger.error('❌ [DashboardService] Failed to fetch order stats:', (error as Error).message);
       throw error;
     }
   }
@@ -73,14 +97,14 @@ class DashboardService {
     try {
       
       // Fetch all riders
-      const riders = (await adminApiClient.get('/riders/admin/all')) as any;
+      const riders = asArray<RiderData>(await adminApiClient.get('/riders/admin/all'));
 
       const totalRiders = riders.length;
-      const activeRiders = riders.filter((r: any) => r.isActive).length;
+      const activeRiders = riders.filter((r) => r.isActive).length;
       const inactiveRiders = totalRiders - activeRiders;
       
       // Calculate average rating
-      const totalRating = riders.reduce((sum: number, r: any) => sum + (r.rating || 0), 0);
+      const totalRating = riders.reduce((sum: number, r) => sum + (r.rating || 0), 0);
       const averageRating = totalRiders > 0 ? parseFloat((totalRating / totalRiders).toFixed(2)) : 0;
 
       const stats: RiderStats = {
@@ -91,8 +115,8 @@ class DashboardService {
       };
 
       return stats;
-    } catch (error: any) {
-      logger.error('❌ [DashboardService] Failed to fetch rider stats:', error.message);
+    } catch (error) {
+      logger.error('❌ [DashboardService] Failed to fetch rider stats:', (error as Error).message);
       throw error;
     }
   }
@@ -104,18 +128,17 @@ class DashboardService {
     try {
       
       // Fetch all products
-      const productsResponse = (await adminApiClient.get('/products')) as any;
-      const products = asArray<any>(productsResponse);
+      const products = asArray<ProductWithInventory>(await adminApiClient.get('/products'));
 
       const totalProducts = products.length;
       
       // Count low stock (less than 10) and out of stock (0)
-      const lowStockProducts = products.filter((p: any) => {
+      const lowStockProducts = products.filter((p) => {
         const inventory = p.Inventory?.[0]?.quantity || 0;
         return inventory > 0 && inventory < 10;
       }).length;
 
-      const outOfStockProducts = products.filter((p: any) => {
+      const outOfStockProducts = products.filter((p) => {
         const inventory = p.Inventory?.[0]?.quantity || 0;
         return inventory === 0;
       }).length;
@@ -127,8 +150,8 @@ class DashboardService {
       };
 
       return stats;
-    } catch (error: any) {
-      logger.error('❌ [DashboardService] Failed to fetch product stats:', error.message);
+    } catch (error) {
+      logger.error('❌ [DashboardService] Failed to fetch product stats:', (error as Error).message);
       throw error;
     }
   }
@@ -159,8 +182,8 @@ class DashboardService {
       };
 
       return dashboardData;
-    } catch (error: any) {
-      logger.error('❌ [DashboardService] Failed to fetch dashboard data:', error.message);
+    } catch (error) {
+      logger.error('❌ [DashboardService] Failed to fetch dashboard data:', (error as Error).message);
       throw error;
     }
   }
@@ -172,13 +195,13 @@ class DashboardService {
     try {
 
       // Use backend dashboard stats endpoint (fast + reliable)
-      const topProductsResponse = (await adminApiClient.get(
+      const topProductsResponse = await adminApiClient.get(
         `/admin/dashboard/top-products?limit=${limit}`
-      )) as any;
+      );
 
-      const topProducts = asArray<any>(topProductsResponse);
+      const topProducts = asArray<TopProductSummary>(topProductsResponse);
 
-      const popularProducts: PopularProduct[] = topProducts.map((p: any) => ({
+      const popularProducts: PopularProduct[] = topProducts.map((p) => ({
         id: p.productId,
         nameEnglish: p.name || 'Unknown',
         quantity: p.quantity || 0,
@@ -187,8 +210,8 @@ class DashboardService {
       }));
 
       return popularProducts;
-    } catch (error: any) {
-      logger.error('❌ [DashboardService] Failed to fetch popular products:', error.message);
+    } catch (error) {
+      logger.error('❌ [DashboardService] Failed to fetch popular products:', (error as Error).message);
       return [];
     }
   }
@@ -200,13 +223,12 @@ class DashboardService {
     try {
       
       // Fetch all orders
-      const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
-      const orders = asArray<any>(ordersResponse);
+      const orders = asArray<AdminOrderSummary>(await adminApiClient.get('/orders/admin/all'));
 
       // Group by date
       const dateMap = new Map<string, { orders: number; revenue: number }>();
 
-      orders.forEach((order: any) => {
+      orders.forEach((order) => {
         const orderDate = new Date(order.createdAt);
         const dateKey = orderDate.toISOString().split('T')[0]; // YYYY-MM-DD format
 
@@ -233,8 +255,8 @@ class DashboardService {
         .slice(-days);
 
       return trends;
-    } catch (error: any) {
-      logger.error('❌ [DashboardService] Failed to fetch revenue trends:', error.message);
+    } catch (error) {
+      logger.error('❌ [DashboardService] Failed to fetch revenue trends:', (error as Error).message);
       return [];
     }
   }
@@ -270,11 +292,11 @@ class DashboardService {
    */
   async getTotalCustomers(): Promise<number> {
     try {
-      const users = (await adminApiClient.get('/users')) as any;
-      const customers = users.filter((u: any) => u.role !== 'rider' && u.role !== 'admin').length;
+      const users = asArray<DashboardUser>(await adminApiClient.get('/users'));
+      const customers = users.filter((u) => u.role !== 'rider' && u.role !== 'admin').length;
       return customers;
-    } catch (error: any) {
-      logger.error('❌ [DashboardService] Failed to fetch customers:', error.message);
+    } catch (error) {
+      logger.error('❌ [DashboardService] Failed to fetch customers:', (error as Error).message);
       return 0;
     }
   }

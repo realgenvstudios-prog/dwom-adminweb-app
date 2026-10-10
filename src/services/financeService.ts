@@ -1,10 +1,24 @@
 import adminApiClient from './apiClient';
 import { logger } from '../utils/logger';
+import type { AdminOrderSummary } from './ordersService';
+import type { Subscription } from './subscriptionsService';
 
-function asArray<T>(value: any): T[] {
+function asArray<T>(value: unknown): T[] {
   if (Array.isArray(value)) return value as T[];
-  if (Array.isArray(value?.data)) return value.data as T[];
+  if (value && typeof value === 'object' && Array.isArray((value as { data?: unknown }).data)) {
+    return (value as { data: T[] }).data;
+  }
   return [];
+}
+
+async function fetchAllOrders(): Promise<AdminOrderSummary[]> {
+  const response = await adminApiClient.get<{ data: AdminOrderSummary[] } | AdminOrderSummary[]>('/orders/admin/all');
+  return asArray<AdminOrderSummary>(response);
+}
+
+async function fetchAllSubscriptions(): Promise<Subscription[]> {
+  const response = await adminApiClient.get<{ data: Subscription[] } | Subscription[]>('/subscriptions');
+  return asArray<Subscription>(response);
 }
 
 export interface FinanceKPIs {
@@ -54,10 +68,9 @@ class FinanceService {
     try {
 
       // Fetch all orders
-      let allOrders: any[] = [];
+      let allOrders: AdminOrderSummary[] = [];
       try {
-        const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
-        allOrders = asArray<any>(ordersResponse);
+        allOrders = await fetchAllOrders();
       } catch (orderError) {
         logger.warn('⚠️ Could not fetch /orders/admin/all, returning zero values', orderError);
         // Return zero values if orders can't be fetched
@@ -74,11 +87,11 @@ class FinanceService {
       }
 
       // Calculate GMV (all orders)
-      const gmv = allOrders.reduce((sum: number, order: any) => sum + (order.total || 0), 0);
+      const gmv = allOrders.reduce((sum: number, order) => sum + (order.total || 0), 0);
       
       // Net revenue (paid orders only)
-      const paidOrders = allOrders.filter((o: any) => o.paymentStatus === 'paid');
-      const netRevenue = paidOrders.reduce((sum: number, order: any) => sum + (order.total || 0), 0);
+      const paidOrders = allOrders.filter((o) => o.paymentStatus === 'paid');
+      const netRevenue = paidOrders.reduce((sum: number, order) => sum + (order.total || 0), 0);
       
       // Gross profit margin (22% default, will be configurable via backend later)
       const grossProfitMargin = 22.0;
@@ -90,9 +103,8 @@ class FinanceService {
       // MRR from subscriptions
       let activeSubscriptions = 0;
       try {
-        const subscriptionsResponse = (await adminApiClient.get('/subscriptions')) as any;
-        const subscriptions = asArray<any>(subscriptionsResponse);
-        activeSubscriptions = subscriptions.filter((s: any) => s.status === 'active').length;
+        const subscriptions = await fetchAllSubscriptions();
+        activeSubscriptions = subscriptions.filter((s) => s.status === 'active').length;
       } catch (subError) {
         logger.warn('⚠️ Could not fetch subscriptions', subError);
       }
@@ -101,7 +113,7 @@ class FinanceService {
       const mrr = activeSubscriptions * subscriptionPrice;
       
       // Failed payment rate
-      const failedOrders = allOrders.filter((o: any) => o.paymentStatus === 'failed');
+      const failedOrders = allOrders.filter((o) => o.paymentStatus === 'failed');
       const failedPaymentRate = allOrders.length > 0 ? failedOrders.length / allOrders.length : 0;
 
       const kpis: FinanceKPIs = {
@@ -116,8 +128,8 @@ class FinanceService {
       };
 
       return kpis;
-    } catch (error: any) {
-      logger.error('❌ [FinanceService] Failed to calculate KPIs:', error.message);
+    } catch (error) {
+      logger.error('❌ [FinanceService] Failed to calculate KPIs:', (error as Error).message);
       // Return zero values on error instead of throwing
       return {
         gmv: 0,
@@ -138,10 +150,9 @@ class FinanceService {
   async getRevenueTrends(days: number = 7): Promise<RevenueTrend[]> {
     try {
 
-      let allOrders: any[] = [];
+      let allOrders: AdminOrderSummary[] = [];
       try {
-        const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
-        allOrders = asArray<any>(ordersResponse);
+        allOrders = await fetchAllOrders();
       } catch (orderError) {
         logger.warn('⚠️ Could not fetch /orders/admin/all for trends', orderError);
         return [];
@@ -154,7 +165,7 @@ class FinanceService {
       // Group by date
       const dateMap = new Map<string, { gmv: number; net: number }>();
 
-      allOrders.forEach((order: any) => {
+      allOrders.forEach((order) => {
         const orderDate = new Date(order.createdAt);
         const dateKey = orderDate.toISOString().split('T')[0]; // YYYY-MM-DD format
 
@@ -181,8 +192,8 @@ class FinanceService {
         .slice(-days);
 
       return trends;
-    } catch (error: any) {
-      logger.error('❌ [FinanceService] Failed to fetch revenue trends:', error.message);
+    } catch (error) {
+      logger.error('❌ [FinanceService] Failed to fetch revenue trends:', (error as Error).message);
       return [];
     }
   }
@@ -193,14 +204,16 @@ class FinanceService {
   async getRevenueByZone(): Promise<RevenueByZone[]> {
     try {
 
-      const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
-      const allOrders = asArray<any>(ordersResponse);
+      const allOrders = await fetchAllOrders();
 
-      // Group by zone
+      // Group by zone — the admin orders endpoint doesn't select a Zone
+      // relation, so every order currently falls into "Unassigned". Fixing
+      // that is a backend change (adding Zone to findAllForAdmin's select),
+      // out of scope here.
       const zoneMap = new Map<string, number>();
 
-      allOrders.forEach((order: any) => {
-        const zoneName = order.Zone?.name || 'Unassigned';
+      allOrders.forEach((order) => {
+        const zoneName = 'Unassigned';
         const currentRevenue = zoneMap.get(zoneName) || 0;
         zoneMap.set(zoneName, currentRevenue + (order.total || 0));
       });
@@ -214,8 +227,8 @@ class FinanceService {
         .sort((a, b) => b.revenue - a.revenue);
 
       return zones;
-    } catch (error: any) {
-      logger.error('❌ [FinanceService] Failed to fetch revenue by zone:', error.message);
+    } catch (error) {
+      logger.error('❌ [FinanceService] Failed to fetch revenue by zone:', (error as Error).message);
       return [];
     }
   }
@@ -226,8 +239,7 @@ class FinanceService {
   async getTopCustomers(limit: number = 10): Promise<TopCustomer[]> {
     try {
 
-      const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
-      const allOrders = asArray<any>(ordersResponse);
+      const allOrders = await fetchAllOrders();
 
       // Group by customer
       const customerMap = new Map<
@@ -241,7 +253,7 @@ class FinanceService {
         }
       >();
 
-      allOrders.forEach((order: any) => {
+      allOrders.forEach((order) => {
         const userId = order.userId;
         const userName = order.User?.name || 'Unknown';
         const userPhone = order.User?.phoneNumber || 'N/A';
@@ -273,8 +285,8 @@ class FinanceService {
         .slice(0, limit);
 
       return customers;
-    } catch (error: any) {
-      logger.error('❌ [FinanceService] Failed to fetch top customers:', error.message);
+    } catch (error) {
+      logger.error('❌ [FinanceService] Failed to fetch top customers:', (error as Error).message);
       return [];
     }
   }
@@ -285,25 +297,24 @@ class FinanceService {
   async getFailedPayments(limit: number = 10): Promise<FailedPayment[]> {
     try {
 
-      const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
-      const allOrders = asArray<any>(ordersResponse);
+      const allOrders = await fetchAllOrders();
 
       // Filter failed payments
       const failedPayments = allOrders
-        .filter((order: any) => order.paymentStatus === 'failed' || order.status === 'failed')
-        .map((order: any) => ({
+        .filter((order) => order.paymentStatus === 'failed' || order.status === 'failed')
+        .map((order) => ({
           date: new Date(order.createdAt).toISOString().split('T')[0],
           customer: order.User?.name || 'Unknown',
           amount: order.total || 0,
           method: order.paymentMethod || 'Card',
           status: 'failed',
         }))
-        .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, limit);
 
       return failedPayments;
-    } catch (error: any) {
-      logger.error('❌ [FinanceService] Failed to fetch failed payments:', error.message);
+    } catch (error) {
+      logger.error('❌ [FinanceService] Failed to fetch failed payments:', (error as Error).message);
       return [];
     }
   }
@@ -314,12 +325,12 @@ class FinanceService {
   async getActiveSubscriptions(): Promise<number> {
     try {
 
-      const subscriptions = (await adminApiClient.get('/subscriptions')) as any;
-      const activeCount = (subscriptions || []).filter((s: any) => s.status === 'active').length;
+      const subscriptions = await fetchAllSubscriptions();
+      const activeCount = subscriptions.filter((s) => s.status === 'active').length;
 
       return activeCount;
-    } catch (error: any) {
-      logger.error('❌ [FinanceService] Failed to fetch subscriptions:', error.message);
+    } catch (error) {
+      logger.error('❌ [FinanceService] Failed to fetch subscriptions:', (error as Error).message);
       return 0;
     }
   }

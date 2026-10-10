@@ -13,13 +13,59 @@ export interface Order {
   updatedAt: string;
 }
 
+// Matches the Prisma `select` in the backend's findAllForAdmin() — the shape
+// GET /orders/admin/all actually returns, consumed here and by finance/
+// dashboard services. Note: no Zone relation is selected server-side, so
+// any `.Zone` access on this type is always undefined today.
+export interface AdminOrderSummary {
+  id: number;
+  userId: number;
+  status: string;
+  paymentStatus: string;
+  paymentMethod: string;
+  total: number;
+  subtotal: number;
+  deliveryFee: number;
+  serviceFee: number;
+  couponDiscount: number;
+  createdAt: string;
+  updatedAt: string;
+  User?: { id: number; name: string; phoneNumber: string };
+  Address?: { id: number; addressText: string; label: string };
+  Rider?: { id: number; rating: number | null; User?: { name: string } };
+  RiderRating?: Array<{ id: number; rating: number; comment: string | null }>;
+  ProductReview?: Array<{
+    id: number;
+    rating: number;
+    comment: string | null;
+    productId: number;
+    Product?: { nameEnglish: string; nameFrench: string | null };
+  }>;
+  _count?: { OrderItem: number; BundleOrderItem: number };
+}
+
+interface OrderStats {
+  totalOrdersToday: number;
+  completedOrders: number;
+  canceledOrders: number;
+  revenueToday: number;
+}
+
+interface CreateOrderPayload {
+  userId: number;
+  deliveryAddressId: number;
+  paymentMethod: string;
+  riderNotes?: string;
+  items: Array<{ productId: number; quantity: number }>;
+}
+
 export const ordersService = {
   /**
    * Create a manual order (admin only)
    */
-  async createOrder(payload: any): Promise<any> {
+  async createOrder(payload: CreateOrderPayload): Promise<AdminOrderSummary> {
     try {
-      const response = await adminApiClient.post<any>('/orders', payload);
+      const response = await adminApiClient.post<AdminOrderSummary>('/orders', payload);
       return response;
     } catch (error) {
       logger.error('❌ [OrdersService] Failed to create order:', error);
@@ -30,14 +76,14 @@ export const ordersService = {
   /**
    * Get all orders (admin endpoint)
    */
-  async getAll(): Promise<any> {
+  async getAll(): Promise<AdminOrderSummary[]> {
     try {
-      const response = await adminApiClient.get<any>(
+      const response = await adminApiClient.get<{ data: AdminOrderSummary[] } | AdminOrderSummary[]>(
         `/orders/admin/all`
       );
       // Backend returns { data: orders, pagination: {...} }
       // Extract the data array directly
-      const orders = response?.data || response || [];
+      const orders = Array.isArray(response) ? response : response?.data || [];
       return orders;
     } catch (error) {
       logger.error('❌ [OrdersService] Failed to fetch orders:', error);
@@ -61,9 +107,9 @@ export const ordersService = {
   /**
    * Update order status
    */
-  async updateStatus(id: number, status: string): Promise<any> {
+  async updateStatus(id: number, status: string): Promise<unknown> {
     try {
-      const response = await adminApiClient.patch<any>(`/orders/${id}/status`, {
+      const response = await adminApiClient.patch(`/orders/${id}/status`, {
         status,
       });
       return response;
@@ -76,7 +122,7 @@ export const ordersService = {
   /**
    * Assign rider to order
    */
-  async assignRider(orderId: number, riderId: number): Promise<any> {
+  async assignRider(orderId: number, riderId: number): Promise<unknown> {
     try {
       const response = await adminApiClient.post(`/orders/${orderId}/assign-rider`, {
         riderId,
@@ -91,9 +137,9 @@ export const ordersService = {
   /**
    * Update payment status
    */
-  async updatePaymentStatus(id: number, paymentStatus: string): Promise<any> {
+  async updatePaymentStatus(id: number, paymentStatus: string): Promise<unknown> {
     try {
-      const response = await adminApiClient.patch<any>(`/orders/${id}/payment-status`, {
+      const response = await adminApiClient.patch(`/orders/${id}/payment-status`, {
         paymentStatus,
       });
       return response;
@@ -106,13 +152,13 @@ export const ordersService = {
   /**
    * Get order statistics
    */
-  async getStats(): Promise<any> {
+  async getStats(): Promise<OrderStats> {
     try {
-      const response = await adminApiClient.get('/orders/stats/overview');
+      const response = await adminApiClient.get<OrderStats>('/orders/stats/overview');
       return response;
     } catch (error) {
       logger.error('❌ [OrdersService] Failed to fetch stats:', error);
-      return {};
+      return { totalOrdersToday: 0, completedOrders: 0, canceledOrders: 0, revenueToday: 0 };
     }
   },
 };
