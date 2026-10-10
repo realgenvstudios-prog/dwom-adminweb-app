@@ -50,7 +50,7 @@ export const settingsService = {
     try {
       const settings = await adminApiClient.get<Settings>('/settings');
       return settings;
-    } catch (error: any) {
+    } catch (error) {
       logger.error('❌ [SettingsService] Failed to fetch settings:', error);
       throw error;
     }
@@ -63,20 +63,20 @@ export const settingsService = {
     try {
       const response = await adminApiClient.patch<Settings>('/settings', updatedSettings);
       return response;
-    } catch (error: any) {
+    } catch (error) {
       logger.error('❌ [SettingsService] Failed to update settings:', error);
       throw error;
     }
   },
 
   /**
-   * Get a specific setting
+   * Get a specific setting — currently unused by any screen.
    */
-  async getSetting(key: string): Promise<any> {
+  async getSetting(key: string): Promise<unknown> {
     try {
       const value = await adminApiClient.get(`/settings/${key}`);
       return value;
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [SettingsService] Failed to fetch setting ${key}:`, error);
       throw error;
     }

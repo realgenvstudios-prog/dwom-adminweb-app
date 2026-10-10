@@ -49,6 +49,21 @@ export interface CustomerChurnMetrics {
   churnList: ChurnRisk[];
 }
 
+interface RawUser {
+  id: number;
+  name?: string;
+  phoneNumber?: string;
+  phone?: string;
+  email?: string;
+  createdAt?: string;
+  Address?: Array<{ zone?: string }>;
+}
+
+interface RawOrder {
+  total?: number;
+  createdAt: string;
+}
+
 class CustomersService {
   /**
    * Get all customers with their order statistics
@@ -57,18 +72,18 @@ class CustomersService {
     try {
       
       // Fetch all users from the backend
-      const response = (await apiClient.get('/users')) as any;
-      const users = response?.data || [];
+      const response = await apiClient.get<{ data?: RawUser[] } | RawUser[]>('/users');
+      const users = Array.isArray(response) ? response : response?.data || [];
 
       // For each user, fetch their orders to calculate stats
       const customersWithStats = await Promise.all(
-        users.map(async (user: any) => {
+        users.map(async (user) => {
           try {
-            const ordersResponse = (await apiClient.get(`/orders?userId=${user.id}`)) as any;
-            const orders = ordersResponse?.data || [];
+            const ordersResponse = await apiClient.get<{ data?: RawOrder[] } | RawOrder[]>(`/orders?userId=${user.id}`);
+            const orders = Array.isArray(ordersResponse) ? ordersResponse : ordersResponse?.data || [];
 
             const totalOrders = orders.length;
-            const totalSpend = orders.reduce((sum: number, order: any) => sum + (order.total || 0), 0);
+            const totalSpend = orders.reduce((sum: number, order) => sum + (order.total || 0), 0);
             const avgOrder = totalOrders > 0 ? totalSpend / totalOrders : 0;
             const lastOrder = orders.length > 0 ? orders[0].createdAt : null;
 

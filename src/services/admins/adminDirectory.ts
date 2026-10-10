@@ -3,6 +3,28 @@ import type { Admin } from './adminTypes';
 import { mapRole, determineStatus } from './adminRoleMapping';
 import { logger } from '../../utils/logger';
 
+interface RawAdminUser {
+  id: number;
+  name?: string;
+  email?: string;
+  phoneNumber?: string;
+  phone?: string;
+  role?: string;
+  adminRole?: string;
+  zones?: string;
+  lastLoginAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface RawAdminInvite {
+  id: number;
+  name?: string;
+  email?: string;
+  adminRole?: string;
+  createdAt?: string;
+}
+
 // Listing/querying admins. Split out of the former monolithic
 // AdminsService.
 export class AdminDirectoryService {
@@ -16,15 +38,15 @@ export class AdminDirectoryService {
       // to /users and would otherwise just vanish from this list the
       // moment it's sent.
       const [usersResponse, pendingInvites] = await Promise.all([
-        adminApiClient.get('/users') as Promise<any>,
-        adminApiClient.get('/users/invites/pending').catch(() => []) as Promise<any[]>,
+        adminApiClient.get<{ data?: RawAdminUser[] } | RawAdminUser[]>('/users'),
+        adminApiClient.get<RawAdminInvite[]>('/users/invites/pending').catch(() => [] as RawAdminInvite[]),
       ]);
-      const users = usersResponse?.data || [];
+      const users = Array.isArray(usersResponse) ? usersResponse : usersResponse?.data || [];
 
       // Filter for admin users (role is not 'user')
       const admins = users
-        .filter((user: any) => user.role && user.role !== 'user')
-        .map((user: any) => ({
+        .filter((user) => user.role && user.role !== 'user')
+        .map((user) => ({
           id: user.id,
           name: user.name || 'Unknown',
           email: user.email || 'N/A',
@@ -32,7 +54,7 @@ export class AdminDirectoryService {
           // adminRole is the fine-grained tier (operations/finance/...);
           // role is just the coarse 'admin' flag and would make every
           // admin show as "Super Admin" regardless of their real tier.
-          role: mapRole(user.adminRole || user.role),
+          role: mapRole(user.adminRole || user.role || ''),
           zones: user.zones || 'All',
           lastLogin: user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never',
           status: determineStatus(user),
@@ -40,12 +62,12 @@ export class AdminDirectoryService {
           updatedAt: user.updatedAt,
         }));
 
-      const invitedAdmins = (pendingInvites || []).map((invite: any) => ({
+      const invitedAdmins = (pendingInvites || []).map((invite) => ({
         id: invite.id,
         name: invite.name || 'Unknown',
         email: invite.email || 'N/A',
         phone: 'N/A',
-        role: mapRole(invite.adminRole),
+        role: mapRole(invite.adminRole || ''),
         zones: 'All',
         lastLogin: 'Never',
         status: 'Pending' as const,

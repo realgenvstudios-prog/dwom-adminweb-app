@@ -29,6 +29,24 @@ export interface SupportTicket {
   userId: number;
 }
 
+interface RawSupportTicket {
+  id: string;
+  customer: string;
+  phone: string;
+  topic: string;
+  priority: string;
+  channel: string;
+  status: string;
+  lastUpdate: string;
+  created: string;
+  subject: string;
+  sla: string;
+  messages?: Array<{ sender: string; time: string; text: string }>;
+  conversation?: Array<{ sender: string; time: string; text: string }>;
+  assigned: string;
+  userId: number;
+}
+
 export interface SupportMetrics {
   totalTickets: number;
   openTickets: number;
@@ -44,8 +62,8 @@ const supportService = {
   // Get all support tickets from backend
   async getAllTickets(limit: number = 50): Promise<SupportTicket[]> {
     try {
-      const response = await adminApiClient.get('/chat/admin/support-tickets');
-      const tickets = ((response as any)?.data || []) as any[];
+      const response = await adminApiClient.get<{ data?: RawSupportTicket[] }>('/chat/admin/support-tickets');
+      const tickets = response?.data || [];
 
       // Convert to frontend format
       return tickets.slice(0, limit).map(t => ({
@@ -61,7 +79,7 @@ const supportService = {
         created: t.created,
         subject: t.subject,
         sla: t.sla,
-        conversation: (t.messages || []).map((msg: any) => ({
+        conversation: (t.messages || []).map((msg) => ({
           sender: msg.sender,
           time: msg.time,
           text: msg.text,
@@ -82,8 +100,8 @@ const supportService = {
       const ticketNum = parseInt(ticketId.replace('T-', ''));
       const userId = ticketNum - 1001;
       
-      const response = await adminApiClient.get(`/chat/admin/support-tickets/${userId}`);
-      const t = (response as any)?.data;
+      const response = await adminApiClient.get<{ data?: RawSupportTicket }>(`/chat/admin/support-tickets/${userId}`);
+      const t = response?.data;
       
       if (!t) return null;
 
@@ -117,8 +135,8 @@ const supportService = {
       const ticketNum = parseInt(ticketId.replace('T-', ''));
       const userId = ticketNum - 1001;
       
-      const response = await adminApiClient.post('/chat/admin/support-reply', { userId, message });
-      return (((response as any)?.data || null) as ChatMessage);
+      const response = await adminApiClient.post<{ data?: ChatMessage }>('/chat/admin/support-reply', { userId, message });
+      return response?.data || null;
     } catch (error) {
       logger.error('Failed to send reply:', error);
       return null;
@@ -128,8 +146,8 @@ const supportService = {
   // Get support metrics from backend
   async getSupportMetrics(): Promise<SupportMetrics> {
     try {
-      const response = await adminApiClient.get('/chat/admin/support-metrics');
-      const data = (response as any)?.data;
+      const response = await adminApiClient.get<{ data?: Partial<SupportMetrics> }>('/chat/admin/support-metrics');
+      const data = response?.data;
 
       return {
         totalTickets: data?.totalTickets || 0,
