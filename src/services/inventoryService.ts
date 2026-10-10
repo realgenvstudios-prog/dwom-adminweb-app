@@ -76,7 +76,7 @@ class InventoryService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error('❌ [InventoryService] Failed to fetch inventory:', error);
       throw error;
     }
@@ -101,7 +101,7 @@ class InventoryService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [InventoryService] Failed to fetch inventory for product ${productId}:`, error);
       throw error;
     }
@@ -126,7 +126,7 @@ class InventoryService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error('❌ [InventoryService] Failed to fetch low stock items:', error);
       throw error;
     }
@@ -151,7 +151,7 @@ class InventoryService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error('❌ [InventoryService] Failed to fetch stats:', error);
       throw error;
     }
@@ -177,7 +177,7 @@ class InventoryService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [InventoryService] Failed to restock product ${productId}:`, error);
       throw error;
     }
@@ -203,7 +203,7 @@ class InventoryService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [InventoryService] Failed to record movement for product ${productId}:`, error);
       throw error;
     }
@@ -228,7 +228,7 @@ class InventoryService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [InventoryService] Failed to fetch movement history for product ${productId}:`, error);
       throw error;
     }
@@ -254,7 +254,7 @@ class InventoryService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [InventoryService] Failed to create inventory:`, error);
       throw error;
     }
@@ -280,7 +280,7 @@ class InventoryService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [InventoryService] Failed to update thresholds for product ${productId}:`, error);
       throw error;
     }

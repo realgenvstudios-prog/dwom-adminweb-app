@@ -41,7 +41,7 @@ export const adminUsersService = {
     try {
       const users = await adminApiClient.get<AdminUser[]>('/admin/users');
       return users;
-    } catch (error: any) {
+    } catch (error) {
       logger.error('❌ [AdminUsersService] Failed to fetch admin users:', error);
       throw error;
     }
@@ -54,7 +54,7 @@ export const adminUsersService = {
     try {
       const user = await adminApiClient.get<AdminUser>(`/admin/users/${id}`);
       return user;
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [AdminUsersService] Failed to fetch admin user ${id}:`, error);
       throw error;
     }
@@ -67,7 +67,7 @@ export const adminUsersService = {
     try {
       const user = await adminApiClient.post<AdminUser>('/admin/users', dto);
       return user;
-    } catch (error: any) {
+    } catch (error) {
       logger.error('❌ [AdminUsersService] Failed to create admin user:', error);
       throw error;
     }
@@ -80,7 +80,7 @@ export const adminUsersService = {
     try {
       const user = await adminApiClient.patch<AdminUser>(`/admin/users/${id}`, dto);
       return user;
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [AdminUsersService] Failed to update admin user ${id}:`, error);
       throw error;
     }
@@ -92,7 +92,7 @@ export const adminUsersService = {
   async deleteAdminUser(id: number): Promise<void> {
     try {
       await adminApiClient.delete(`/admin/users/${id}`);
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [AdminUsersService] Failed to delete admin user ${id}:`, error);
       throw error;
     }
@@ -105,7 +105,7 @@ export const adminUsersService = {
     try {
       const logs = await adminApiClient.get<AuditLog[]>(`/admin/audit-logs${limit ? `?limit=${limit}` : ''}`);
       return logs;
-    } catch (error: any) {
+    } catch (error) {
       logger.error('❌ [AdminUsersService] Failed to fetch audit logs:', error);
       throw error;
     }
@@ -120,7 +120,7 @@ export const adminUsersService = {
         currentPassword,
         newPassword,
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [AdminUsersService] Failed to change password for user ${id}:`, error);
       throw error;
     }

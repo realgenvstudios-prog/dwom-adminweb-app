@@ -19,10 +19,10 @@ export class NotificationSendsService {
     sendEmail?: boolean;
   }): Promise<NotificationSend> {
     try {
-      const send = (await adminApiClient.post('/marketing/sends', data)) as any;
+      const send = await adminApiClient.post<NotificationSend>('/marketing/sends', data);
       return send;
-    } catch (error: any) {
-      logger.error('❌ Failed to send notification:', error.message);
+    } catch (error) {
+      logger.error('❌ Failed to send notification:', (error as Error).message);
       throw error;
     }
   }
@@ -32,10 +32,10 @@ export class NotificationSendsService {
    */
   async getNotificationSends(): Promise<NotificationSend[]> {
     try {
-      const sends = (await adminApiClient.get('/marketing/sends')) as any;
+      const sends = await adminApiClient.get<NotificationSend[]>('/marketing/sends');
       return sends;
-    } catch (error: any) {
-      logger.error('❌ Failed to fetch sends:', error.message);
+    } catch (error) {
+      logger.error('❌ Failed to fetch sends:', (error as Error).message);
       throw error;
     }
   }
@@ -45,10 +45,10 @@ export class NotificationSendsService {
    */
   async getNotificationSendById(id: number): Promise<NotificationSend> {
     try {
-      const send = (await adminApiClient.get(`/marketing/sends/${id}`)) as any;
+      const send = await adminApiClient.get<NotificationSend>(`/marketing/sends/${id}`);
       return send;
-    } catch (error: any) {
-      logger.error('❌ Failed to fetch send:', error.message);
+    } catch (error) {
+      logger.error('❌ Failed to fetch send:', (error as Error).message);
       throw error;
     }
   }
@@ -63,10 +63,10 @@ export class NotificationSendsService {
     data?: Record<string, string>;
   }): Promise<{ successCount: number; failureCount: number }> {
     try {
-      const result = (await adminApiClient.post('/notifications/broadcast', data)) as any;
+      const result = await adminApiClient.post<{ successCount: number; failureCount: number }>('/notifications/broadcast', data);
       return result;
-    } catch (error: any) {
-      logger.error('❌ Failed to send broadcast notification:', error.message);
+    } catch (error) {
+      logger.error('❌ Failed to send broadcast notification:', (error as Error).message);
       throw error;
     }
   }
@@ -81,10 +81,10 @@ export class NotificationSendsService {
     userIds?: string[];
   }): Promise<{ successCount: number; failureCount: number }> {
     try {
-      const result = (await adminApiClient.post('/notifications/promotion', data)) as any;
+      const result = await adminApiClient.post<{ successCount: number; failureCount: number }>('/notifications/promotion', data);
       return result;
-    } catch (error: any) {
-      logger.error('❌ Failed to send promotion notification:', error.message);
+    } catch (error) {
+      logger.error('❌ Failed to send promotion notification:', (error as Error).message);
       throw error;
     }
   }
@@ -98,10 +98,10 @@ export class NotificationSendsService {
     productId: string;
   }): Promise<{ successCount: number; failureCount: number }> {
     try {
-      const result = (await adminApiClient.post('/notifications/product-update', data)) as any;
+      const result = await adminApiClient.post<{ successCount: number; failureCount: number }>('/notifications/product-update', data);
       return result;
-    } catch (error: any) {
-      logger.error('❌ Failed to send product update notification:', error.message);
+    } catch (error) {
+      logger.error('❌ Failed to send product update notification:', (error as Error).message);
       throw error;
     }
   }
@@ -117,10 +117,10 @@ export class NotificationSendsService {
     data?: Record<string, string>;
   }): Promise<{ successCount: number; failureCount: number }> {
     try {
-      const result = (await adminApiClient.post('/notifications/send-to-users', data)) as any;
+      const result = await adminApiClient.post<{ successCount: number; failureCount: number }>('/notifications/send-to-users', data);
       return result;
-    } catch (error: any) {
-      logger.error('❌ Failed to send notification to users:', error.message);
+    } catch (error) {
+      logger.error('❌ Failed to send notification to users:', (error as Error).message);
       throw error;
     }
   }

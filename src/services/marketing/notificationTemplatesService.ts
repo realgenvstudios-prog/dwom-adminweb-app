@@ -10,10 +10,10 @@ export class NotificationTemplatesService {
    */
   async getTemplates(): Promise<NotificationTemplate[]> {
     try {
-      const templates = (await adminApiClient.get('/marketing/templates')) as any;
+      const templates = await adminApiClient.get<NotificationTemplate[]>('/marketing/templates');
       return templates;
-    } catch (error: any) {
-      logger.error('❌ Failed to fetch templates:', error.message);
+    } catch (error) {
+      logger.error('❌ Failed to fetch templates:', (error as Error).message);
       throw error;
     }
   }
@@ -23,10 +23,10 @@ export class NotificationTemplatesService {
    */
   async getTemplateById(id: number): Promise<NotificationTemplate> {
     try {
-      const template = (await adminApiClient.get(`/marketing/templates/${id}`)) as any;
+      const template = await adminApiClient.get<NotificationTemplate>(`/marketing/templates/${id}`);
       return template;
-    } catch (error: any) {
-      logger.error('❌ Failed to fetch template:', error.message);
+    } catch (error) {
+      logger.error('❌ Failed to fetch template:', (error as Error).message);
       throw error;
     }
   }
@@ -48,10 +48,10 @@ export class NotificationTemplatesService {
     inAppCtaLink?: string;
   }): Promise<NotificationTemplate> {
     try {
-      const template = (await adminApiClient.post('/marketing/templates', data)) as any;
+      const template = await adminApiClient.post<NotificationTemplate>('/marketing/templates', data);
       return template;
-    } catch (error: any) {
-      logger.error('❌ Failed to create template:', error.message);
+    } catch (error) {
+      logger.error('❌ Failed to create template:', (error as Error).message);
       throw error;
     }
   }
@@ -77,10 +77,10 @@ export class NotificationTemplatesService {
     }
   ): Promise<NotificationTemplate> {
     try {
-      const template = (await adminApiClient.patch(`/marketing/templates/${id}`, data)) as any;
+      const template = await adminApiClient.patch<NotificationTemplate>(`/marketing/templates/${id}`, data);
       return template;
-    } catch (error: any) {
-      logger.error('❌ Failed to update template:', error.message);
+    } catch (error) {
+      logger.error('❌ Failed to update template:', (error as Error).message);
       throw error;
     }
   }
@@ -90,10 +90,10 @@ export class NotificationTemplatesService {
    */
   async deleteTemplate(id: number): Promise<{ message: string }> {
     try {
-      const result = (await adminApiClient.delete(`/marketing/templates/${id}`)) as any;
+      const result = await adminApiClient.delete<{ message: string }>(`/marketing/templates/${id}`);
       return result;
-    } catch (error: any) {
-      logger.error('❌ Failed to delete template:', error.message);
+    } catch (error) {
+      logger.error('❌ Failed to delete template:', (error as Error).message);
       throw error;
     }
   }

@@ -10,10 +10,10 @@ export class CampaignsService {
    */
   async getCampaignMetrics(): Promise<CampaignMetrics> {
     try {
-      const metrics = (await adminApiClient.get('/marketing/campaigns/metrics/overview')) as any;
+      const metrics = await adminApiClient.get<CampaignMetrics>('/marketing/campaigns/metrics/overview');
       return metrics;
-    } catch (error: any) {
-      logger.error('❌ Failed to fetch campaign metrics:', error.message);
+    } catch (error) {
+      logger.error('❌ Failed to fetch campaign metrics:', (error as Error).message);
       throw error;
     }
   }
@@ -28,10 +28,10 @@ export class CampaignsService {
       if (channel) params.append('channel', channel);
 
       const url = params.toString() ? `/marketing/campaigns?${params.toString()}` : '/marketing/campaigns';
-      const campaigns = (await adminApiClient.get(url)) as any;
+      const campaigns = await adminApiClient.get<Campaign[]>(url);
       return campaigns;
-    } catch (error: any) {
-      logger.error('❌ Failed to fetch campaigns:', error.message);
+    } catch (error) {
+      logger.error('❌ Failed to fetch campaigns:', (error as Error).message);
       throw error;
     }
   }
@@ -41,10 +41,10 @@ export class CampaignsService {
    */
   async getCampaignById(id: number): Promise<Campaign> {
     try {
-      const campaign = (await adminApiClient.get(`/marketing/campaigns/${id}`)) as any;
+      const campaign = await adminApiClient.get<Campaign>(`/marketing/campaigns/${id}`);
       return campaign;
-    } catch (error: any) {
-      logger.error('❌ Failed to fetch campaign:', error.message);
+    } catch (error) {
+      logger.error('❌ Failed to fetch campaign:', (error as Error).message);
       throw error;
     }
   }
@@ -67,10 +67,10 @@ export class CampaignsService {
     ctaLink?: string;
   }): Promise<Campaign> {
     try {
-      const campaign = (await adminApiClient.post('/marketing/campaigns', data)) as any;
+      const campaign = await adminApiClient.post<Campaign>('/marketing/campaigns', data);
       return campaign;
-    } catch (error: any) {
-      logger.error('❌ Failed to create campaign:', error.message);
+    } catch (error) {
+      logger.error('❌ Failed to create campaign:', (error as Error).message);
       throw error;
     }
   }
@@ -96,10 +96,10 @@ export class CampaignsService {
     }
   ): Promise<Campaign> {
     try {
-      const campaign = (await adminApiClient.patch(`/marketing/campaigns/${id}`, data)) as any;
+      const campaign = await adminApiClient.patch<Campaign>(`/marketing/campaigns/${id}`, data);
       return campaign;
-    } catch (error: any) {
-      logger.error('❌ Failed to update campaign:', error.message);
+    } catch (error) {
+      logger.error('❌ Failed to update campaign:', (error as Error).message);
       throw error;
     }
   }
@@ -109,10 +109,10 @@ export class CampaignsService {
    */
   async deleteCampaign(id: number): Promise<{ message: string }> {
     try {
-      const result = (await adminApiClient.delete(`/marketing/campaigns/${id}`)) as any;
+      const result = await adminApiClient.delete<{ message: string }>(`/marketing/campaigns/${id}`);
       return result;
-    } catch (error: any) {
-      logger.error('❌ Failed to delete campaign:', error.message);
+    } catch (error) {
+      logger.error('❌ Failed to delete campaign:', (error as Error).message);
       throw error;
     }
   }
@@ -124,10 +124,10 @@ export class CampaignsService {
    */
   async launchCampaign(id: number): Promise<{ totalRecipients: number; successCount: number; failureCount: number; status: string }> {
     try {
-      const result = (await adminApiClient.post(`/marketing/campaigns/${id}/launch`, {})) as any;
+      const result = await adminApiClient.post<{ totalRecipients: number; successCount: number; failureCount: number; status: string }>(`/marketing/campaigns/${id}/launch`, {});
       return result;
-    } catch (error: any) {
-      logger.error('❌ Failed to launch campaign:', error.message);
+    } catch (error) {
+      logger.error('❌ Failed to launch campaign:', (error as Error).message);
       throw error;
     }
   }

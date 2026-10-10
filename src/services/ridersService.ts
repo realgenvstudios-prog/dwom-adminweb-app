@@ -74,7 +74,7 @@ class RidersService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error('❌ [RidersService] Failed to fetch riders:', error);
       throw error;
     }
@@ -99,7 +99,7 @@ class RidersService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error('❌ [RidersService] Failed to fetch zones:', error);
       throw error;
     }
@@ -126,7 +126,7 @@ class RidersService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error('❌ [RidersService] Failed to create zone:', error);
       throw error;
     }
@@ -152,7 +152,7 @@ class RidersService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [RidersService] Failed to update rider status:`, error);
       throw error;
     }
@@ -177,7 +177,7 @@ class RidersService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [RidersService] Failed to deactivate rider:`, error);
       throw error;
     }
@@ -203,7 +203,7 @@ class RidersService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [RidersService] Failed to register rider:`, error);
       throw error;
     }
@@ -230,7 +230,7 @@ class RidersService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [RidersService] Failed to create rider:`, error);
       throw error;
     }
@@ -255,7 +255,7 @@ class RidersService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error('❌ [RidersService] Failed to fetch users:', error);
       throw error;
     }
@@ -280,7 +280,7 @@ class RidersService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [RidersService] Failed to reactivate rider:`, error);
       throw error;
     }
@@ -306,7 +306,7 @@ class RidersService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [RidersService] Failed to assign zone:`, error);
       throw error;
     }

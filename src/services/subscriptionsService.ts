@@ -54,10 +54,10 @@ class SubscriptionsService {
    */
   async getMetrics(): Promise<SubscriptionMetrics> {
     try {
-      const metrics = (await adminApiClient.get('/subscriptions/admin/dashboard/metrics')) as any;
+      const metrics = await adminApiClient.get<SubscriptionMetrics>('/subscriptions/admin/dashboard/metrics');
       return metrics;
-    } catch (error: any) {
-      logger.error('❌ [SubscriptionsService] Failed to fetch metrics:', error.message);
+    } catch (error) {
+      logger.error('❌ [SubscriptionsService] Failed to fetch metrics:', (error as Error).message);
       throw error;
     }
   }
@@ -67,10 +67,10 @@ class SubscriptionsService {
    */
   async getActiveSubscriptions(): Promise<Subscription[]> {
     try {
-      const subscriptions = (await adminApiClient.get('/subscriptions/admin/dashboard/active')) as any;
+      const subscriptions = await adminApiClient.get<Subscription[]>('/subscriptions/admin/dashboard/active');
       return subscriptions || [];
-    } catch (error: any) {
-      logger.error('❌ [SubscriptionsService] Failed to fetch active subscriptions:', error.message);
+    } catch (error) {
+      logger.error('❌ [SubscriptionsService] Failed to fetch active subscriptions:', (error as Error).message);
       return [];
     }
   }
@@ -80,10 +80,10 @@ class SubscriptionsService {
    */
   async getAllSubscriptions(): Promise<Subscription[]> {
     try {
-      const subscriptions = (await adminApiClient.get('/subscriptions/admin/dashboard/all')) as any;
+      const subscriptions = await adminApiClient.get<Subscription[]>('/subscriptions/admin/dashboard/all');
       return subscriptions || [];
-    } catch (error: any) {
-      logger.error('❌ [SubscriptionsService] Failed to fetch subscriptions:', error.message);
+    } catch (error) {
+      logger.error('❌ [SubscriptionsService] Failed to fetch subscriptions:', (error as Error).message);
       return [];
     }
   }
@@ -93,10 +93,10 @@ class SubscriptionsService {
    */
   async getSubscriptionsDueToday(): Promise<Subscription[]> {
     try {
-      const subscriptions = (await adminApiClient.get('/subscriptions/admin/dashboard/due-today')) as any;
+      const subscriptions = await adminApiClient.get<Subscription[]>('/subscriptions/admin/dashboard/due-today');
       return subscriptions || [];
-    } catch (error: any) {
-      logger.error('❌ [SubscriptionsService] Failed to fetch due subscriptions:', error.message);
+    } catch (error) {
+      logger.error('❌ [SubscriptionsService] Failed to fetch due subscriptions:', (error as Error).message);
       return [];
     }
   }
@@ -106,10 +106,10 @@ class SubscriptionsService {
    */
   async getSubscriptionById(id: number): Promise<Subscription | null> {
     try {
-      const subscription = (await adminApiClient.get(`/subscriptions/${id}`)) as any;
+      const subscription = await adminApiClient.get<Subscription>(`/subscriptions/${id}`);
       return subscription;
-    } catch (error: any) {
-      logger.error('❌ [SubscriptionsService] Failed to fetch subscription:', error.message);
+    } catch (error) {
+      logger.error('❌ [SubscriptionsService] Failed to fetch subscription:', (error as Error).message);
       return null;
     }
   }
@@ -119,10 +119,10 @@ class SubscriptionsService {
    */
   async updateSubscriptionStatus(id: number, status: string): Promise<Subscription | null> {
     try {
-      const subscription = (await adminApiClient.patch(`/subscriptions/${id}/status`, { status })) as any;
+      const subscription = await adminApiClient.patch<Subscription>(`/subscriptions/${id}/status`, { status });
       return subscription;
-    } catch (error: any) {
-      logger.error('❌ [SubscriptionsService] Failed to update subscription:', error.message);
+    } catch (error) {
+      logger.error('❌ [SubscriptionsService] Failed to update subscription:', (error as Error).message);
       throw error;
     }
   }
@@ -157,8 +157,8 @@ class SubscriptionsService {
 
         return statusMatch && frequencyMatch && searchMatch;
       });
-    } catch (error: any) {
-      logger.error('❌ [SubscriptionsService] Failed to filter subscriptions:', error.message);
+    } catch (error) {
+      logger.error('❌ [SubscriptionsService] Failed to filter subscriptions:', (error as Error).message);
       return [];
     }
   }
@@ -193,8 +193,8 @@ class SubscriptionsService {
         churnRate: metrics.churnRate,
         failedRenewals: metrics.failedRenewalsCount,
       };
-    } catch (error: any) {
-      logger.error('❌ [SubscriptionsService] Failed to get summary stats:', error.message);
+    } catch (error) {
+      logger.error('❌ [SubscriptionsService] Failed to get summary stats:', (error as Error).message);
       return {
         active: 0,
         paused: 0,

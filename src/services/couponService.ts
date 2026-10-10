@@ -41,40 +41,40 @@ class CouponService {
   async getAll(includeInactive = true): Promise<Coupon[]> {
     try {
       const query = includeInactive ? '?includeInactive=true' : '';
-      const data = (await adminApiClient.get(`/coupons${query}`)) as any;
+      const data = await adminApiClient.get<Coupon[]>(`/coupons${query}`);
       return Array.isArray(data) ? data : [];
-    } catch (error: any) {
-      logger.error('❌ [CouponService] getAll failed:', error.message);
+    } catch (error) {
+      logger.error('❌ [CouponService] getAll failed:', (error as Error).message);
       throw error;
     }
   }
 
   async create(payload: CreateCouponPayload): Promise<Coupon> {
     try {
-      const data = (await adminApiClient.post('/coupons', payload)) as any;
+      const data = await adminApiClient.post<Coupon>('/coupons', payload);
       return data;
-    } catch (error: any) {
-      logger.error('❌ [CouponService] create failed:', error.message);
+    } catch (error) {
+      logger.error('❌ [CouponService] create failed:', (error as Error).message);
       throw error;
     }
   }
 
   async update(id: number, payload: Partial<CreateCouponPayload>): Promise<Coupon> {
     try {
-      const data = (await adminApiClient.patch(`/coupons/${id}`, payload)) as any;
+      const data = await adminApiClient.patch<Coupon>(`/coupons/${id}`, payload);
       return data;
-    } catch (error: any) {
-      logger.error('❌ [CouponService] update failed:', error.message);
+    } catch (error) {
+      logger.error('❌ [CouponService] update failed:', (error as Error).message);
       throw error;
     }
   }
 
   async toggleStatus(id: number, active: boolean): Promise<Coupon> {
     try {
-      const data = (await adminApiClient.patch(`/coupons/${id}/toggle-status`, { active })) as any;
+      const data = await adminApiClient.patch<Coupon>(`/coupons/${id}/toggle-status`, { active });
       return data;
-    } catch (error: any) {
-      logger.error('❌ [CouponService] toggleStatus failed:', error.message);
+    } catch (error) {
+      logger.error('❌ [CouponService] toggleStatus failed:', (error as Error).message);
       throw error;
     }
   }
@@ -82,18 +82,18 @@ class CouponService {
   async delete(id: number): Promise<void> {
     try {
       await adminApiClient.delete(`/coupons/${id}`);
-    } catch (error: any) {
-      logger.error('❌ [CouponService] delete failed:', error.message);
+    } catch (error) {
+      logger.error('❌ [CouponService] delete failed:', (error as Error).message);
       throw error;
     }
   }
 
   async getStats(id: number): Promise<CouponStats> {
     try {
-      const data = (await adminApiClient.get(`/coupons/${id}/stats`)) as any;
+      const data = await adminApiClient.get<CouponStats>(`/coupons/${id}/stats`);
       return data;
-    } catch (error: any) {
-      logger.error('❌ [CouponService] getStats failed:', error.message);
+    } catch (error) {
+      logger.error('❌ [CouponService] getStats failed:', (error as Error).message);
       throw error;
     }
   }
