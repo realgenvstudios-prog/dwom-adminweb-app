@@ -4,7 +4,7 @@ import type { Admin } from './adminTypes';
  * Map backend role to UI role
  */
 export function mapRole(backendRole: string): Admin['role'] {
-  const roleMap: Record<string, any> = {
+  const roleMap: Record<string, Admin['role']> = {
     'super_admin': 'Super Admin',
     'admin': 'Super Admin',
     'operations': 'Operations',
@@ -43,7 +43,7 @@ export function reverseMapRole(uiRole: string): string {
 // as "Pending" regardless of actual state. isActive is a real, explicit
 // suspend/reactivate flag now; "30 days since login = suspended" was an
 // inappropriate inference and is gone, not replaced.
-export function determineStatus(user: any): 'Active' | 'Pending' | 'Suspended' {
+export function determineStatus(user: { isActive?: boolean; lastLoginAt?: string | null }): 'Active' | 'Pending' | 'Suspended' {
   if (user.isActive === false) {
     return 'Suspended';
   }

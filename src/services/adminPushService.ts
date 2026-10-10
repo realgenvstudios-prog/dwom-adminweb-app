@@ -79,9 +79,9 @@ export const adminPushService = {
       });
 
       return { success: true };
-    } catch (error: any) {
+    } catch (error) {
       logger.error('❌ [AdminPushService] Subscribe failed:', error);
-      return { success: false, error: error.message || 'Failed to enable notifications.' };
+      return { success: false, error: (error as Error).message || 'Failed to enable notifications.' };
     }
   },
 

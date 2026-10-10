@@ -169,7 +169,7 @@ export const adminAuthService = {
   /**
    * Get current admin user
    */
-  getCurrentAdmin(): any {
+  getCurrentAdmin(): AuthResponse['admin'] | null {
     const userStr = sessionStorage.getItem('admin_user');
     return userStr ? JSON.parse(userStr) : null;
   },

@@ -10,10 +10,10 @@ export class CartCodeAnalyticsService {
    */
   async getAllCartCodeAnalytics(): Promise<CartCodeAnalytics[]> {
     try {
-      const analytics = (await adminApiClient.get('/marketing/codes/analytics/all')) as any;
+      const analytics = await adminApiClient.get<CartCodeAnalytics[]>('/marketing/codes/analytics/all');
       return analytics;
-    } catch (error: any) {
-      logger.error('❌ Failed to fetch cart code analytics:', error.message);
+    } catch (error) {
+      logger.error('❌ Failed to fetch cart code analytics:', (error as Error).message);
       return [];
     }
   }

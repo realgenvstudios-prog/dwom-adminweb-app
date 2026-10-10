@@ -50,12 +50,12 @@ export interface PriceHistoryEntry {
 }
 
 export const procurementService = {
-  async recordPurchase(dto: CreateProcurementDto): Promise<{ procurement: ProcurementRecord; inventory: any }> {
+  async recordPurchase(dto: CreateProcurementDto): Promise<{ procurement: ProcurementRecord; inventory: unknown }> {
     return adminApiClient.post('/procurement', dto);
   },
 
   // One supplier, several products, one trip — recorded atomically.
-  async recordBatchPurchase(dto: CreateBatchProcurementDto): Promise<{ procurement: ProcurementRecord; inventory: any }[]> {
+  async recordBatchPurchase(dto: CreateBatchProcurementDto): Promise<{ procurement: ProcurementRecord; inventory: unknown }[]> {
     return adminApiClient.post('/procurement/batch', dto);
   },
 

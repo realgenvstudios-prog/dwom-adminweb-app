@@ -3,6 +3,18 @@ import type { Admin } from './adminTypes';
 import { mapRole, reverseMapRole } from './adminRoleMapping';
 import { logger } from '../../utils/logger';
 
+interface RawUserResponse {
+  data?: {
+    id: number;
+    name: string;
+    email: string;
+    phoneNumber?: string;
+    role: string;
+    zones?: string;
+    lastLogin?: string;
+  };
+}
+
 // Inviting, role changes, suspend/reactivate, and invite management for
 // admins. Split out of the former monolithic AdminsService.
 export class AdminLifecycleService {
@@ -17,12 +29,12 @@ export class AdminLifecycleService {
   }): Promise<Admin | null> {
     try {
 
-      const response = (await adminApiClient.post('/users', {
+      const response = await adminApiClient.post<RawUserResponse>('/users', {
         name: data.name,
         email: data.email,
         phoneNumber: data.phone,
         role: reverseMapRole(data.role),
-      })) as any;
+      });
 
       if (response?.data) {
         return {
@@ -50,9 +62,9 @@ export class AdminLifecycleService {
   async updateAdminRole(adminId: number, newRole: string): Promise<Admin | null> {
     try {
 
-      const response = (await adminApiClient.patch(`/users/${adminId}`, {
+      const response = await adminApiClient.patch<RawUserResponse>(`/users/${adminId}`, {
         role: reverseMapRole(newRole),
-      })) as any;
+      });
 
       if (response?.data) {
         return {
