@@ -6,6 +6,7 @@ import OrderDetailsDrawer from "./orders/OrderDetailsDrawer";
 import CreateOrderModal from "./orders/CreateOrderModal";
 import type { Order, OrdersFilterState, RiderSummary } from "./orders/OrderTypes";
 import ordersService from "../services/ordersService";
+import { logger } from '../utils/logger';
 
 // Normalize backend order status to consistent lowercase format
 const normalizeOrderStatus = (status: string): string => {
@@ -59,7 +60,7 @@ const OrdersPage: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        console.log('📦 [OrdersPage] Fetching orders from backend');
+        logger.log('📦 [OrdersPage] Fetching orders from backend');
         const data = await ordersService.getAll();
         
         // Transform backend data to frontend format
@@ -107,10 +108,10 @@ const OrdersPage: React.FC = () => {
         });
         }) : [];
         
-        console.log('✅ [OrdersPage] Orders loaded:', transformedOrders.length);
+        logger.log('✅ [OrdersPage] Orders loaded:', transformedOrders.length);
         setOrders(transformedOrders);
       } catch (err: any) {
-        console.error('❌ [OrdersPage] Failed to fetch orders:', err);
+        logger.error('❌ [OrdersPage] Failed to fetch orders:', err);
         setError(err.message || 'Failed to load orders');
       } finally {
         setLoading(false);
@@ -213,7 +214,7 @@ const OrdersPage: React.FC = () => {
               // Update in the orders list
               setOrders(orders.map(o => o.id === selectedOrder.id ? updated : o));
               
-              console.log('✅ [OrdersPage] Order updated instantly in UI:', updated);
+              logger.log('✅ [OrdersPage] Order updated instantly in UI:', updated);
             }
           }}
         />
@@ -223,7 +224,7 @@ const OrdersPage: React.FC = () => {
           open={createModalOpen}
           onClose={() => setCreateModalOpen(false)}
           onOrderCreated={() => {
-            console.log('✅ [OrdersPage] New order created, refreshing list');
+            logger.log('✅ [OrdersPage] New order created, refreshing list');
             setCreateModalOpen(false);
             setPage(1); // Reset to first page to see new order
           }}

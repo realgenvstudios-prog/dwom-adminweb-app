@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import financeService, { type FinanceKPIs } from "../../services/financeService";
+import { logger } from '../../utils/logger';
 
 interface FinanceKpiRowProps {
   row?: 1 | 2;
@@ -30,7 +31,7 @@ const FinanceKpiRow: React.FC<FinanceKpiRowProps> = ({ row }) => {
       const data = await financeService.getFinanceKPIs();
       setKpis(data);
     } catch (error: any) {
-      console.error("Failed to fetch KPIs:", error);
+      logger.error("Failed to fetch KPIs:", error);
       setError(error?.message || "Failed to load KPIs");
       // Still set default values so cards show up
       setKpis({

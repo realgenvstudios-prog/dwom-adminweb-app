@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import type { Subscription } from "../SubscriptionsPage";
 import subscriptionsService from "../../services/subscriptionsService";
+import { logger } from '../../utils/logger';
 
 interface Props {
   open: boolean;
@@ -55,7 +56,7 @@ const SubscriptionDetailsDrawer: React.FC<Props> = ({ open, subscription, onClos
       }));
       setItems(subscriptionItems);
     } catch (error) {
-      console.error("Failed to load subscription items:", error);
+      logger.error("Failed to load subscription items:", error);
       setItems([]);
     } finally {
       setLoading(false);
@@ -72,7 +73,7 @@ const SubscriptionDetailsDrawer: React.FC<Props> = ({ open, subscription, onClos
       setLocalStatus(newStatus === "paused" ? "Paused" : "Active");
       alert(`Subscription ${newStatus === "paused" ? "paused" : "resumed"} successfully!`);
     } catch (error) {
-      console.error("Failed to update subscription:", error);
+      logger.error("Failed to update subscription:", error);
       alert("Failed to update subscription status");
     } finally {
       setActionLoading(false);
@@ -92,7 +93,7 @@ const SubscriptionDetailsDrawer: React.FC<Props> = ({ open, subscription, onClos
       alert("Subscription cancelled successfully!");
       onClose();
     } catch (error) {
-      console.error("Failed to cancel subscription:", error);
+      logger.error("Failed to cancel subscription:", error);
       alert("Failed to cancel subscription");
     } finally {
       setActionLoading(false);

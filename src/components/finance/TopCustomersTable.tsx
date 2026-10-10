@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import financeService, { type TopCustomer } from "../../services/financeService";
+import { logger } from '../../utils/logger';
 
 const REFRESH_INTERVAL = 15 * 60 * 1000; // 15 minutes for customer data
 
@@ -26,7 +27,7 @@ const TopCustomersTable: React.FC = () => {
       const topCustomers = await financeService.getTopCustomers(6);
       setCustomers(topCustomers);
     } catch (error: any) {
-      console.error("Failed to fetch top customers:", error);
+      logger.error("Failed to fetch top customers:", error);
       setError(error?.message || "Failed to load top customers");
       setCustomers([]);
     } finally {

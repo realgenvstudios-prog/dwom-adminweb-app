@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import FinanceFilters from "./FinanceFilters";
+import { logger } from '../../utils/logger';
 
 const FinanceFilterBar: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -7,7 +8,7 @@ const FinanceFilterBar: React.FC = () => {
   const handleSearch = (value: string) => {
     setSearchQuery(value);
     // Future: Emit search event or pass to parent context
-    console.log("Search query:", value);
+    logger.log("Search query:", value);
   };
 
   return (

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ordersService from '../../services/ordersService';
+import { logger } from '../../utils/logger';
 
 interface Props {
   open: boolean;
@@ -48,7 +49,7 @@ const CreateOrderModal: React.FC<Props> = ({ open, onClose, onOrderCreated }) =>
         return;
       }
 
-      console.log('📦 [CreateOrderModal] Creating manual order:', formData);
+      logger.log('📦 [CreateOrderModal] Creating manual order:', formData);
       
       // Call backend to create order
       const createOrderPayload = {
@@ -63,12 +64,12 @@ const CreateOrderModal: React.FC<Props> = ({ open, onClose, onOrderCreated }) =>
       };
 
       const response = await ordersService.createOrder(createOrderPayload);
-      console.log('✅ [CreateOrderModal] Order created:', response);
+      logger.log('✅ [CreateOrderModal] Order created:', response);
       alert(`Order created successfully! ID: ${response.id}`);
       onOrderCreated?.();
       onClose();
     } catch (error: any) {
-      console.error('❌ [CreateOrderModal] Failed to create order:', error);
+      logger.error('❌ [CreateOrderModal] Failed to create order:', error);
       alert(`Failed to create order: ${error.message}`);
     } finally {
       setLoading(false);

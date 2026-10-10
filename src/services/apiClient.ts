@@ -1,4 +1,5 @@
 import { API_CONFIG } from '../config/apiConfig';
+import { logger } from '../utils/logger';
 
 class AdminApiClient {
   private baseURL: string;
@@ -17,7 +18,7 @@ class AdminApiClient {
     const response = await fetch(url, options);
     if (response.status === 429 && retries > 0) {
       const delay = (this.maxRetries - retries + 1) * 1000; // 1s, 2s backoff
-      console.warn(`⚠️ [AdminAPI] 429 rate limited, retrying in ${delay}ms... (${retries} retries left)`);
+      logger.warn(`⚠️ [AdminAPI] 429 rate limited, retrying in ${delay}ms... (${retries} retries left)`);
       await new Promise(resolve => setTimeout(resolve, delay));
       return this.fetchWithRetry(url, options, retries - 1);
     }
@@ -90,7 +91,7 @@ class AdminApiClient {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error(`❌ [AdminAPI] GET ${endpoint} failed:`, error);
+      logger.error(`❌ [AdminAPI] GET ${endpoint} failed:`, error);
       throw error;
     }
   }
@@ -124,7 +125,7 @@ class AdminApiClient {
       const responseData = await response.json();
       return responseData;
     } catch (error) {
-      console.error(`❌ [AdminAPI] POST ${endpoint} failed:`, error);
+      logger.error(`❌ [AdminAPI] POST ${endpoint} failed:`, error);
       throw error;
     }
   }
@@ -167,7 +168,7 @@ class AdminApiClient {
 
       return await response.json();
     } catch (error) {
-      console.error(`❌ [AdminAPI] Upload ${endpoint} failed:`, error);
+      logger.error(`❌ [AdminAPI] Upload ${endpoint} failed:`, error);
       throw error;
     }
   }
@@ -201,7 +202,7 @@ class AdminApiClient {
       const responseData = await response.json();
       return responseData;
     } catch (error) {
-      console.error(`❌ [AdminAPI] PATCH ${endpoint} failed:`, error);
+      logger.error(`❌ [AdminAPI] PATCH ${endpoint} failed:`, error);
       throw error;
     }
   }
@@ -235,7 +236,7 @@ class AdminApiClient {
       const responseData = await response.json();
       return responseData;
     } catch (error) {
-      console.error(`❌ [AdminAPI] PUT ${endpoint} failed:`, error);
+      logger.error(`❌ [AdminAPI] PUT ${endpoint} failed:`, error);
       throw error;
     }
   }
@@ -268,7 +269,7 @@ class AdminApiClient {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error(`❌ [AdminAPI] DELETE ${endpoint} failed:`, error);
+      logger.error(`❌ [AdminAPI] DELETE ${endpoint} failed:`, error);
       throw error;
     }
   }

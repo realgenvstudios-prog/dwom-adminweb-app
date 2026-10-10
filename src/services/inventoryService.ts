@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://dwom-backend.onrender.com';
 
 export interface InventoryItem {
@@ -75,7 +77,7 @@ class InventoryService {
       const data = await response.json();
       return data;
     } catch (error: any) {
-      console.error('❌ [InventoryService] Failed to fetch inventory:', error);
+      logger.error('❌ [InventoryService] Failed to fetch inventory:', error);
       throw error;
     }
   }
@@ -100,7 +102,7 @@ class InventoryService {
       const data = await response.json();
       return data;
     } catch (error: any) {
-      console.error(`❌ [InventoryService] Failed to fetch inventory for product ${productId}:`, error);
+      logger.error(`❌ [InventoryService] Failed to fetch inventory for product ${productId}:`, error);
       throw error;
     }
   }
@@ -125,7 +127,7 @@ class InventoryService {
       const data = await response.json();
       return data;
     } catch (error: any) {
-      console.error('❌ [InventoryService] Failed to fetch low stock items:', error);
+      logger.error('❌ [InventoryService] Failed to fetch low stock items:', error);
       throw error;
     }
   }
@@ -150,7 +152,7 @@ class InventoryService {
       const data = await response.json();
       return data;
     } catch (error: any) {
-      console.error('❌ [InventoryService] Failed to fetch stats:', error);
+      logger.error('❌ [InventoryService] Failed to fetch stats:', error);
       throw error;
     }
   }
@@ -176,7 +178,7 @@ class InventoryService {
       const data = await response.json();
       return data;
     } catch (error: any) {
-      console.error(`❌ [InventoryService] Failed to restock product ${productId}:`, error);
+      logger.error(`❌ [InventoryService] Failed to restock product ${productId}:`, error);
       throw error;
     }
   }
@@ -202,7 +204,7 @@ class InventoryService {
       const data = await response.json();
       return data;
     } catch (error: any) {
-      console.error(`❌ [InventoryService] Failed to record movement for product ${productId}:`, error);
+      logger.error(`❌ [InventoryService] Failed to record movement for product ${productId}:`, error);
       throw error;
     }
   }
@@ -227,7 +229,7 @@ class InventoryService {
       const data = await response.json();
       return data;
     } catch (error: any) {
-      console.error(`❌ [InventoryService] Failed to fetch movement history for product ${productId}:`, error);
+      logger.error(`❌ [InventoryService] Failed to fetch movement history for product ${productId}:`, error);
       throw error;
     }
   }
@@ -253,7 +255,7 @@ class InventoryService {
       const data = await response.json();
       return data;
     } catch (error: any) {
-      console.error(`❌ [InventoryService] Failed to create inventory:`, error);
+      logger.error(`❌ [InventoryService] Failed to create inventory:`, error);
       throw error;
     }
   }
@@ -279,7 +281,7 @@ class InventoryService {
       const data = await response.json();
       return data;
     } catch (error: any) {
-      console.error(`❌ [InventoryService] Failed to update thresholds for product ${productId}:`, error);
+      logger.error(`❌ [InventoryService] Failed to update thresholds for product ${productId}:`, error);
       throw error;
     }
   }

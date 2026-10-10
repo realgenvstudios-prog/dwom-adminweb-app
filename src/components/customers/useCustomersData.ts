@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import apiClient from "../../services/apiClient";
 import type { Customer } from "./CustomerTypes";
+import { logger } from '../../utils/logger';
 
 // Fetches the customer list (with stats). Split out of the former
 // monolithic CustomersPage.
@@ -18,13 +19,13 @@ export function useCustomersData() {
       setLoading(true);
       setError(null);
 
-      console.log('📊 [CustomersPage] Fetching customers with stats...');
+      logger.log('📊 [CustomersPage] Fetching customers with stats...');
 
       const data = await apiClient.get<any[]>('/users/admin/customers');
-      console.log('📊 [CustomersPage] Response:', data);
+      logger.log('📊 [CustomersPage] Response:', data);
 
       if (!Array.isArray(data)) {
-        console.error('❌ [CustomersPage] Expected array, got:', typeof data);
+        logger.error('❌ [CustomersPage] Expected array, got:', typeof data);
         setError('Invalid response from server');
         setCustomers([]);
         return;
@@ -45,10 +46,10 @@ export function useCustomersData() {
         status: user.status || 'New',
       }));
 
-      console.log(`✅ [CustomersPage] Fetched ${mappedCustomers.length} customers`);
+      logger.log(`✅ [CustomersPage] Fetched ${mappedCustomers.length} customers`);
       setCustomers(mappedCustomers);
     } catch (err: any) {
-      console.error('❌ [CustomersPage] Error:', err);
+      logger.error('❌ [CustomersPage] Error:', err);
       setError(err.message || 'Failed to fetch customers');
       setCustomers([]);
     } finally {

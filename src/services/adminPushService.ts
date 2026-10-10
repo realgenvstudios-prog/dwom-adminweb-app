@@ -1,4 +1,5 @@
 import adminApiClient from './apiClient';
+import { logger } from '../utils/logger';
 
 // Converts the VAPID public key (base64url, as returned by web-push on the
 // backend) into the Uint8Array PushManager.subscribe() requires.
@@ -79,7 +80,7 @@ export const adminPushService = {
 
       return { success: true };
     } catch (error: any) {
-      console.error('❌ [AdminPushService] Subscribe failed:', error);
+      logger.error('❌ [AdminPushService] Subscribe failed:', error);
       return { success: false, error: error.message || 'Failed to enable notifications.' };
     }
   },
@@ -95,7 +96,7 @@ export const adminPushService = {
       }
       return true;
     } catch (error) {
-      console.error('❌ [AdminPushService] Unsubscribe failed:', error);
+      logger.error('❌ [AdminPushService] Unsubscribe failed:', error);
       return false;
     }
   },

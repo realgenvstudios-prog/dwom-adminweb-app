@@ -1,6 +1,7 @@
 import adminApiClient from '../apiClient';
 import type { Admin } from './adminTypes';
 import { mapRole, determineStatus } from './adminRoleMapping';
+import { logger } from '../../utils/logger';
 
 // Listing/querying admins. Split out of the former monolithic
 // AdminsService.
@@ -53,7 +54,7 @@ export class AdminDirectoryService {
 
       return [...admins, ...invitedAdmins];
     } catch (error) {
-      console.error('❌ [AdminsService] Error fetching admins:', error);
+      logger.error('❌ [AdminsService] Error fetching admins:', error);
       return [];
     }
   }
@@ -69,7 +70,7 @@ export class AdminDirectoryService {
       }
       return allAdmins.filter(a => a.role === role);
     } catch (error) {
-      console.error(`❌ [AdminsService] Error fetching admins by role ${role}:`, error);
+      logger.error(`❌ [AdminsService] Error fetching admins by role ${role}:`, error);
       return [];
     }
   }
@@ -85,7 +86,7 @@ export class AdminDirectoryService {
       }
       return allAdmins.filter(a => a.status === status);
     } catch (error) {
-      console.error(`❌ [AdminsService] Error fetching admins by status ${status}:`, error);
+      logger.error(`❌ [AdminsService] Error fetching admins by status ${status}:`, error);
       return [];
     }
   }
@@ -105,7 +106,7 @@ export class AdminDirectoryService {
         a.id.toString() === query
       );
     } catch (error) {
-      console.error('❌ [AdminsService] Error searching admins:', error);
+      logger.error('❌ [AdminsService] Error searching admins:', error);
       return [];
     }
   }

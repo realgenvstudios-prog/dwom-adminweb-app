@@ -1,4 +1,5 @@
 import adminApiClient from './apiClient';
+import { logger } from '../utils/logger';
 
 export interface SubscriptionMetrics {
   totalActive: number;
@@ -56,7 +57,7 @@ class SubscriptionsService {
       const metrics = (await adminApiClient.get('/subscriptions/admin/dashboard/metrics')) as any;
       return metrics;
     } catch (error: any) {
-      console.error('❌ [SubscriptionsService] Failed to fetch metrics:', error.message);
+      logger.error('❌ [SubscriptionsService] Failed to fetch metrics:', error.message);
       throw error;
     }
   }
@@ -69,7 +70,7 @@ class SubscriptionsService {
       const subscriptions = (await adminApiClient.get('/subscriptions/admin/dashboard/active')) as any;
       return subscriptions || [];
     } catch (error: any) {
-      console.error('❌ [SubscriptionsService] Failed to fetch active subscriptions:', error.message);
+      logger.error('❌ [SubscriptionsService] Failed to fetch active subscriptions:', error.message);
       return [];
     }
   }
@@ -82,7 +83,7 @@ class SubscriptionsService {
       const subscriptions = (await adminApiClient.get('/subscriptions/admin/dashboard/all')) as any;
       return subscriptions || [];
     } catch (error: any) {
-      console.error('❌ [SubscriptionsService] Failed to fetch subscriptions:', error.message);
+      logger.error('❌ [SubscriptionsService] Failed to fetch subscriptions:', error.message);
       return [];
     }
   }
@@ -95,7 +96,7 @@ class SubscriptionsService {
       const subscriptions = (await adminApiClient.get('/subscriptions/admin/dashboard/due-today')) as any;
       return subscriptions || [];
     } catch (error: any) {
-      console.error('❌ [SubscriptionsService] Failed to fetch due subscriptions:', error.message);
+      logger.error('❌ [SubscriptionsService] Failed to fetch due subscriptions:', error.message);
       return [];
     }
   }
@@ -108,7 +109,7 @@ class SubscriptionsService {
       const subscription = (await adminApiClient.get(`/subscriptions/${id}`)) as any;
       return subscription;
     } catch (error: any) {
-      console.error('❌ [SubscriptionsService] Failed to fetch subscription:', error.message);
+      logger.error('❌ [SubscriptionsService] Failed to fetch subscription:', error.message);
       return null;
     }
   }
@@ -121,7 +122,7 @@ class SubscriptionsService {
       const subscription = (await adminApiClient.patch(`/subscriptions/${id}/status`, { status })) as any;
       return subscription;
     } catch (error: any) {
-      console.error('❌ [SubscriptionsService] Failed to update subscription:', error.message);
+      logger.error('❌ [SubscriptionsService] Failed to update subscription:', error.message);
       throw error;
     }
   }
@@ -157,7 +158,7 @@ class SubscriptionsService {
         return statusMatch && frequencyMatch && searchMatch;
       });
     } catch (error: any) {
-      console.error('❌ [SubscriptionsService] Failed to filter subscriptions:', error.message);
+      logger.error('❌ [SubscriptionsService] Failed to filter subscriptions:', error.message);
       return [];
     }
   }
@@ -193,7 +194,7 @@ class SubscriptionsService {
         failedRenewals: metrics.failedRenewalsCount,
       };
     } catch (error: any) {
-      console.error('❌ [SubscriptionsService] Failed to get summary stats:', error.message);
+      logger.error('❌ [SubscriptionsService] Failed to get summary stats:', error.message);
       return {
         active: 0,
         paused: 0,

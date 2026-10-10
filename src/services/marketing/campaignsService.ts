@@ -1,5 +1,6 @@
 import adminApiClient from '../apiClient';
 import type { Campaign, CampaignMetrics } from './marketingTypes';
+import { logger } from '../../utils/logger';
 
 // Campaign CRUD + launch. Split out of the former monolithic
 // MarketingService.
@@ -12,7 +13,7 @@ export class CampaignsService {
       const metrics = (await adminApiClient.get('/marketing/campaigns/metrics/overview')) as any;
       return metrics;
     } catch (error: any) {
-      console.error('❌ Failed to fetch campaign metrics:', error.message);
+      logger.error('❌ Failed to fetch campaign metrics:', error.message);
       throw error;
     }
   }
@@ -30,7 +31,7 @@ export class CampaignsService {
       const campaigns = (await adminApiClient.get(url)) as any;
       return campaigns;
     } catch (error: any) {
-      console.error('❌ Failed to fetch campaigns:', error.message);
+      logger.error('❌ Failed to fetch campaigns:', error.message);
       throw error;
     }
   }
@@ -43,7 +44,7 @@ export class CampaignsService {
       const campaign = (await adminApiClient.get(`/marketing/campaigns/${id}`)) as any;
       return campaign;
     } catch (error: any) {
-      console.error('❌ Failed to fetch campaign:', error.message);
+      logger.error('❌ Failed to fetch campaign:', error.message);
       throw error;
     }
   }
@@ -69,7 +70,7 @@ export class CampaignsService {
       const campaign = (await adminApiClient.post('/marketing/campaigns', data)) as any;
       return campaign;
     } catch (error: any) {
-      console.error('❌ Failed to create campaign:', error.message);
+      logger.error('❌ Failed to create campaign:', error.message);
       throw error;
     }
   }
@@ -98,7 +99,7 @@ export class CampaignsService {
       const campaign = (await adminApiClient.patch(`/marketing/campaigns/${id}`, data)) as any;
       return campaign;
     } catch (error: any) {
-      console.error('❌ Failed to update campaign:', error.message);
+      logger.error('❌ Failed to update campaign:', error.message);
       throw error;
     }
   }
@@ -111,7 +112,7 @@ export class CampaignsService {
       const result = (await adminApiClient.delete(`/marketing/campaigns/${id}`)) as any;
       return result;
     } catch (error: any) {
-      console.error('❌ Failed to delete campaign:', error.message);
+      logger.error('❌ Failed to delete campaign:', error.message);
       throw error;
     }
   }
@@ -126,7 +127,7 @@ export class CampaignsService {
       const result = (await adminApiClient.post(`/marketing/campaigns/${id}/launch`, {})) as any;
       return result;
     } catch (error: any) {
-      console.error('❌ Failed to launch campaign:', error.message);
+      logger.error('❌ Failed to launch campaign:', error.message);
       throw error;
     }
   }

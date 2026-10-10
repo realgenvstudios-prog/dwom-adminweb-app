@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import inventoryService from '../../services/inventoryService';
 import type { MovementRecord } from '../../services/inventoryService';
+import { logger } from '../../utils/logger';
 
 interface MovementHistoryModalProps {
   open: boolean;
@@ -29,13 +30,13 @@ const MovementHistoryModal: React.FC<MovementHistoryModalProps> = ({
     try {
       setLoading(true);
       setError(null);
-      console.log(`📦 [MovementHistoryModal] Fetching history for product ${productId}`);
+      logger.log(`📦 [MovementHistoryModal] Fetching history for product ${productId}`);
 
       const data = await inventoryService.getMovementHistory(productId!, 50);
-      console.log('✅ [MovementHistoryModal] History loaded:', data.length);
+      logger.log('✅ [MovementHistoryModal] History loaded:', data.length);
       setMovements(data);
     } catch (err: any) {
-      console.error('❌ [MovementHistoryModal] Failed to fetch history:', err);
+      logger.error('❌ [MovementHistoryModal] Failed to fetch history:', err);
       setError(err.message || 'Failed to load movement history');
     } finally {
       setLoading(false);

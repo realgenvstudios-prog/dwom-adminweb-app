@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import adminAuthService from '../services/authService';
+import { logger } from '../utils/logger';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -28,13 +29,13 @@ const LoginPage: React.FC = () => {
         return;
       }
 
-      console.log('🔐 [LoginPage] Attempting login with email:', email);
+      logger.log('🔐 [LoginPage] Attempting login with email:', email);
       const authResponse = await adminAuthService.login(email, password);
       
       // Verify token and user data were saved
       const savedToken = sessionStorage.getItem('admin_token');
       const savedUser = sessionStorage.getItem('admin_user');
-      console.log('✅ [LoginPage] Login successful:', { 
+      logger.log('✅ [LoginPage] Login successful:', { 
         tokenExists: !!savedToken, 
         tokenLength: savedToken?.length || 0,
         userExists: !!savedUser,
@@ -45,13 +46,13 @@ const LoginPage: React.FC = () => {
       await new Promise(resolve => setTimeout(resolve, 300));
       
       // Redirect to dashboard
-      console.log('🔀 [LoginPage] Redirecting to dashboard...');
+      logger.log('🔀 [LoginPage] Redirecting to dashboard...');
       navigate('/dashboard', { replace: true });
     } catch (err: any) {
-      console.error('❌ [LoginPage] Login failed:', err);
+      logger.error('❌ [LoginPage] Login failed:', err);
       const errorMessage = err.message || 'Login failed. Please check your credentials.';
       setError(errorMessage);
-      console.error('📋 [LoginPage] Error message:', errorMessage);
+      logger.error('📋 [LoginPage] Error message:', errorMessage);
     } finally {
       setLoading(false);
     }

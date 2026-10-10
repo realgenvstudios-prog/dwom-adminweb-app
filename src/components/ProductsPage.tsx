@@ -6,6 +6,7 @@ import CreateProductModal from "./products/CreateProductModal";
 import productsService from "../services/productsService";
 import categoriesService from "../services/categoriesService";
 import type { Product, ProductCategory, InventoryStatus } from "./products/ProductTypes";
+import { logger } from '../utils/logger';
 
 // Mock data - Keep for fallback
 const mockCategories: ProductCategory[] = [
@@ -36,7 +37,7 @@ const ProductsPage: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        console.log('📦 [ProductsPage] Fetching products and categories from backend');
+        logger.log('📦 [ProductsPage] Fetching products and categories from backend');
         
         // Fetch both in parallel
         const [productsData, categoriesData] = await Promise.all([
@@ -44,8 +45,8 @@ const ProductsPage: React.FC = () => {
           categoriesService.getAll(),
         ]);
         
-        console.log('✅ [ProductsPage] Products loaded:', productsData.length);
-        console.log('✅ [ProductsPage] Categories loaded:', categoriesData.length);
+        logger.log('✅ [ProductsPage] Products loaded:', productsData.length);
+        logger.log('✅ [ProductsPage] Categories loaded:', categoriesData.length);
         
         // Enrich products with inventory status
         const enrichedProducts = (productsData || []).map((prod: any) => ({
@@ -67,7 +68,7 @@ const ProductsPage: React.FC = () => {
           setCategories(mappedCategories);
         }
       } catch (err: any) {
-        console.error('❌ [ProductsPage] Failed to fetch products:', err);
+        logger.error('❌ [ProductsPage] Failed to fetch products:', err);
         setError(err.message || 'Failed to load products');
       } finally {
         setLoading(false);
@@ -94,9 +95,9 @@ const ProductsPage: React.FC = () => {
       }));
       
       setProducts(enrichedProducts);
-      console.log('✅ [ProductsPage] Products refreshed');
+      logger.log('✅ [ProductsPage] Products refreshed');
     } catch (err) {
-      console.error('❌ [ProductsPage] Failed to refresh products:', err);
+      logger.error('❌ [ProductsPage] Failed to refresh products:', err);
     } finally {
       setLoading(false);
     }
@@ -148,7 +149,7 @@ const ProductsPage: React.FC = () => {
       await productsService.update(productId, { discount });
       setProducts(products.map(p => p.id === productId ? { ...p, discount } : p));
     } catch (err: any) {
-      console.error('❌ Failed to update discount:', err);
+      logger.error('❌ Failed to update discount:', err);
       setError('Failed to update discount');
     } finally {
       setDiscountUpdating(false);
@@ -232,12 +233,12 @@ const ProductsPage: React.FC = () => {
           open={detailsOpen} 
           onClose={() => setDetailsOpen(false)}
           onProductDeleted={() => {
-            console.log('✅ [ProductsPage] Product deleted, refreshing list');
+            logger.log('✅ [ProductsPage] Product deleted, refreshing list');
             refreshProducts();
             setSelectedProduct(null);
           }}
           onProductUpdated={() => {
-            console.log('✅ [ProductsPage] Product updated, refreshing list');
+            logger.log('✅ [ProductsPage] Product updated, refreshing list');
             refreshProducts();
           }}
           categories={categories}
@@ -248,7 +249,7 @@ const ProductsPage: React.FC = () => {
           open={createModalOpen}
           onClose={() => setCreateModalOpen(false)}
           onProductCreated={() => {
-            console.log('✅ [ProductsPage] New product created, refreshing list');
+            logger.log('✅ [ProductsPage] New product created, refreshing list');
             setCreateModalOpen(false);
             refreshProducts();
           }}

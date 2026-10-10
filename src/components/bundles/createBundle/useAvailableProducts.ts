@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import productsService from "../../../services/productsService";
 import type { Product } from "../BundleTypes";
 import type { Category } from "../../../services/productsService";
+import { logger } from '../../../utils/logger';
 
 // The product picker's data: all products + the categories derived from
 // them. Split out of the former monolithic CreateBundleModal.
@@ -25,7 +26,7 @@ export function useAvailableProducts(open: boolean) {
       });
       setCategories(Array.from(catMap.values()).sort((a, b) => a.name.localeCompare(b.name)));
     } catch (err) {
-      console.error('Failed to fetch products:', err);
+      logger.error('Failed to fetch products:', err);
     }
   };
 

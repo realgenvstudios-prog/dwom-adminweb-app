@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
+import { logger } from '../utils/logger';
 
 interface ProtectedRouteProps { 
   children: React.ReactNode; 
@@ -15,7 +16,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       const token = sessionStorage.getItem('admin_token');
       const adminUser = sessionStorage.getItem('admin_user');
       
-      console.log('🔐 [ProtectedRoute] Checking auth:', { 
+      logger.log('🔐 [ProtectedRoute] Checking auth:', { 
         hasToken: !!token, 
         hasUser: !!adminUser,
         path: location.pathname 
@@ -26,9 +27,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       setIsVerifying(false);
       
       if (!authenticated) {
-        console.log('❌ [ProtectedRoute] Not authenticated, will redirect to login');
+        logger.log('❌ [ProtectedRoute] Not authenticated, will redirect to login');
       } else {
-        console.log('✅ [ProtectedRoute] Authenticated, showing protected content');
+        logger.log('✅ [ProtectedRoute] Authenticated, showing protected content');
       }
     };
 

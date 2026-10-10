@@ -5,6 +5,7 @@ import SubscriptionsTrendChart from "./subscriptions/SubscriptionsTrendChart";
 import UpcomingAndFailedRenewalsCard from "./subscriptions/UpcomingAndFailedRenewalsCard";
 import SubscriptionsTable from "./subscriptions/SubscriptionsTable";
 import SubscriptionDetailsDrawer from "./subscriptions/SubscriptionDetailsDrawer";
+import { logger } from '../utils/logger';
 
 export type SubscriptionStatus = "Active" | "Paused" | "Cancelled" | "Failed";
 export type SubscriptionFrequency = "Weekly" | "Biweekly" | "Monthly";
@@ -67,7 +68,7 @@ const SubscriptionsPage: React.FC = () => {
 
       setSubscriptions(transformed);
     } catch (error) {
-      console.error("Failed to fetch subscriptions:", error);
+      logger.error("Failed to fetch subscriptions:", error);
     } finally {
       setLoading(false);
     }

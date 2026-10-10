@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ridersService from "../../services/ridersService";
+import { logger } from '../../utils/logger';
 
 interface CreateRiderModalProps {
   isOpen: boolean;
@@ -65,11 +66,11 @@ const CreateRiderModal: React.FC<CreateRiderModalProps> = ({
         licenseNumber: formData.licenseNumber || undefined,
       });
 
-      console.log("✅ Rider created successfully");
+      logger.log("✅ Rider created successfully");
       onSuccess();
       onClose();
     } catch (err: any) {
-      console.error("❌ Failed to create rider:", err);
+      logger.error("❌ Failed to create rider:", err);
       setError(err.message || "Failed to create rider");
     } finally {
       setLoading(false);

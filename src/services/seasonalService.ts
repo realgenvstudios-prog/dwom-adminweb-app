@@ -1,4 +1,5 @@
 import adminApiClient from './apiClient';
+import { logger } from '../utils/logger';
 
 const BASE_URL = '/seasonal';
 
@@ -15,7 +16,7 @@ const seasonalService = {
       const response: any = await adminApiClient.get(`${BASE_URL}/products`);
       return response?.data || response || [];
     } catch (error) {
-      console.error('Failed to fetch seasonal products:', error);
+      logger.error('Failed to fetch seasonal products:', error);
       return [];
     }
   },
@@ -26,7 +27,7 @@ const seasonalService = {
       const response: any = await adminApiClient.get(`${BASE_URL}/featured`);
       return response?.data || response || null;
     } catch (error) {
-      console.error('Failed to fetch featured product:', error);
+      logger.error('Failed to fetch featured product:', error);
       return null;
     }
   },
@@ -37,7 +38,7 @@ const seasonalService = {
       const response: any = await adminApiClient.get(`${BASE_URL}/config`);
       return response?.data || response || null;
     } catch (error) {
-      console.error('Failed to fetch seasonal config:', error);
+      logger.error('Failed to fetch seasonal config:', error);
       return null;
     }
   },

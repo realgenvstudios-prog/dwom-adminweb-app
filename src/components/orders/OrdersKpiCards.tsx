@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ordersService from "../../services/ordersService";
+import { logger } from '../../utils/logger';
 
 interface Kpi {
   label: string;
@@ -20,9 +21,9 @@ const OrdersKpiCards: React.FC = () => {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        console.log('📊 [OrdersKpiCards] Fetching stats from backend');
+        logger.log('📊 [OrdersKpiCards] Fetching stats from backend');
         const stats = await ordersService.getStats();
-        console.log('✅ [OrdersKpiCards] Stats loaded:', stats);
+        logger.log('✅ [OrdersKpiCards] Stats loaded:', stats);
 
         setKpis([
           { label: "Total Orders Today", value: stats.totalOrdersToday || 0, color: "text-blue-600" },
@@ -35,7 +36,7 @@ const OrdersKpiCards: React.FC = () => {
           },
         ]);
       } catch (error) {
-        console.error('❌ [OrdersKpiCards] Failed to fetch stats:', error);
+        logger.error('❌ [OrdersKpiCards] Failed to fetch stats:', error);
         // Keep loading state showing dashes
       } finally {
         setLoading(false);

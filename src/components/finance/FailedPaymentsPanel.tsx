@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import financeService, { type FailedPayment } from "../../services/financeService";
+import { logger } from '../../utils/logger';
 
 const REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minutes
 
@@ -26,7 +27,7 @@ const FailedPaymentsPanel: React.FC = () => {
       const payments = await financeService.getFailedPayments(5);
       setFailedPayments(payments);
     } catch (error: any) {
-      console.error("Failed to fetch failed payments:", error);
+      logger.error("Failed to fetch failed payments:", error);
       setError(error?.message || "Failed to load payments");
       setFailedPayments([]);
     } finally {

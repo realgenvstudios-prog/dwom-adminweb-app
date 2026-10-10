@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import financeService from "../../services/financeService";
+import { logger } from '../../utils/logger';
 
 const FinanceAlertsBox: React.FC = () => {
   const [alerts, setAlerts] = useState<string[]>([]);
@@ -48,7 +49,7 @@ const FinanceAlertsBox: React.FC = () => {
 
       setAlerts(generatedAlerts);
     } catch (error) {
-      console.error("Failed to generate alerts:", error);
+      logger.error("Failed to generate alerts:", error);
       setAlerts(["⚠️ Unable to generate alerts at this time"]);
     } finally {
       setLoading(false);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import adminApiClient from "../services/apiClient";
+import { logger } from '../utils/logger';
 
 interface Rider {
   id: number;
@@ -31,7 +32,7 @@ const RidersActivity: React.FC = () => {
         }));
       setRiders(activeRiders);
     } catch (error) {
-      console.error("Failed to fetch riders:", error);
+      logger.error("Failed to fetch riders:", error);
     } finally {
       setLoading(false);
     }

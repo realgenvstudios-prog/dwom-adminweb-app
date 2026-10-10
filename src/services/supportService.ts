@@ -1,4 +1,5 @@
 import adminApiClient from './apiClient';
+import { logger } from '../utils/logger';
 
 export interface ChatMessage {
   id: number;
@@ -69,7 +70,7 @@ const supportService = {
         userId: t.userId,
       }));
     } catch (error) {
-      console.error('Failed to fetch support tickets:', error);
+      logger.error('Failed to fetch support tickets:', error);
       return [];
     }
   },
@@ -104,7 +105,7 @@ const supportService = {
         userId: t.userId,
       };
     } catch (error) {
-      console.error('Failed to fetch ticket:', error);
+      logger.error('Failed to fetch ticket:', error);
       return null;
     }
   },
@@ -119,7 +120,7 @@ const supportService = {
       const response = await adminApiClient.post('/chat/admin/support-reply', { userId, message });
       return (((response as any)?.data || null) as ChatMessage);
     } catch (error) {
-      console.error('Failed to send reply:', error);
+      logger.error('Failed to send reply:', error);
       return null;
     }
   },
@@ -141,7 +142,7 @@ const supportService = {
         firstContactResolution: data?.firstContactResolution || 0,
       };
     } catch (error) {
-      console.error('Failed to fetch support metrics:', error);
+      logger.error('Failed to fetch support metrics:', error);
       return {
         totalTickets: 0,
         openTickets: 0,
@@ -161,7 +162,7 @@ const supportService = {
       const tickets = await this.getAllTickets(100);
       return tickets.filter(t => t.status === status);
     } catch (error) {
-      console.error('Failed to fetch tickets by status:', error);
+      logger.error('Failed to fetch tickets by status:', error);
       return [];
     }
   },
@@ -172,7 +173,7 @@ const supportService = {
       const tickets = await this.getAllTickets(100);
       return tickets.filter(t => t.channel === channel);
     } catch (error) {
-      console.error('Failed to fetch tickets by channel:', error);
+      logger.error('Failed to fetch tickets by channel:', error);
       return [];
     }
   },
@@ -188,7 +189,7 @@ const supportService = {
         t.orderId?.toLowerCase().includes(query.toLowerCase())
       );
     } catch (error) {
-      console.error('Failed to search tickets:', error);
+      logger.error('Failed to search tickets:', error);
       return [];
     }
   },
@@ -203,7 +204,7 @@ const supportService = {
       await adminApiClient.post(`/chat/admin/support-tickets/${userId}/status`, { status });
       return await this.getTicketById(ticketId);
     } catch (error) {
-      console.error('Failed to update ticket status:', error);
+      logger.error('Failed to update ticket status:', error);
       return null;
     }
   },
@@ -218,7 +219,7 @@ const supportService = {
       await adminApiClient.post(`/chat/admin/support-tickets/${userId}/assign`, { assignee });
       return await this.getTicketById(ticketId);
     } catch (error) {
-      console.error('Failed to assign ticket:', error);
+      logger.error('Failed to assign ticket:', error);
       return null;
     }
   },
@@ -233,7 +234,7 @@ const supportService = {
       await adminApiClient.post(`/chat/admin/support-tickets/${userId}/priority`, { priority });
       return await this.getTicketById(ticketId);
     } catch (error) {
-      console.error('Failed to update ticket priority:', error);
+      logger.error('Failed to update ticket priority:', error);
       return null;
     }
   },

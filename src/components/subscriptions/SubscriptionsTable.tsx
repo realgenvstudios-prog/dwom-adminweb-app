@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import type { Subscription } from "../SubscriptionsPage";
 import subscriptionsService from "../../services/subscriptionsService";
+import { logger } from '../../utils/logger';
 
 interface Props {
   subscriptions: Subscription[];
@@ -55,7 +56,7 @@ const SubscriptionsTable: React.FC<Props> = ({ subscriptions, onView }) => {
               items: mappedItems,
             } as SubscriptionWithItems;
           } catch (error) {
-            console.error(`Failed to fetch subscription ${sub.id}:`, error);
+            logger.error(`Failed to fetch subscription ${sub.id}:`, error);
             return {
               ...sub,
               items: [],
@@ -65,7 +66,7 @@ const SubscriptionsTable: React.FC<Props> = ({ subscriptions, onView }) => {
       );
       setSubscriptionsWithItems(withItems);
     } catch (error) {
-      console.error("Failed to load subscriptions with items:", error);
+      logger.error("Failed to load subscriptions with items:", error);
       // Map subscriptions to SubscriptionWithItems format
       const fallbackItems = subscriptions.map(sub => ({
         ...sub,

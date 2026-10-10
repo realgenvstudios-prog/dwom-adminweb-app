@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import subscriptionsService from "../../services/subscriptionsService";
+import { logger } from '../../utils/logger';
 
 interface CardData {
   label: string;
@@ -55,7 +56,7 @@ const SubscriptionsSummaryCards: React.FC = () => {
 
       setCards(cardData);
     } catch (error) {
-      console.error("Failed to fetch subscription metrics:", error);
+      logger.error("Failed to fetch subscription metrics:", error);
       // Fallback to empty state
       setCards([
         {

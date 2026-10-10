@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ridersService from "../../services/ridersService";
 import type { Zone } from "../../services/ridersService";
+import { logger } from '../../utils/logger';
 
 interface ZoneManagementModalProps {
   isOpen: boolean;
@@ -39,7 +40,7 @@ const ZoneManagementModal: React.FC<ZoneManagementModalProps> = ({
       const data = await ridersService.getAllZones();
       setZones(data);
     } catch (err: any) {
-      console.error("Failed to fetch zones:", err);
+      logger.error("Failed to fetch zones:", err);
       setError("Failed to load zones");
     } finally {
       setLoading(false);
@@ -75,7 +76,7 @@ const ZoneManagementModal: React.FC<ZoneManagementModalProps> = ({
         deliveryFee: formData.deliveryFee ? parseFloat(formData.deliveryFee) : undefined,
       });
 
-      console.log("✅ Zone created successfully");
+      logger.log("✅ Zone created successfully");
       setFormData({
         name: "",
         description: "",
@@ -88,7 +89,7 @@ const ZoneManagementModal: React.FC<ZoneManagementModalProps> = ({
       fetchZones();
       onSuccess();
     } catch (err: any) {
-      console.error("❌ Failed to create zone:", err);
+      logger.error("❌ Failed to create zone:", err);
       setError(err.message || "Failed to create zone");
     } finally {
       setCreatingZone(false);

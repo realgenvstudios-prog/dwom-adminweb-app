@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ReactApexChart from "react-apexcharts";
 import financeService from "../../services/financeService";
+import { logger } from '../../utils/logger';
 
 const REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minutes for trend data
 
@@ -39,7 +40,7 @@ const RevenueTrendsChart: React.FC = () => {
         setCategories(trends.map((t) => t.date));
       }
     } catch (error) {
-      console.error("Failed to fetch revenue trends:", error);
+      logger.error("Failed to fetch revenue trends:", error);
     } finally {
       setLoading(false);
     }

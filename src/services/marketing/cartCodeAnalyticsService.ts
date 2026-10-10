@@ -1,5 +1,6 @@
 import adminApiClient from '../apiClient';
 import type { CartCodeAnalytics } from './marketingTypes';
+import { logger } from '../../utils/logger';
 
 // Cart-sharing code analytics. Split out of the former monolithic
 // MarketingService.
@@ -12,7 +13,7 @@ export class CartCodeAnalyticsService {
       const analytics = (await adminApiClient.get('/marketing/codes/analytics/all')) as any;
       return analytics;
     } catch (error: any) {
-      console.error('❌ Failed to fetch cart code analytics:', error.message);
+      logger.error('❌ Failed to fetch cart code analytics:', error.message);
       return [];
     }
   }

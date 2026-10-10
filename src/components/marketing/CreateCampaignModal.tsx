@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import marketingService from "../../services/marketingService";
+import { logger } from '../../utils/logger';
 
 interface CreateCampaignModalProps {
   open: boolean;
@@ -48,7 +49,7 @@ const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({ open, onClose
       onSuccess();
       onClose();
     } catch (error) {
-      console.error("Failed to create campaign:", error);
+      logger.error("Failed to create campaign:", error);
       alert("Failed to create campaign");
     } finally {
       setLoading(false);

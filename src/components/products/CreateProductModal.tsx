@@ -3,6 +3,7 @@ import productsService from '../../services/productsService';
 import VariationGroupsEditor from './VariationGroupsEditor';
 import type { VariationGroup } from './VariationGroupsEditor';
 import ImageUpload from '../common/ImageUpload';
+import { logger } from '../../utils/logger';
 
 interface Props {
   open: boolean;
@@ -61,7 +62,7 @@ const CreateProductModal: React.FC<Props> = ({ open, onClose, onProductCreated, 
     try {
       setLoading(true);
       setSavingMode(keepOpen ? 'again' : 'create');
-      console.log('📦 [CreateProductModal] Creating product:', formData);
+      logger.log('📦 [CreateProductModal] Creating product:', formData);
 
       const payload = {
         nameEnglish: formData.nameEnglish,
@@ -78,7 +79,7 @@ const CreateProductModal: React.FC<Props> = ({ open, onClose, onProductCreated, 
       };
 
       const response = await productsService.create(payload);
-      console.log('✅ [CreateProductModal] Product created:', response);
+      logger.log('✅ [CreateProductModal] Product created:', response);
 
       // Reset form
       setFormData({ ...EMPTY_FORM });
@@ -93,7 +94,7 @@ const CreateProductModal: React.FC<Props> = ({ open, onClose, onProductCreated, 
         onClose();
       }
     } catch (error: any) {
-      console.error('❌ [CreateProductModal] Failed to create product:', error);
+      logger.error('❌ [CreateProductModal] Failed to create product:', error);
       alert(`Failed to create product: ${error.message}`);
     } finally {
       setLoading(false);

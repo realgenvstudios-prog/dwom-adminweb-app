@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import suppliersService from "../../services/suppliersService";
 import type { Supplier } from "../../services/suppliersService";
+import { logger } from '../../utils/logger';
 
 export const emptySupplierForm = { name: "", contactName: "", phone: "", location: "", notes: "" };
 
@@ -19,7 +20,7 @@ export function useSuppliersData() {
       const data = await suppliersService.getAll(true); // include inactive so they're still visible in the management table
       setSuppliers(data);
     } catch (err) {
-      console.error("❌ [SuppliersPage] Failed to load suppliers:", err);
+      logger.error("❌ [SuppliersPage] Failed to load suppliers:", err);
     } finally {
       setLoadingSuppliers(false);
     }

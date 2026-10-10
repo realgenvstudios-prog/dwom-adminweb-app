@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import orderEventsService, { type OrderEvent, SUGGESTED_ORDER_EVENT_STAGES } from "../../../services/orderEventsService";
+import { logger } from '../../../utils/logger';
 
 // The internal (staff-only) fulfilment timeline — supplier contacted/paid,
 // kayayo dispatched, arrived at hub, QC'd. Separate from the customer-
@@ -20,7 +21,7 @@ export function useOrderEvents(orderIdNum: number | null, open: boolean) {
       const events = await orderEventsService.getForOrder(orderIdNum);
       setOrderEvents(events);
     } catch (e: any) {
-      console.error('❌ [OrderDetailsDrawer] Failed to load order timeline:', e);
+      logger.error('❌ [OrderDetailsDrawer] Failed to load order timeline:', e);
     } finally {
       setEventsLoading(false);
     }

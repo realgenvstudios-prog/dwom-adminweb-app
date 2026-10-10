@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import subscriptionsService from "../../services/subscriptionsService";
+import { logger } from '../../utils/logger';
 
 interface TrendData {
   date: string;
@@ -49,7 +50,7 @@ const SubscriptionsTrendChart: React.FC = () => {
 
       setData(trendData.slice(-5)); // Show last 5 weeks
     } catch (error) {
-      console.error("Failed to fetch subscription trends:", error);
+      logger.error("Failed to fetch subscription trends:", error);
       // Fallback with sample data
       const today = new Date();
       setData([

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import adminApiClient from "../services/apiClient";
+import { logger } from '../utils/logger';
 
 interface Product {
   id: number;
@@ -46,7 +47,7 @@ const InventoryAlerts: React.FC = () => {
 
       setAlerts(mapped);
     } catch (error) {
-      console.error("Failed to fetch inventory alerts:", error);
+      logger.error("Failed to fetch inventory alerts:", error);
     } finally {
       setLoading(false);
     }

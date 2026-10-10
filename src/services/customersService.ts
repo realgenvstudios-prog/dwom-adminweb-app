@@ -1,4 +1,5 @@
 import apiClient from './apiClient';
+import { logger } from '../utils/logger';
 
 export interface CustomerMetrics {
   totalCustomers: number;
@@ -100,7 +101,7 @@ class CustomersService {
               email: user.email,
             };
           } catch (error) {
-            console.warn(`Failed to fetch orders for user ${user.id}:`, error);
+            logger.warn(`Failed to fetch orders for user ${user.id}:`, error);
             return {
               id: user.id,
               name: user.name || 'Unknown',
@@ -121,7 +122,7 @@ class CustomersService {
 
       return customersWithStats;
     } catch (error) {
-      console.error('❌ [CustomersService] Error fetching customers:', error);
+      logger.error('❌ [CustomersService] Error fetching customers:', error);
       return [];
     }
   }
@@ -159,7 +160,7 @@ class CustomersService {
         repurchaseRate: Math.round(repurchaseRate * 100) / 100,
       };
     } catch (error) {
-      console.error('❌ [CustomersService] Error fetching metrics:', error);
+      logger.error('❌ [CustomersService] Error fetching metrics:', error);
       return {
         totalCustomers: 0,
         activeCustomers: 0,
@@ -201,7 +202,7 @@ class CustomersService {
         { label: 'New', value: newCustomers, color: 'bg-gray-300' },
       ];
     } catch (error) {
-      console.error('❌ [CustomersService] Error fetching segments:', error);
+      logger.error('❌ [CustomersService] Error fetching segments:', error);
       return [];
     }
   }
@@ -248,7 +249,7 @@ class CustomersService {
         churnList,
       };
     } catch (error) {
-      console.error('❌ [CustomersService] Error fetching churn metrics:', error);
+      logger.error('❌ [CustomersService] Error fetching churn metrics:', error);
       return {
         atRisk: 0,
         churnedLast30Days: 0,
@@ -269,7 +270,7 @@ class CustomersService {
       }
       return allCustomers.filter(c => c.status === status);
     } catch (error) {
-      console.error(`❌ [CustomersService] Error fetching customers by status ${status}:`, error);
+      logger.error(`❌ [CustomersService] Error fetching customers by status ${status}:`, error);
       return [];
     }
   }
@@ -285,7 +286,7 @@ class CustomersService {
       }
       return allCustomers.filter(c => c.zone?.toLowerCase() === zone.toLowerCase());
     } catch (error) {
-      console.error(`❌ [CustomersService] Error fetching customers by zone ${zone}:`, error);
+      logger.error(`❌ [CustomersService] Error fetching customers by zone ${zone}:`, error);
       return [];
     }
   }
@@ -304,7 +305,7 @@ class CustomersService {
         c.id.toString() === query
       );
     } catch (error) {
-      console.error('❌ [CustomersService] Error searching customers:', error);
+      logger.error('❌ [CustomersService] Error searching customers:', error);
       return [];
     }
   }
@@ -317,7 +318,7 @@ class CustomersService {
       const allCustomers = await this.getAllCustomers();
       return allCustomers.find(c => c.id === id) || null;
     } catch (error) {
-      console.error(`❌ [CustomersService] Error fetching customer ${id}:`, error);
+      logger.error(`❌ [CustomersService] Error fetching customer ${id}:`, error);
       return null;
     }
   }

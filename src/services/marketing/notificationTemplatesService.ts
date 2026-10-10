@@ -1,5 +1,6 @@
 import adminApiClient from '../apiClient';
 import type { NotificationTemplate } from './marketingTypes';
+import { logger } from '../../utils/logger';
 
 // Notification template CRUD. Split out of the former monolithic
 // MarketingService.
@@ -12,7 +13,7 @@ export class NotificationTemplatesService {
       const templates = (await adminApiClient.get('/marketing/templates')) as any;
       return templates;
     } catch (error: any) {
-      console.error('❌ Failed to fetch templates:', error.message);
+      logger.error('❌ Failed to fetch templates:', error.message);
       throw error;
     }
   }
@@ -25,7 +26,7 @@ export class NotificationTemplatesService {
       const template = (await adminApiClient.get(`/marketing/templates/${id}`)) as any;
       return template;
     } catch (error: any) {
-      console.error('❌ Failed to fetch template:', error.message);
+      logger.error('❌ Failed to fetch template:', error.message);
       throw error;
     }
   }
@@ -50,7 +51,7 @@ export class NotificationTemplatesService {
       const template = (await adminApiClient.post('/marketing/templates', data)) as any;
       return template;
     } catch (error: any) {
-      console.error('❌ Failed to create template:', error.message);
+      logger.error('❌ Failed to create template:', error.message);
       throw error;
     }
   }
@@ -79,7 +80,7 @@ export class NotificationTemplatesService {
       const template = (await adminApiClient.patch(`/marketing/templates/${id}`, data)) as any;
       return template;
     } catch (error: any) {
-      console.error('❌ Failed to update template:', error.message);
+      logger.error('❌ Failed to update template:', error.message);
       throw error;
     }
   }
@@ -92,7 +93,7 @@ export class NotificationTemplatesService {
       const result = (await adminApiClient.delete(`/marketing/templates/${id}`)) as any;
       return result;
     } catch (error: any) {
-      console.error('❌ Failed to delete template:', error.message);
+      logger.error('❌ Failed to delete template:', error.message);
       throw error;
     }
   }

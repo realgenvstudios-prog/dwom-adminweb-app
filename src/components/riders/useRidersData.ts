@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import ridersService from "../../services/ridersService";
 import type { RiderData, Zone } from "../../services/ridersService";
+import { logger } from '../../utils/logger';
 
 // Fetches riders + zones, and owns the status/deactivate/reactivate
 // actions. Split out of the former monolithic RidersPage.
@@ -14,18 +15,18 @@ export function useRidersData() {
     try {
       setLoading(true);
       setError(null);
-      console.log("🚴 [RidersPage] Fetching riders and zones");
+      logger.log("🚴 [RidersPage] Fetching riders and zones");
 
       const [ridersData, zonesData] = await Promise.all([
         ridersService.getAllRiders(),
         ridersService.getAllZones(),
       ]);
 
-      console.log("✅ [RidersPage] Data loaded");
+      logger.log("✅ [RidersPage] Data loaded");
       setRiders(ridersData || []);
       setZones(zonesData || []);
     } catch (err: any) {
-      console.error("❌ [RidersPage] Failed to fetch data:", err);
+      logger.error("❌ [RidersPage] Failed to fetch data:", err);
       setError(err.message || "Failed to load riders data");
     } finally {
       setLoading(false);
@@ -45,7 +46,7 @@ export function useRidersData() {
         )
       );
     } catch (err: any) {
-      console.error("Failed to update status:", err);
+      logger.error("Failed to update status:", err);
       alert("Failed to update rider status");
     }
   };
@@ -65,7 +66,7 @@ export function useRidersData() {
         )
       );
     } catch (err: any) {
-      console.error("Failed to deactivate rider:", err);
+      logger.error("Failed to deactivate rider:", err);
       alert("Failed to deactivate rider");
     }
   };
@@ -85,7 +86,7 @@ export function useRidersData() {
         )
       );
     } catch (err: any) {
-      console.error("Failed to reactivate rider:", err);
+      logger.error("Failed to reactivate rider:", err);
       alert("Failed to reactivate rider");
     }
   };

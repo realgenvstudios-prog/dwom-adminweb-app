@@ -3,6 +3,7 @@ import marketingService, { type Campaign, type CartCodeAnalytics, type CampaignM
 import CreateCampaignModal from "./marketing/CreateCampaignModal";
 import SendNotificationModal from "./marketing/SendNotificationModal";
 import CreateTemplateModal from "./marketing/CreateTemplateModal";
+import { logger } from '../utils/logger';
 
 const MarketingPage: React.FC = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -71,7 +72,7 @@ const MarketingPage: React.FC = () => {
       const templateData = await marketingService.getTemplates();
       setTemplates(templateData);
     } catch (error) {
-      console.error("Failed to fetch marketing data:", error);
+      logger.error("Failed to fetch marketing data:", error);
     } finally {
       setLoading(false);
     }

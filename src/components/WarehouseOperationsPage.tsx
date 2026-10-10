@@ -11,6 +11,7 @@ import productsService from "../services/productsService";
 import categoriesService from "../services/categoriesService";
 import type { InventoryItem, InventoryStats } from "../services/inventoryService";
 import type { Product, ProductCategory } from "./products/ProductTypes";
+import { logger } from '../utils/logger';
 
 const WarehouseOperationsPage: React.FC = () => {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
@@ -49,7 +50,7 @@ const WarehouseOperationsPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log("📦 [WarehouseOperationsPage] Fetching warehouse data");
+      logger.log("📦 [WarehouseOperationsPage] Fetching warehouse data");
 
       const [inventoryData, statsData, productsData, categoriesData] = await Promise.all([
         inventoryService.getAll(),
@@ -58,7 +59,7 @@ const WarehouseOperationsPage: React.FC = () => {
         categoriesService.getAll(),
       ]);
 
-      console.log("✅ [WarehouseOperationsPage] Data loaded");
+      logger.log("✅ [WarehouseOperationsPage] Data loaded");
       
       // Enrich inventory with product names if not present
       const enrichedInventory = inventoryData.map((item: any) => ({
@@ -91,7 +92,7 @@ const WarehouseOperationsPage: React.FC = () => {
         setCategories(mappedCategories);
       }
     } catch (err: any) {
-      console.error("❌ [WarehouseOperationsPage] Failed to fetch data:", err);
+      logger.error("❌ [WarehouseOperationsPage] Failed to fetch data:", err);
       setError(err.message || "Failed to load warehouse data");
     } finally {
       setLoading(false);

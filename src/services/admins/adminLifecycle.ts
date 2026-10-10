@@ -1,6 +1,7 @@
 import adminApiClient from '../apiClient';
 import type { Admin } from './adminTypes';
 import { mapRole, reverseMapRole } from './adminRoleMapping';
+import { logger } from '../../utils/logger';
 
 // Inviting, role changes, suspend/reactivate, and invite management for
 // admins. Split out of the former monolithic AdminsService.
@@ -38,7 +39,7 @@ export class AdminLifecycleService {
 
       return null;
     } catch (error) {
-      console.error('❌ [AdminsService] Error inviting admin:', error);
+      logger.error('❌ [AdminsService] Error inviting admin:', error);
       throw error;
     }
   }
@@ -68,7 +69,7 @@ export class AdminLifecycleService {
 
       return null;
     } catch (error) {
-      console.error('❌ [AdminsService] Error updating admin role:', error);
+      logger.error('❌ [AdminsService] Error updating admin role:', error);
       throw error;
     }
   }
@@ -85,7 +86,7 @@ export class AdminLifecycleService {
 
       return true;
     } catch (error) {
-      console.error('❌ [AdminsService] Error suspending admin:', error);
+      logger.error('❌ [AdminsService] Error suspending admin:', error);
       return false;
     }
   }
@@ -102,7 +103,7 @@ export class AdminLifecycleService {
 
       return true;
     } catch (error) {
-      console.error('❌ [AdminsService] Error reactivating admin:', error);
+      logger.error('❌ [AdminsService] Error reactivating admin:', error);
       return false;
     }
   }
@@ -115,7 +116,7 @@ export class AdminLifecycleService {
       await adminApiClient.post(`/users/invites/${inviteId}/resend`);
       return true;
     } catch (error) {
-      console.error('❌ [AdminsService] Error resending invite:', error);
+      logger.error('❌ [AdminsService] Error resending invite:', error);
       return false;
     }
   }
@@ -128,7 +129,7 @@ export class AdminLifecycleService {
       await adminApiClient.delete(`/users/invites/${inviteId}`);
       return true;
     } catch (error) {
-      console.error('❌ [AdminsService] Error cancelling invite:', error);
+      logger.error('❌ [AdminsService] Error cancelling invite:', error);
       return false;
     }
   }

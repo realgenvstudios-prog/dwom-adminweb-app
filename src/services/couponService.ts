@@ -1,4 +1,5 @@
 import adminApiClient from './apiClient';
+import { logger } from '../utils/logger';
 
 export interface Coupon {
   id: number;
@@ -43,7 +44,7 @@ class CouponService {
       const data = (await adminApiClient.get(`/coupons${query}`)) as any;
       return Array.isArray(data) ? data : [];
     } catch (error: any) {
-      console.error('❌ [CouponService] getAll failed:', error.message);
+      logger.error('❌ [CouponService] getAll failed:', error.message);
       throw error;
     }
   }
@@ -53,7 +54,7 @@ class CouponService {
       const data = (await adminApiClient.post('/coupons', payload)) as any;
       return data;
     } catch (error: any) {
-      console.error('❌ [CouponService] create failed:', error.message);
+      logger.error('❌ [CouponService] create failed:', error.message);
       throw error;
     }
   }
@@ -63,7 +64,7 @@ class CouponService {
       const data = (await adminApiClient.patch(`/coupons/${id}`, payload)) as any;
       return data;
     } catch (error: any) {
-      console.error('❌ [CouponService] update failed:', error.message);
+      logger.error('❌ [CouponService] update failed:', error.message);
       throw error;
     }
   }
@@ -73,7 +74,7 @@ class CouponService {
       const data = (await adminApiClient.patch(`/coupons/${id}/toggle-status`, { active })) as any;
       return data;
     } catch (error: any) {
-      console.error('❌ [CouponService] toggleStatus failed:', error.message);
+      logger.error('❌ [CouponService] toggleStatus failed:', error.message);
       throw error;
     }
   }
@@ -82,7 +83,7 @@ class CouponService {
     try {
       await adminApiClient.delete(`/coupons/${id}`);
     } catch (error: any) {
-      console.error('❌ [CouponService] delete failed:', error.message);
+      logger.error('❌ [CouponService] delete failed:', error.message);
       throw error;
     }
   }
@@ -92,7 +93,7 @@ class CouponService {
       const data = (await adminApiClient.get(`/coupons/${id}/stats`)) as any;
       return data;
     } catch (error: any) {
-      console.error('❌ [CouponService] getStats failed:', error.message);
+      logger.error('❌ [CouponService] getStats failed:', error.message);
       throw error;
     }
   }

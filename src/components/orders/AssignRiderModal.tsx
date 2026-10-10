@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import ridersService from "../../services/ridersService";
 import adminApiClient from "../../services/apiClient";
 import type { RiderData } from "../../services/ridersService";
+import { logger } from '../../utils/logger';
 
 interface AssignRiderModalProps {
   isOpen: boolean;
@@ -36,7 +37,7 @@ const AssignRiderModal: React.FC<AssignRiderModalProps> = ({
       const activeRiders = data.filter((r) => r.isActive);
       setRiders(activeRiders);
     } catch (err: any) {
-      console.error("Failed to fetch riders:", err);
+      logger.error("Failed to fetch riders:", err);
       setError(err.message || "Failed to load riders");
     } finally {
       setLoading(false);
@@ -56,11 +57,11 @@ const AssignRiderModal: React.FC<AssignRiderModalProps> = ({
         riderId: selectedRiderId,
       });
 
-      console.log(`✅ Rider ${selectedRiderId} assigned to order ${orderId}`);
+      logger.log(`✅ Rider ${selectedRiderId} assigned to order ${orderId}`);
       onSuccess();
       onClose();
     } catch (err: any) {
-      console.error("Failed to assign rider:", err);
+      logger.error("Failed to assign rider:", err);
       setError(err.message || "Failed to assign rider");
     } finally {
       setLoading(false);

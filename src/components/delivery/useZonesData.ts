@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import deliveryService from "../../services/deliveryService";
 import type { DeliveryZone } from "../../services/deliveryService";
+import { logger } from '../../utils/logger';
 
 // Fetches delivery zones, auto-dismisses success/error banners, and owns
 // toggle/delete actions. Split out of the former monolithic
@@ -18,7 +19,7 @@ export function useZonesData() {
       setZones(data);
     } catch (err: any) {
       setError("Failed to load delivery zones");
-      console.error(err);
+      logger.error(err);
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Order } from "../OrderTypes";
 import ordersService from "../../../services/ordersService";
+import { logger } from '../../../utils/logger';
 
 export const ORDER_STATUSES = ["sorting", "ready", "rider on the way", "rider has arrived", "delivered", "cancelled"];
 export const PAYMENT_STATUSES = ["pending", "paid", "failed"];
@@ -86,15 +87,15 @@ export function useOrderStatusActions(
     if (!order) return;
     try {
       setLoading(true);
-      console.log(`📦 [OrderDetailsDrawer] Updating order ${order.id} status to ${newStatus}`);
+      logger.log(`📦 [OrderDetailsDrawer] Updating order ${order.id} status to ${newStatus}`);
       await ordersService.updateStatus(parseInt(order.id), newStatus);
       setSelectedStatus(newStatus);
       setStatusDropdownOpen(false);
-      console.log('✅ [OrderDetailsDrawer] Status updated instantly');
+      logger.log('✅ [OrderDetailsDrawer] Status updated instantly');
       // Update the UI immediately
       onOrderUpdated?.({ orderStatus: newStatus as any });
     } catch (error) {
-      console.error('❌ [OrderDetailsDrawer] Failed to update status:', error);
+      logger.error('❌ [OrderDetailsDrawer] Failed to update status:', error);
       alert('Failed to update status');
     } finally {
       setLoading(false);
@@ -105,7 +106,7 @@ export function useOrderStatusActions(
     if (!order) return;
     try {
       setLoading(true);
-      console.log(`💰 [OrderDetailsDrawer] Updating order ${order.id} payment status to ${newPaymentStatus}`);
+      logger.log(`💰 [OrderDetailsDrawer] Updating order ${order.id} payment status to ${newPaymentStatus}`);
 
       // Call backend endpoint to update payment status
       // This would be: PATCH /orders/:id/payment-status
@@ -113,11 +114,11 @@ export function useOrderStatusActions(
 
       setSelectedPaymentStatus(newPaymentStatus);
       setPaymentDropdownOpen(false);
-      console.log('✅ [OrderDetailsDrawer] Payment status updated instantly');
+      logger.log('✅ [OrderDetailsDrawer] Payment status updated instantly');
       // Update the UI immediately
       onOrderUpdated?.({ paymentStatus: newPaymentStatus as any });
     } catch (error) {
-      console.error('❌ [OrderDetailsDrawer] Failed to update payment status:', error);
+      logger.error('❌ [OrderDetailsDrawer] Failed to update payment status:', error);
       alert('Failed to update payment status');
     } finally {
       setLoading(false);

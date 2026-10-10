@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import inventoryService from '../../services/inventoryService';
+import { logger } from '../../utils/logger';
 
 interface UpdateStockModalProps {
   open: boolean;
@@ -36,14 +37,14 @@ const UpdateStockModal: React.FC<UpdateStockModalProps> = ({
       setLoading(true);
       setError(null);
 
-      console.log(`📦 [UpdateStockModal] Restocking product ${productId}`);
+      logger.log(`📦 [UpdateStockModal] Restocking product ${productId}`);
       await inventoryService.restock(productId!, {
         quantity: parseInt(quantity),
         reason: reason.trim() || undefined,
         reference: reference.trim() || undefined,
       });
 
-      console.log('✅ [UpdateStockModal] Stock updated');
+      logger.log('✅ [UpdateStockModal] Stock updated');
       alert('Stock updated successfully!');
       setQuantity('');
       setReason('');
@@ -51,7 +52,7 @@ const UpdateStockModal: React.FC<UpdateStockModalProps> = ({
       onSuccess();
       onClose();
     } catch (err: any) {
-      console.error('❌ [UpdateStockModal] Failed to update stock:', err);
+      logger.error('❌ [UpdateStockModal] Failed to update stock:', err);
       setError(err.message || 'Failed to update stock');
     } finally {
       setLoading(false);

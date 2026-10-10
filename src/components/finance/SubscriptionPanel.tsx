@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import financeService from "../../services/financeService";
+import { logger } from '../../utils/logger';
 
 const REFRESH_INTERVAL = 20 * 60 * 1000; // 20 minutes
 
@@ -26,7 +27,7 @@ const SubscriptionPanel: React.FC = () => {
       const count = await financeService.getActiveSubscriptions();
       setActiveSubscriptions(count);
     } catch (error: any) {
-      console.error("Failed to fetch subscriptions:", error);
+      logger.error("Failed to fetch subscriptions:", error);
       setError(error?.message || "Failed to load subscriptions");
     } finally {
       setLoading(false);

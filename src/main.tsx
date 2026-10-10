@@ -4,11 +4,12 @@ import './index.css'
 import App from './App.tsx'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
 import { BrowserRouter } from 'react-router-dom';
+import { logger } from './utils/logger';
 
-console.log('🚀 main.tsx loaded - React starting...');
+logger.log('🚀 main.tsx loaded - React starting...');
 
 const rootElement = document.getElementById('root');
-console.log('📦 Root element:', rootElement);
+logger.log('📦 Root element:', rootElement);
 
 if (rootElement) {
   createRoot(rootElement).render(
@@ -20,7 +21,7 @@ if (rootElement) {
       </ErrorBoundary>
     </StrictMode>,
   )
-  console.log('✅ React app rendered');
+  logger.log('✅ React app rendered');
 } else {
-  console.error('❌ Root element not found!');
+  logger.error('❌ Root element not found!');
 }

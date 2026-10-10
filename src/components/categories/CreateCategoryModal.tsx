@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import categoriesService from '../../services/categoriesService';
 import type { Category } from '../../services/categoriesService';
 import ImageUpload from '../common/ImageUpload';
+import { logger } from '../../utils/logger';
 
 interface CreateCategoryModalProps {
   open: boolean;
@@ -52,24 +53,24 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
       setError(null);
 
       if (editingCategory) {
-        console.log(`✏️ [CreateCategoryModal] Updating category ${editingCategory.id}`);
+        logger.log(`✏️ [CreateCategoryModal] Updating category ${editingCategory.id}`);
         await categoriesService.update(editingCategory.id, {
           name: name.trim(),
           nameFrench: nameFrench.trim() || undefined,
           description: description.trim() || undefined,
           imageUrl: imageUrl.trim() || undefined,
         });
-        console.log('✅ [CreateCategoryModal] Category updated');
+        logger.log('✅ [CreateCategoryModal] Category updated');
         alert('Category updated successfully!');
       } else {
-        console.log('📂 [CreateCategoryModal] Creating new category');
+        logger.log('📂 [CreateCategoryModal] Creating new category');
         await categoriesService.create({
           name: name.trim(),
           nameFrench: nameFrench.trim() || undefined,
           description: description.trim() || undefined,
           imageUrl: imageUrl.trim() || undefined,
         });
-        console.log('✅ [CreateCategoryModal] Category created');
+        logger.log('✅ [CreateCategoryModal] Category created');
         alert('Category created successfully!');
       }
 
@@ -80,7 +81,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
       onCategoryCreated();
       onClose();
     } catch (err: any) {
-      console.error('❌ [CreateCategoryModal] Failed to save category:', err);
+      logger.error('❌ [CreateCategoryModal] Failed to save category:', err);
       setError(err.message || 'Failed to save category');
     } finally {
       setLoading(false);

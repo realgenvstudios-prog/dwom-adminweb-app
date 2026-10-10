@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Order } from "../OrderTypes";
 import ordersService from "../../../services/ordersService";
 import ridersService, { type RiderData } from "../../../services/ridersService";
+import { logger } from '../../../utils/logger';
 
 // The rider-assignment modal's own data fetch + assign action, local to
 // OrderDetailsDrawer (a separate, differently-shaped AssignRiderModal
@@ -24,14 +25,14 @@ export function useRiderAssignment(
     setRiderModalOpen(true);
     setRidersLoading(true);
     try {
-      console.log('🚴 [OrderDetailsDrawer] Fetching available riders');
+      logger.log('🚴 [OrderDetailsDrawer] Fetching available riders');
       const riders = await ridersService.getAllRiders();
       // Filter to only show active/available riders
       const activeRiders = riders.filter(r => r.isActive);
       setAvailableRiders(activeRiders);
-      console.log('✅ [OrderDetailsDrawer] Loaded', activeRiders.length, 'active riders');
+      logger.log('✅ [OrderDetailsDrawer] Loaded', activeRiders.length, 'active riders');
     } catch (error) {
-      console.error('❌ [OrderDetailsDrawer] Failed to fetch riders:', error);
+      logger.error('❌ [OrderDetailsDrawer] Failed to fetch riders:', error);
       setAvailableRiders([]);
     } finally {
       setRidersLoading(false);
@@ -43,11 +44,11 @@ export function useRiderAssignment(
 
     try {
       setLoading(true);
-      console.log(`📦 [OrderDetailsDrawer] Assigning rider ${selectedRiderId} to order ${order.id}`);
+      logger.log(`📦 [OrderDetailsDrawer] Assigning rider ${selectedRiderId} to order ${order.id}`);
       await ordersService.assignRider(parseInt(order.id), selectedRiderId);
 
       const assignedRider = availableRiders.find(r => r.id === selectedRiderId);
-      console.log('✅ [OrderDetailsDrawer] Rider assigned');
+      logger.log('✅ [OrderDetailsDrawer] Rider assigned');
 
       onOrderUpdated?.({
         rider: assignedRider ? { id: String(assignedRider.id), name: assignedRider.name } : null
@@ -55,7 +56,7 @@ export function useRiderAssignment(
       setRiderModalOpen(false);
       setSelectedRiderId(null);
     } catch (error) {
-      console.error('❌ [OrderDetailsDrawer] Failed to assign rider:', error);
+      logger.error('❌ [OrderDetailsDrawer] Failed to assign rider:', error);
       alert('Failed to assign rider');
     } finally {
       setLoading(false);

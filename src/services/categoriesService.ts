@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://dwom-backend.onrender.com';
 
 export interface Category {
@@ -45,7 +47,7 @@ class CategoriesService {
       const data = await response.json();
       return data;
     } catch (error: any) {
-      console.error('❌ [CategoriesService] Failed to fetch categories:', error);
+      logger.error('❌ [CategoriesService] Failed to fetch categories:', error);
       throw error;
     }
   }
@@ -70,7 +72,7 @@ class CategoriesService {
       const data = await response.json();
       return data;
     } catch (error: any) {
-      console.error(`❌ [CategoriesService] Failed to fetch category ${id}:`, error);
+      logger.error(`❌ [CategoriesService] Failed to fetch category ${id}:`, error);
       throw error;
     }
   }
@@ -96,7 +98,7 @@ class CategoriesService {
       const data = await response.json();
       return data;
     } catch (error: any) {
-      console.error('❌ [CategoriesService] Failed to create category:', error);
+      logger.error('❌ [CategoriesService] Failed to create category:', error);
       throw error;
     }
   }
@@ -122,7 +124,7 @@ class CategoriesService {
       const data = await response.json();
       return data;
     } catch (error: any) {
-      console.error(`❌ [CategoriesService] Failed to update category ${id}:`, error);
+      logger.error(`❌ [CategoriesService] Failed to update category ${id}:`, error);
       throw error;
     }
   }
@@ -145,7 +147,7 @@ class CategoriesService {
       }
 
     } catch (error: any) {
-      console.error(`❌ [CategoriesService] Failed to delete category ${id}:`, error);
+      logger.error(`❌ [CategoriesService] Failed to delete category ${id}:`, error);
       throw error;
     }
   }

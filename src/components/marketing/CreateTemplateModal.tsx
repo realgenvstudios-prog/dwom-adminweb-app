@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import marketingService, { type NotificationTemplate } from "../../services/marketingService";
+import { logger } from '../../utils/logger';
 
 interface CreateTemplateModalProps {
   open: boolean;
@@ -93,7 +94,7 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ open, onClose
       onSuccess();
       onClose();
     } catch (error: any) {
-      console.error("Failed to save template:", error);
+      logger.error("Failed to save template:", error);
       const errorMessage = error?.response?.data?.message || error?.message || "Failed to save template. Please make sure all required fields are filled.";
       setError(errorMessage);
     } finally {

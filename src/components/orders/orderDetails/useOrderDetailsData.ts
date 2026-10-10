@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Order } from "../OrderTypes";
 import ordersService from "../../../services/ordersService";
+import { logger } from '../../../utils/logger';
 
 // Fetches the full order (items, recipient, ratings, reviews) whenever the
 // drawer opens for a given order id. Split out of the former monolithic
@@ -25,7 +26,7 @@ export function useOrderDetailsData(order: Order | null, open: boolean) {
       try {
         setDetailsLoading(true);
         setDetailsError(null);
-        console.log(`📦 [OrderDetailsDrawer] Fetching full order details for ${orderIdNum}`);
+        logger.log(`📦 [OrderDetailsDrawer] Fetching full order details for ${orderIdNum}`);
         const fullOrder: any = await ordersService.getById(orderIdNum);
 
         const productItems = (fullOrder?.OrderItem || []).map((item: any) => {
@@ -87,9 +88,9 @@ export function useOrderDetailsData(order: Order | null, open: boolean) {
         }));
         setProductReviewsData(reviews);
 
-        console.log('✅ [OrderDetailsDrawer] Loaded items:', productItems.length + bundleItems.length, 'ratings:', riderRating ? 'yes' : 'no', 'reviews:', reviews.length);
+        logger.log('✅ [OrderDetailsDrawer] Loaded items:', productItems.length + bundleItems.length, 'ratings:', riderRating ? 'yes' : 'no', 'reviews:', reviews.length);
       } catch (e: any) {
-        console.error('❌ [OrderDetailsDrawer] Failed to load order details:', e);
+        logger.error('❌ [OrderDetailsDrawer] Failed to load order details:', e);
         setDetailsError(e?.message || 'Failed to load order items');
         setDetailsItems([]);
       } finally {

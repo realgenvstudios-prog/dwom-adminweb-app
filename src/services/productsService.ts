@@ -1,4 +1,5 @@
 import adminApiClient from './apiClient';
+import { logger } from '../utils/logger';
 
 export interface Product {
   id: number;
@@ -73,7 +74,7 @@ export const productsService = {
       );
       return response;
     } catch (error) {
-      console.error('❌ [ProductsService] Failed to fetch products:', error);
+      logger.error('❌ [ProductsService] Failed to fetch products:', error);
       throw error;
     }
   },
@@ -86,7 +87,7 @@ export const productsService = {
       const response = await adminApiClient.get<Product>(`/products/${id}`);
       return response;
     } catch (error) {
-      console.error(`❌ [ProductsService] Failed to fetch product ${id}:`, error);
+      logger.error(`❌ [ProductsService] Failed to fetch product ${id}:`, error);
       throw error;
     }
   },
@@ -99,7 +100,7 @@ export const productsService = {
       const response = await adminApiClient.post<Product>('/products', dto);
       return response;
     } catch (error) {
-      console.error('❌ [ProductsService] Failed to create product:', error);
+      logger.error('❌ [ProductsService] Failed to create product:', error);
       throw error;
     }
   },
@@ -112,7 +113,7 @@ export const productsService = {
       const response = await adminApiClient.patch<Product>(`/products/${id}`, dto);
       return response;
     } catch (error) {
-      console.error(`❌ [ProductsService] Failed to update product ${id}:`, error);
+      logger.error(`❌ [ProductsService] Failed to update product ${id}:`, error);
       throw error;
     }
   },
@@ -125,7 +126,7 @@ export const productsService = {
       const response = await adminApiClient.delete(`/products/${id}`);
       return response;
     } catch (error) {
-      console.error(`❌ [ProductsService] Failed to delete product ${id}:`, error);
+      logger.error(`❌ [ProductsService] Failed to delete product ${id}:`, error);
       throw error;
     }
   },
@@ -138,7 +139,7 @@ export const productsService = {
       const response = await adminApiClient.get<Category[]>('/product-categories');
       return response;
     } catch (error) {
-      console.error('❌ [ProductsService] Failed to fetch categories:', error);
+      logger.error('❌ [ProductsService] Failed to fetch categories:', error);
       return [];
     }
   },
@@ -151,7 +152,7 @@ export const productsService = {
       const response = await adminApiClient.get<Product[]>(`/products/search/${query}`);
       return response;
     } catch (error) {
-      console.error('❌ [ProductsService] Failed to search products:', error);
+      logger.error('❌ [ProductsService] Failed to search products:', error);
       return [];
     }
   },
@@ -164,7 +165,7 @@ export const productsService = {
       const response = await adminApiClient.get<Product[]>(`/products/category/${categoryId}`);
       return response;
     } catch (error) {
-      console.error('❌ [ProductsService] Failed to fetch category products:', error);
+      logger.error('❌ [ProductsService] Failed to fetch category products:', error);
       return [];
     }
   },

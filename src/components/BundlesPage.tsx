@@ -3,6 +3,7 @@ import CreateBundleModal from './bundles/CreateBundleModal';
 import BundleDetailsModal from './bundles/BundleDetailsModal';
 import bundlesService from '../services/bundlesService';
 import type { Bundle } from '../services/bundlesService';
+import { logger } from '../utils/logger';
 
 const BundlesPage: React.FC = () => {
   const [bundles, setBundles] = useState<Bundle[]>([]);
@@ -23,13 +24,13 @@ const BundlesPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('📦 [BundlesPage] Fetching bundles');
+      logger.log('📦 [BundlesPage] Fetching bundles');
       
       const data = await bundlesService.getAll();
-      console.log('✅ [BundlesPage] Bundles loaded:', data.length);
+      logger.log('✅ [BundlesPage] Bundles loaded:', data.length);
       setBundles(data || []);
     } catch (err: any) {
-      console.error('❌ [BundlesPage] Failed to fetch bundles:', err);
+      logger.error('❌ [BundlesPage] Failed to fetch bundles:', err);
       setError(err.message || 'Failed to load bundles');
     } finally {
       setLoading(false);
@@ -54,13 +55,13 @@ const BundlesPage: React.FC = () => {
   const handleDeleteClick = async (bundle: Bundle) => {
     if (confirm(`Are you sure you want to delete "${bundle.name}"?`)) {
       try {
-        console.log(`🗑️ [BundlesPage] Deleting bundle ${bundle.id}`);
+        logger.log(`🗑️ [BundlesPage] Deleting bundle ${bundle.id}`);
         const result = await bundlesService.delete(bundle.id);
-        console.log('✅ [BundlesPage] Bundle deleted');
+        logger.log('✅ [BundlesPage] Bundle deleted');
         alert(result.message || 'Bundle deleted successfully!');
         await fetchBundles();
       } catch (err: any) {
-        console.error('❌ [BundlesPage] Failed to delete bundle:', err);
+        logger.error('❌ [BundlesPage] Failed to delete bundle:', err);
         alert(`Failed to delete bundle: ${err.message}`);
       }
     }

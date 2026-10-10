@@ -1,6 +1,7 @@
 import { useState } from "react";
 import apiClient from "../../services/apiClient";
 import type { Customer, CustomerOrder } from "./CustomerTypes";
+import { logger } from '../../utils/logger';
 
 // The selected-customer detail panel: order history fetch, tab state,
 // and the expanded-order toggle. Split out of the former monolithic
@@ -18,7 +19,7 @@ export function useCustomerSelection() {
       const data = await apiClient.get<CustomerOrder[]>(`/users/admin/customers/${customerId}/orders`);
       setOrderHistory(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error('Failed to fetch order history:', err);
+      logger.error('Failed to fetch order history:', err);
       setOrderHistory([]);
     } finally {
       setOrderHistoryLoading(false);

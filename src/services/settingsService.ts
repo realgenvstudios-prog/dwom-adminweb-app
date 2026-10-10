@@ -1,4 +1,5 @@
 import adminApiClient from './apiClient';
+import { logger } from '../utils/logger';
 
 export interface Settings {
   // Business Information
@@ -50,7 +51,7 @@ export const settingsService = {
       const settings = await adminApiClient.get<Settings>('/settings');
       return settings;
     } catch (error: any) {
-      console.error('❌ [SettingsService] Failed to fetch settings:', error);
+      logger.error('❌ [SettingsService] Failed to fetch settings:', error);
       throw error;
     }
   },
@@ -63,7 +64,7 @@ export const settingsService = {
       const response = await adminApiClient.patch<Settings>('/settings', updatedSettings);
       return response;
     } catch (error: any) {
-      console.error('❌ [SettingsService] Failed to update settings:', error);
+      logger.error('❌ [SettingsService] Failed to update settings:', error);
       throw error;
     }
   },
@@ -76,7 +77,7 @@ export const settingsService = {
       const value = await adminApiClient.get(`/settings/${key}`);
       return value;
     } catch (error: any) {
-      console.error(`❌ [SettingsService] Failed to fetch setting ${key}:`, error);
+      logger.error(`❌ [SettingsService] Failed to fetch setting ${key}:`, error);
       throw error;
     }
   },

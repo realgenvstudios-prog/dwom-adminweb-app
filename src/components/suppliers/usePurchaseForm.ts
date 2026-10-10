@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import procurementService from "../../services/procurementService";
 import productsService from "../../services/productsService";
+import { logger } from '../../utils/logger';
 
 // A purchase is one trip to one supplier that can cover several products —
 // the trip-level fields (supplier, who bought it, trip notes) are shared,
@@ -26,7 +27,7 @@ export function usePurchaseForm(loadPurchases: () => Promise<void>) {
       const data = await productsService.getAll();
       setProducts(Array.isArray(data) ? data : data?.items || []);
     } catch (err) {
-      console.error("❌ [SuppliersPage] Failed to load products:", err);
+      logger.error("❌ [SuppliersPage] Failed to load products:", err);
     }
   };
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import supportService, { type SupportTicket, type SupportMetrics } from "../services/supportService";
+import { logger } from '../utils/logger';
 
 const channels = ["All", "In-app", "WhatsApp", "Phone", "Email"];
 const statuses = ["All", "Open", "In Progress", "Resolved", "Escalated"];
@@ -52,7 +53,7 @@ const SupportPage: React.FC = () => {
         setSelectedTicket(ticketsData[0]);
       }
     } catch (error) {
-      console.error("Failed to fetch support data:", error);
+      logger.error("Failed to fetch support data:", error);
     } finally {
       setLoading(false);
     }
@@ -87,7 +88,7 @@ const SupportPage: React.FC = () => {
       setReply("");
       setQuickReply("");
     } catch (error) {
-      console.error("Failed to send reply:", error);
+      logger.error("Failed to send reply:", error);
     } finally {
       setReplyLoading(false);
     }
@@ -99,7 +100,7 @@ const SupportPage: React.FC = () => {
       await supportService.updateTicketStatus(selectedTicket.id, newStatus as any);
       setSelectedTicket({ ...selectedTicket, status: newStatus as any });
     } catch (error) {
-      console.error("Failed to update status:", error);
+      logger.error("Failed to update status:", error);
     }
   };
 
@@ -109,7 +110,7 @@ const SupportPage: React.FC = () => {
       await supportService.updateTicketPriority(selectedTicket.id, newPriority as any);
       setSelectedTicket({ ...selectedTicket, priority: newPriority as any });
     } catch (error) {
-      console.error("Failed to update priority:", error);
+      logger.error("Failed to update priority:", error);
     }
   };
 
@@ -119,7 +120,7 @@ const SupportPage: React.FC = () => {
       await supportService.assignTicket(selectedTicket.id, newAssignee);
       setSelectedTicket({ ...selectedTicket, assigned: newAssignee });
     } catch (error) {
-      console.error("Failed to assign ticket:", error);
+      logger.error("Failed to assign ticket:", error);
     }
   };
 

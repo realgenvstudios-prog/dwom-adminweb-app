@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ReactApexChart from "react-apexcharts";
 import dashboardService from "../services/dashboardService";
+import { logger } from '../utils/logger';
 
 const OrdersOverviewChart: React.FC = () => {
   const [series, setSeries] = useState<any[]>([]);
@@ -31,7 +32,7 @@ const OrdersOverviewChart: React.FC = () => {
         ]);
       }
     } catch (error) {
-      console.error("Failed to fetch order trends:", error);
+      logger.error("Failed to fetch order trends:", error);
       // Fallback to empty data
       setSeries([
         { name: "Orders", data: [0, 0, 0, 0, 0, 0, 0] },

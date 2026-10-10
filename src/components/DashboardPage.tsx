@@ -5,6 +5,7 @@ import PopularItems from './PopularItems';
 import RidersActivity from './RidersActivity';
 import QuickActions from './QuickActions';
 import InventoryAlerts from './InventoryAlerts';
+import { logger } from '../utils/logger';
 
 interface KPICard {
   title: string;
@@ -65,7 +66,7 @@ const DashboardPage: React.FC = () => {
 
       setKpis(kpiData);
     } catch (err) {
-      console.error('Error fetching dashboard data:', err);
+      logger.error('Error fetching dashboard data:', err);
       setError('Failed to load dashboard data. Some features may be offline.');
       // Set placeholder data so the page doesn't break
       setKpis([

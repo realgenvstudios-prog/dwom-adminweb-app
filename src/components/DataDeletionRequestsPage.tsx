@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import apiClient from "../services/apiClient";
+import { logger } from '../utils/logger';
 
 interface DeletionRequest {
   id: number;
@@ -38,22 +39,22 @@ const DataDeletionRequestsPage: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      console.log('🗑️ [DeletionRequests] Fetching deletion requests...');
+      logger.log('🗑️ [DeletionRequests] Fetching deletion requests...');
       
       const response = await apiClient.get<DeletionRequest[]>('/account/deletion-requests');
-      console.log('🗑️ [DeletionRequests] Response:', response);
+      logger.log('🗑️ [DeletionRequests] Response:', response);
       
       if (!Array.isArray(response)) {
-        console.error('❌ [DeletionRequests] Expected array, got:', typeof response);
+        logger.error('❌ [DeletionRequests] Expected array, got:', typeof response);
         setError('Invalid response from server');
         setRequests([]);
         return;
       }
 
-      console.log(`✅ [DeletionRequests] Fetched ${response.length} requests`);
+      logger.log(`✅ [DeletionRequests] Fetched ${response.length} requests`);
       setRequests(response);
     } catch (err: any) {
-      console.error('❌ [DeletionRequests] Error:', err);
+      logger.error('❌ [DeletionRequests] Error:', err);
       setError(err.message || 'Failed to fetch deletion requests');
       setRequests([]);
     } finally {
@@ -81,11 +82,11 @@ const DataDeletionRequestsPage: React.FC = () => {
         actionDate: new Date().toISOString(),
       };
 
-      console.log(`🔄 [DeletionRequests] ${actionType}ing request:`, payload);
+      logger.log(`🔄 [DeletionRequests] ${actionType}ing request:`, payload);
       
       const response = await apiClient.put<DeletionRequest>(endpoint, payload);
       
-      console.log(`✅ [DeletionRequests] Request ${actionType}ed:`, response);
+      logger.log(`✅ [DeletionRequests] Request ${actionType}ed:`, response);
       
       // Update the request in the list
       setRequests(requests.map(r => r.id === response.id ? response : r));
@@ -98,7 +99,7 @@ const DataDeletionRequestsPage: React.FC = () => {
       // Refresh the list
       fetchDeletionRequests();
     } catch (err: any) {
-      console.error('❌ [DeletionRequests] Error updating request:', err);
+      logger.error('❌ [DeletionRequests] Error updating request:', err);
       setError(err.message || `Failed to ${actionType} request`);
       setShowModal(false);
     } finally {

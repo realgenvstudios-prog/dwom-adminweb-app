@@ -1,5 +1,6 @@
 import { useEffect, useState, type ChangeEvent } from "react";
 import settingsService, { type Settings } from "../../services/settingsService";
+import { logger } from '../../utils/logger';
 
 // All backend-synced settings fields, their load/save, and the logo
 // upload handler. Split out of the former monolithic SettingsPage. The
@@ -93,7 +94,7 @@ export function useSettingsData() {
       setIpAccessControlList(s.ipAccessControlList ?? []);
       setSettingsLoaded(true);
     } catch (err: any) {
-      console.error('❌ Error loading settings:', err);
+      logger.error('❌ Error loading settings:', err);
       setError(err.message || 'Failed to load settings.');
     } finally {
       setLoading(false);
@@ -113,7 +114,7 @@ export function useSettingsData() {
     try {
       setSaving(true);
       setError(null);
-      console.log('💾 Saving settings...');
+      logger.log('💾 Saving settings...');
 
       const updatedSettings: Partial<Settings> = {
         businessName,
@@ -142,12 +143,12 @@ export function useSettingsData() {
       };
 
       await settingsService.updateSettings(updatedSettings);
-      console.log('✅ Settings saved successfully:', updatedSettings);
+      logger.log('✅ Settings saved successfully:', updatedSettings);
 
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
-      console.error('❌ Error saving settings:', err);
+      logger.error('❌ Error saving settings:', err);
       setError(err.message || 'Failed to save settings. Please try again.');
     } finally {
       setSaving(false);

@@ -1,4 +1,5 @@
 import adminApiClient from './apiClient';
+import { logger } from '../utils/logger';
 
 export type NotesAnalytics = {
   stats: {
@@ -35,7 +36,7 @@ export const notesService = {
       const response = await adminApiClient.get<NotesAnalytics>('/notes/analytics');
       return response;
     } catch (error: any) {
-      console.error('Failed to fetch notes analytics:', error);
+      logger.error('Failed to fetch notes analytics:', error);
       throw error;
     }
   },
@@ -51,7 +52,7 @@ export const notesService = {
       const response = await adminApiClient.get(`/notes/admin/all?${params.toString()}`);
       return response;
     } catch (error: any) {
-      console.error('Failed to fetch notes:', error);
+      logger.error('Failed to fetch notes:', error);
       throw error;
     }
   },

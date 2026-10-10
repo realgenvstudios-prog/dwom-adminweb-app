@@ -1,4 +1,5 @@
 import adminApiClient from './apiClient';
+import { logger } from '../utils/logger';
 
 function asArray<T>(value: any): T[] {
   if (Array.isArray(value)) return value as T[];
@@ -60,7 +61,7 @@ class DashboardService {
       const response = await adminApiClient.get<DashboardStats>('/admin/dashboard/orders');
       return response;
     } catch (error: any) {
-      console.error('❌ [DashboardService] Failed to fetch order stats:', error.message);
+      logger.error('❌ [DashboardService] Failed to fetch order stats:', error.message);
       throw error;
     }
   }
@@ -91,7 +92,7 @@ class DashboardService {
 
       return stats;
     } catch (error: any) {
-      console.error('❌ [DashboardService] Failed to fetch rider stats:', error.message);
+      logger.error('❌ [DashboardService] Failed to fetch rider stats:', error.message);
       throw error;
     }
   }
@@ -127,7 +128,7 @@ class DashboardService {
 
       return stats;
     } catch (error: any) {
-      console.error('❌ [DashboardService] Failed to fetch product stats:', error.message);
+      logger.error('❌ [DashboardService] Failed to fetch product stats:', error.message);
       throw error;
     }
   }
@@ -159,7 +160,7 @@ class DashboardService {
 
       return dashboardData;
     } catch (error: any) {
-      console.error('❌ [DashboardService] Failed to fetch dashboard data:', error.message);
+      logger.error('❌ [DashboardService] Failed to fetch dashboard data:', error.message);
       throw error;
     }
   }
@@ -187,7 +188,7 @@ class DashboardService {
 
       return popularProducts;
     } catch (error: any) {
-      console.error('❌ [DashboardService] Failed to fetch popular products:', error.message);
+      logger.error('❌ [DashboardService] Failed to fetch popular products:', error.message);
       return [];
     }
   }
@@ -233,7 +234,7 @@ class DashboardService {
 
       return trends;
     } catch (error: any) {
-      console.error('❌ [DashboardService] Failed to fetch revenue trends:', error.message);
+      logger.error('❌ [DashboardService] Failed to fetch revenue trends:', error.message);
       return [];
     }
   }
@@ -246,7 +247,7 @@ class DashboardService {
       const stats = await this.getRiderStats();
       return stats.activeRiders;
     } catch (error) {
-      console.error('Failed to get active riders count:', error);
+      logger.error('Failed to get active riders count:', error);
       return 0;
     }
   }
@@ -259,7 +260,7 @@ class DashboardService {
       const stats = await this.getOrderStats();
       return stats.revenueToday;
     } catch (error) {
-      console.error('Failed to get today revenue:', error);
+      logger.error('Failed to get today revenue:', error);
       return 0;
     }
   }
@@ -273,7 +274,7 @@ class DashboardService {
       const customers = users.filter((u: any) => u.role !== 'rider' && u.role !== 'admin').length;
       return customers;
     } catch (error: any) {
-      console.error('❌ [DashboardService] Failed to fetch customers:', error.message);
+      logger.error('❌ [DashboardService] Failed to fetch customers:', error.message);
       return 0;
     }
   }

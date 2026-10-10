@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import CreateCategoryModal from './categories/CreateCategoryModal';
 import categoriesService from '../services/categoriesService';
 import type { Category } from '../services/categoriesService';
+import { logger } from '../utils/logger';
 
 const CategoriesPage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -20,13 +21,13 @@ const CategoriesPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('📂 [CategoriesPage] Fetching categories');
+      logger.log('📂 [CategoriesPage] Fetching categories');
       
       const data = await categoriesService.getAll();
-      console.log('✅ [CategoriesPage] Categories loaded:', data.length);
+      logger.log('✅ [CategoriesPage] Categories loaded:', data.length);
       setCategories(data || []);
     } catch (err: any) {
-      console.error('❌ [CategoriesPage] Failed to fetch categories:', err);
+      logger.error('❌ [CategoriesPage] Failed to fetch categories:', err);
       setError(err.message || 'Failed to load categories');
     } finally {
       setLoading(false);
@@ -46,13 +47,13 @@ const CategoriesPage: React.FC = () => {
   const handleDeleteClick = async (category: Category) => {
     if (confirm(`Are you sure you want to delete "${category.name}"?`)) {
       try {
-        console.log(`🗑️ [CategoriesPage] Deleting category ${category.id}`);
+        logger.log(`🗑️ [CategoriesPage] Deleting category ${category.id}`);
         await categoriesService.delete(category.id);
-        console.log('✅ [CategoriesPage] Category deleted');
+        logger.log('✅ [CategoriesPage] Category deleted');
         alert('Category deleted successfully!');
         await fetchCategories();
       } catch (err: any) {
-        console.error('❌ [CategoriesPage] Failed to delete category:', err);
+        logger.error('❌ [CategoriesPage] Failed to delete category:', err);
         alert(`Failed to delete category: ${err.message}`);
       }
     }

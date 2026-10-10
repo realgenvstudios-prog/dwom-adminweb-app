@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import subscriptionsService, { type Subscription } from "../../services/subscriptionsService";
+import { logger } from '../../utils/logger';
 
 interface UpcomingRenewal {
   customer: string;
@@ -56,7 +57,7 @@ const UpcomingAndFailedRenewalsCard: React.FC = () => {
 
       setFailed(failedData);
     } catch (error) {
-      console.error("Failed to fetch renewals:", error);
+      logger.error("Failed to fetch renewals:", error);
       setUpcoming([]);
       setFailed([]);
     } finally {

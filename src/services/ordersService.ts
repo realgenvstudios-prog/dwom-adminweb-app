@@ -1,4 +1,5 @@
 import adminApiClient from './apiClient';
+import { logger } from '../utils/logger';
 
 export interface Order {
   id: number;
@@ -21,7 +22,7 @@ export const ordersService = {
       const response = await adminApiClient.post<any>('/orders', payload);
       return response;
     } catch (error) {
-      console.error('❌ [OrdersService] Failed to create order:', error);
+      logger.error('❌ [OrdersService] Failed to create order:', error);
       throw error;
     }
   },
@@ -39,7 +40,7 @@ export const ordersService = {
       const orders = response?.data || response || [];
       return orders;
     } catch (error) {
-      console.error('❌ [OrdersService] Failed to fetch orders:', error);
+      logger.error('❌ [OrdersService] Failed to fetch orders:', error);
       throw error;
     }
   },
@@ -52,7 +53,7 @@ export const ordersService = {
       const response = await adminApiClient.get<Order>(`/orders/${id}`);
       return response;
     } catch (error) {
-      console.error(`❌ [OrdersService] Failed to fetch order ${id}:`, error);
+      logger.error(`❌ [OrdersService] Failed to fetch order ${id}:`, error);
       throw error;
     }
   },
@@ -67,7 +68,7 @@ export const ordersService = {
       });
       return response;
     } catch (error) {
-      console.error(`❌ [OrdersService] Failed to update order ${id}:`, error);
+      logger.error(`❌ [OrdersService] Failed to update order ${id}:`, error);
       throw error;
     }
   },
@@ -82,7 +83,7 @@ export const ordersService = {
       });
       return response;
     } catch (error) {
-      console.error(`❌ [OrdersService] Failed to assign rider:`, error);
+      logger.error(`❌ [OrdersService] Failed to assign rider:`, error);
       throw error;
     }
   },
@@ -97,7 +98,7 @@ export const ordersService = {
       });
       return response;
     } catch (error) {
-      console.error(`❌ [OrdersService] Failed to update order payment status:`, error);
+      logger.error(`❌ [OrdersService] Failed to update order payment status:`, error);
       throw error;
     }
   },
@@ -110,7 +111,7 @@ export const ordersService = {
       const response = await adminApiClient.get('/orders/stats/overview');
       return response;
     } catch (error) {
-      console.error('❌ [OrdersService] Failed to fetch stats:', error);
+      logger.error('❌ [OrdersService] Failed to fetch stats:', error);
       return {};
     }
   },

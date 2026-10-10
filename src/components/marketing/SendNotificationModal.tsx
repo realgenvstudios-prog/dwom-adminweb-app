@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import marketingService, { type NotificationTemplate } from "../../services/marketingService";
 import ridersService from "../../services/ridersService";
 import type { Zone } from "../../services/ridersService";
+import { logger } from '../../utils/logger';
 
 interface SendNotificationModalProps {
   open: boolean;
@@ -42,7 +43,7 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({ open, onC
         setFormData(prev => ({ ...prev, templateId: data[0].id }));
       }
     } catch (error) {
-      console.error("Failed to fetch templates:", error);
+      logger.error("Failed to fetch templates:", error);
     }
   };
 
@@ -51,7 +52,7 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({ open, onC
       const data = await ridersService.getAllZones();
       setZones(data);
     } catch (error) {
-      console.error("Failed to fetch zones:", error);
+      logger.error("Failed to fetch zones:", error);
     }
   };
 
@@ -76,7 +77,7 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({ open, onC
           type: formData.notificationType as any,
         });
 
-        console.log('📤 Broadcast notification sent:', result);
+        logger.log('📤 Broadcast notification sent:', result);
         alert(`Notification sent!\nSuccessful: ${result.successCount}\nFailed: ${result.failureCount}`);
       } else {
         if (!formData.sendPush && !formData.sendSms && !formData.sendEmail) {
@@ -113,7 +114,7 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({ open, onC
       onSuccess();
       onClose();
     } catch (error) {
-      console.error("Failed to send notification:", error);
+      logger.error("Failed to send notification:", error);
       alert("Failed to send notification: " + (error as any).message);
     } finally {
       setLoading(false);

@@ -1,4 +1,5 @@
 import type { Admin, AdminMetrics, AdminActivity, AdminAccessAlert } from './adminTypes';
+import { logger } from '../../utils/logger';
 
 // Metrics, activity feed, and access alerts derived from the admin list.
 // Split out of the former monolithic AdminsService. Takes a
@@ -47,7 +48,7 @@ export class AdminInsightsService {
         roleCounts,
       };
     } catch (error) {
-      console.error('❌ [AdminsService] Error fetching metrics:', error);
+      logger.error('❌ [AdminsService] Error fetching metrics:', error);
       return {
         totalAdmins: 0,
         activeAdmins: 0,
@@ -92,7 +93,7 @@ export class AdminInsightsService {
         },
       ];
     } catch (error) {
-      console.error('❌ [AdminsService] Error fetching activity:', error);
+      logger.error('❌ [AdminsService] Error fetching activity:', error);
       return [];
     }
   }
@@ -153,7 +154,7 @@ export class AdminInsightsService {
 
       return alerts;
     } catch (error) {
-      console.error('❌ [AdminsService] Error fetching alerts:', error);
+      logger.error('❌ [AdminsService] Error fetching alerts:', error);
       return [];
     }
   }

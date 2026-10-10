@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://dwom-backend.onrender.com';
 
 export interface DeliveryZone {
@@ -47,7 +49,7 @@ const deliveryService = {
       const data = await response.json();
       return data;
     } catch (error: any) {
-      console.error('❌ [DeliveryService] Failed to fetch zones:', error);
+      logger.error('❌ [DeliveryService] Failed to fetch zones:', error);
       throw error;
     }
   },
@@ -74,7 +76,7 @@ const deliveryService = {
       const result = await response.json();
       return result;
     } catch (error: any) {
-      console.error('❌ [DeliveryService] Failed to update zone:', error);
+      logger.error('❌ [DeliveryService] Failed to update zone:', error);
       throw error;
     }
   },
@@ -100,7 +102,7 @@ const deliveryService = {
       const result = await response.json();
       return result;
     } catch (error: any) {
-      console.error('❌ [DeliveryService] Failed to toggle zone:', error);
+      logger.error('❌ [DeliveryService] Failed to toggle zone:', error);
       throw error;
     }
   },
@@ -126,7 +128,7 @@ const deliveryService = {
       const result = await response.json();
       return result;
     } catch (error: any) {
-      console.error('❌ [DeliveryService] Failed to delete zone:', error);
+      logger.error('❌ [DeliveryService] Failed to delete zone:', error);
       throw error;
     }
   },
@@ -150,7 +152,7 @@ const deliveryService = {
 
       return await response.json();
     } catch (error: any) {
-      console.error('❌ [DeliveryService] Failed to check delivery:', error);
+      logger.error('❌ [DeliveryService] Failed to check delivery:', error);
       throw error;
     }
   },
@@ -180,7 +182,7 @@ const deliveryService = {
 
       return await response.json();
     } catch (error: any) {
-      console.error('❌ [DeliveryService] Autocomplete failed:', error);
+      logger.error('❌ [DeliveryService] Autocomplete failed:', error);
       throw error;
     }
   },
@@ -210,7 +212,7 @@ const deliveryService = {
 
       return await response.json();
     } catch (error: any) {
-      console.error('❌ [DeliveryService] Place details failed:', error);
+      logger.error('❌ [DeliveryService] Place details failed:', error);
       throw error;
     }
   },

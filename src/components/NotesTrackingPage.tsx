@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import notesService from '../services/notesService';
 import type { NotesAnalytics } from '../services/notesService';
+import { logger } from '../utils/logger';
 
 const NotesTrackingPage: React.FC = () => {
   const [analytics, setAnalytics] = useState<NotesAnalytics | null>(null);
@@ -17,7 +18,7 @@ const NotesTrackingPage: React.FC = () => {
       const data = await notesService.getAnalytics();
       setAnalytics(data);
     } catch (error) {
-      console.error('Failed to fetch analytics:', error);
+      logger.error('Failed to fetch analytics:', error);
     } finally {
       setLoading(false);
     }

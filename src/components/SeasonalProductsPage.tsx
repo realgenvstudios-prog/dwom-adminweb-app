@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import seasonalService from '../services/seasonalService';
 import productsService from '../services/productsService';
+import { logger } from '../utils/logger';
 
 interface Product {
   id: number;
@@ -49,7 +50,7 @@ const SeasonalProductsPage: React.FC = () => {
       setSeasonalProducts(seasonalProds || []);
       setConfig(seasonalConfig);
     } catch (err: any) {
-      console.error('Failed to fetch seasonal data:', err);
+      logger.error('Failed to fetch seasonal data:', err);
       setError(err.message || 'Failed to load data');
     } finally {
       setLoading(false);
@@ -79,7 +80,7 @@ const SeasonalProductsPage: React.FC = () => {
       // Refresh data from server
       await fetchData();
     } catch (err: any) {
-      console.error('Failed to toggle seasonal status:', err);
+      logger.error('Failed to toggle seasonal status:', err);
       setError(err.message || 'Failed to update product');
     } finally {
       setSaving(false);
@@ -99,7 +100,7 @@ const SeasonalProductsPage: React.FC = () => {
       setError(null);
       alert('Configuration saved successfully!');
     } catch (err: any) {
-      console.error('Failed to save configuration:', err);
+      logger.error('Failed to save configuration:', err);
       setError(err.message || 'Failed to save configuration');
     } finally {
       setSaving(false);

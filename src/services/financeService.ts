@@ -1,4 +1,5 @@
 import adminApiClient from './apiClient';
+import { logger } from '../utils/logger';
 
 function asArray<T>(value: any): T[] {
   if (Array.isArray(value)) return value as T[];
@@ -58,7 +59,7 @@ class FinanceService {
         const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
         allOrders = asArray<any>(ordersResponse);
       } catch (orderError) {
-        console.warn('⚠️ Could not fetch /orders/admin/all, returning zero values', orderError);
+        logger.warn('⚠️ Could not fetch /orders/admin/all, returning zero values', orderError);
         // Return zero values if orders can't be fetched
         return {
           gmv: 0,
@@ -93,7 +94,7 @@ class FinanceService {
         const subscriptions = asArray<any>(subscriptionsResponse);
         activeSubscriptions = subscriptions.filter((s: any) => s.status === 'active').length;
       } catch (subError) {
-        console.warn('⚠️ Could not fetch subscriptions', subError);
+        logger.warn('⚠️ Could not fetch subscriptions', subError);
       }
       
       const subscriptionPrice = 25.0; // Default GHS/month
@@ -116,7 +117,7 @@ class FinanceService {
 
       return kpis;
     } catch (error: any) {
-      console.error('❌ [FinanceService] Failed to calculate KPIs:', error.message);
+      logger.error('❌ [FinanceService] Failed to calculate KPIs:', error.message);
       // Return zero values on error instead of throwing
       return {
         gmv: 0,
@@ -142,7 +143,7 @@ class FinanceService {
         const ordersResponse = (await adminApiClient.get('/orders/admin/all')) as any;
         allOrders = asArray<any>(ordersResponse);
       } catch (orderError) {
-        console.warn('⚠️ Could not fetch /orders/admin/all for trends', orderError);
+        logger.warn('⚠️ Could not fetch /orders/admin/all for trends', orderError);
         return [];
       }
 
@@ -181,7 +182,7 @@ class FinanceService {
 
       return trends;
     } catch (error: any) {
-      console.error('❌ [FinanceService] Failed to fetch revenue trends:', error.message);
+      logger.error('❌ [FinanceService] Failed to fetch revenue trends:', error.message);
       return [];
     }
   }
@@ -214,7 +215,7 @@ class FinanceService {
 
       return zones;
     } catch (error: any) {
-      console.error('❌ [FinanceService] Failed to fetch revenue by zone:', error.message);
+      logger.error('❌ [FinanceService] Failed to fetch revenue by zone:', error.message);
       return [];
     }
   }
@@ -273,7 +274,7 @@ class FinanceService {
 
       return customers;
     } catch (error: any) {
-      console.error('❌ [FinanceService] Failed to fetch top customers:', error.message);
+      logger.error('❌ [FinanceService] Failed to fetch top customers:', error.message);
       return [];
     }
   }
@@ -302,7 +303,7 @@ class FinanceService {
 
       return failedPayments;
     } catch (error: any) {
-      console.error('❌ [FinanceService] Failed to fetch failed payments:', error.message);
+      logger.error('❌ [FinanceService] Failed to fetch failed payments:', error.message);
       return [];
     }
   }
@@ -318,7 +319,7 @@ class FinanceService {
 
       return activeCount;
     } catch (error: any) {
-      console.error('❌ [FinanceService] Failed to fetch subscriptions:', error.message);
+      logger.error('❌ [FinanceService] Failed to fetch subscriptions:', error.message);
       return 0;
     }
   }

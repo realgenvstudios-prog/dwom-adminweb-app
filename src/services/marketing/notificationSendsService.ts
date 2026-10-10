@@ -1,5 +1,6 @@
 import adminApiClient from '../apiClient';
 import type { NotificationSend } from './marketingTypes';
+import { logger } from '../../utils/logger';
 
 // Bulk/broadcast notification sends. Split out of the former monolithic
 // MarketingService.
@@ -21,7 +22,7 @@ export class NotificationSendsService {
       const send = (await adminApiClient.post('/marketing/sends', data)) as any;
       return send;
     } catch (error: any) {
-      console.error('❌ Failed to send notification:', error.message);
+      logger.error('❌ Failed to send notification:', error.message);
       throw error;
     }
   }
@@ -34,7 +35,7 @@ export class NotificationSendsService {
       const sends = (await adminApiClient.get('/marketing/sends')) as any;
       return sends;
     } catch (error: any) {
-      console.error('❌ Failed to fetch sends:', error.message);
+      logger.error('❌ Failed to fetch sends:', error.message);
       throw error;
     }
   }
@@ -47,7 +48,7 @@ export class NotificationSendsService {
       const send = (await adminApiClient.get(`/marketing/sends/${id}`)) as any;
       return send;
     } catch (error: any) {
-      console.error('❌ Failed to fetch send:', error.message);
+      logger.error('❌ Failed to fetch send:', error.message);
       throw error;
     }
   }
@@ -65,7 +66,7 @@ export class NotificationSendsService {
       const result = (await adminApiClient.post('/notifications/broadcast', data)) as any;
       return result;
     } catch (error: any) {
-      console.error('❌ Failed to send broadcast notification:', error.message);
+      logger.error('❌ Failed to send broadcast notification:', error.message);
       throw error;
     }
   }
@@ -83,7 +84,7 @@ export class NotificationSendsService {
       const result = (await adminApiClient.post('/notifications/promotion', data)) as any;
       return result;
     } catch (error: any) {
-      console.error('❌ Failed to send promotion notification:', error.message);
+      logger.error('❌ Failed to send promotion notification:', error.message);
       throw error;
     }
   }
@@ -100,7 +101,7 @@ export class NotificationSendsService {
       const result = (await adminApiClient.post('/notifications/product-update', data)) as any;
       return result;
     } catch (error: any) {
-      console.error('❌ Failed to send product update notification:', error.message);
+      logger.error('❌ Failed to send product update notification:', error.message);
       throw error;
     }
   }
@@ -119,7 +120,7 @@ export class NotificationSendsService {
       const result = (await adminApiClient.post('/notifications/send-to-users', data)) as any;
       return result;
     } catch (error: any) {
-      console.error('❌ Failed to send notification to users:', error.message);
+      logger.error('❌ Failed to send notification to users:', error.message);
       throw error;
     }
   }

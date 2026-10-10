@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import bundlesService from "../../../services/bundlesService";
 import type { Bundle } from "../../../services/bundlesService";
 import type { Product } from "../BundleTypes";
+import { logger } from '../../../utils/logger';
 
 export type BundleItem = { productId: number; quantity: number; visibleVariationOptionIds?: number[] };
 
@@ -98,7 +99,7 @@ export function useBundleForm(
       setError(null);
 
       if (editingBundle) {
-        console.log(`✏️ [CreateBundleModal] Updating bundle ${editingBundle.id}`);
+        logger.log(`✏️ [CreateBundleModal] Updating bundle ${editingBundle.id}`);
         await bundlesService.update(editingBundle.id, {
           name: name.trim(),
           description: description.trim() || undefined,
@@ -107,10 +108,10 @@ export function useBundleForm(
           imageUrl: imageUrl.trim() || undefined,
           items: bundleItems,
         });
-        console.log('✅ [CreateBundleModal] Bundle updated');
+        logger.log('✅ [CreateBundleModal] Bundle updated');
         alert('Bundle updated successfully!');
       } else {
-        console.log('📦 [CreateBundleModal] Creating new bundle');
+        logger.log('📦 [CreateBundleModal] Creating new bundle');
         await bundlesService.create({
           name: name.trim(),
           description: description.trim() || undefined,
@@ -119,14 +120,14 @@ export function useBundleForm(
           imageUrl: imageUrl.trim() || undefined,
           items: bundleItems,
         });
-        console.log('✅ [CreateBundleModal] Bundle created');
+        logger.log('✅ [CreateBundleModal] Bundle created');
         alert('Bundle created successfully!');
       }
 
       onBundleCreated();
       onClose();
     } catch (err: any) {
-      console.error('❌ [CreateBundleModal] Failed to save bundle:', err);
+      logger.error('❌ [CreateBundleModal] Failed to save bundle:', err);
       setError(err.message || 'Failed to save bundle');
     } finally {
       setLoading(false);

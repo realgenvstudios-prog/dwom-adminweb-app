@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import adminsService, { type Admin, type AdminMetrics, type AdminActivity, type AdminAccessAlert } from "../services/adminsService";
+import { logger } from '../utils/logger';
 
 const roles = [
   "All",
@@ -55,7 +56,7 @@ const AdminsPage: React.FC = () => {
       setActivity(activityData);
       setAlerts(alertsData);
     } catch (error) {
-      console.error("Failed to fetch admin data:", error);
+      logger.error("Failed to fetch admin data:", error);
     } finally {
       setLoading(false);
     }
@@ -85,7 +86,7 @@ const AdminsPage: React.FC = () => {
       }
       alert(`Invite resent to ${admin.email}`);
     } catch (error) {
-      console.error('Failed to resend invite:', error);
+      logger.error('Failed to resend invite:', error);
       alert(`Failed to resend invite to ${admin.name}`);
     }
   };
@@ -103,7 +104,7 @@ const AdminsPage: React.FC = () => {
       }
       fetchData(); // Refresh data
     } catch (error) {
-      console.error('Failed to cancel invite:', error);
+      logger.error('Failed to cancel invite:', error);
       alert(`Failed to cancel invite for ${admin.name}`);
     }
   };
@@ -125,7 +126,7 @@ const AdminsPage: React.FC = () => {
       }
       fetchData(); // Refresh data
     } catch (error) {
-      console.error(`Failed to ${verb} admin:`, error);
+      logger.error(`Failed to ${verb} admin:`, error);
       alert(`Failed to ${verb} ${admin.name}`);
     }
   };
@@ -143,7 +144,7 @@ const AdminsPage: React.FC = () => {
       setInvite({ name: "", email: "", phone: "", role: "" });
       fetchData(); // Refresh data
     } catch (error) {
-      console.error("Failed to invite admin:", error);
+      logger.error("Failed to invite admin:", error);
       alert("Failed to invite admin");
     }
   };
@@ -237,8 +238,8 @@ const AdminsPage: React.FC = () => {
                             </>
                           ) : (
                             <>
-                              <button className="text-blue-600 hover:underline text-xs" onClick={() => console.log('View', a)}>View</button>
-                              <button className="text-gray-600 hover:underline text-xs" onClick={() => console.log('Edit', a)}>Edit</button>
+                              <button className="text-blue-600 hover:underline text-xs" onClick={() => logger.log('View', a)}>View</button>
+                              <button className="text-gray-600 hover:underline text-xs" onClick={() => logger.log('Edit', a)}>Edit</button>
                               <button
                                 className={`hover:underline text-xs ${a.status === 'Suspended' ? 'text-green-600' : 'text-red-500'}`}
                                 onClick={() => handleToggleSuspend(a)}

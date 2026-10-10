@@ -1,6 +1,7 @@
 import { useState } from "react";
 import procurementService from "../../services/procurementService";
 import type { ProcurementRecord } from "../../services/procurementService";
+import { logger } from '../../utils/logger';
 
 // Recent purchase-history table data. Split out of the former monolithic
 // SuppliersPage.
@@ -16,7 +17,7 @@ export function usePurchaseHistory() {
       setPurchases(data.items);
       setPurchasesTotal(data.total);
     } catch (err) {
-      console.error("❌ [SuppliersPage] Failed to load purchase history:", err);
+      logger.error("❌ [SuppliersPage] Failed to load purchase history:", err);
     } finally {
       setLoadingPurchases(false);
     }

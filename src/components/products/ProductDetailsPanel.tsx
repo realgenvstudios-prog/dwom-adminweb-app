@@ -5,6 +5,7 @@ import VariationGroupsEditor from "./VariationGroupsEditor";
 import type { VariationGroup } from "./VariationGroupsEditor";
 import type { Product, ProductCategory } from "./ProductTypes";
 import ImageUpload from "../common/ImageUpload";
+import { logger } from '../../utils/logger';
 
 interface ProductDetailsPanelProps {
   product: Product | null;
@@ -82,7 +83,7 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
     try {
       setLoading(true);
       const productId = typeof product.id === 'string' ? parseInt(product.id, 10) : product.id;
-      console.log(`✏️ [ProductDetailsPanel] Updating product ${productId}`);
+      logger.log(`✏️ [ProductDetailsPanel] Updating product ${productId}`);
       
       // Update product details
       await productsService.update(productId, {
@@ -101,7 +102,7 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
       // Update inventory if it changed
       const currentQuantity = product.inventory?.quantity || 0;
       if (formData.inventoryQuantity !== currentQuantity) {
-        console.log(`📦 [ProductDetailsPanel] Updating inventory from ${currentQuantity} to ${formData.inventoryQuantity}`);
+        logger.log(`📦 [ProductDetailsPanel] Updating inventory from ${currentQuantity} to ${formData.inventoryQuantity}`);
         
         const difference = formData.inventoryQuantity - currentQuantity;
         if (difference > 0) {
@@ -118,12 +119,12 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
         }
       }
       
-      console.log('✅ [ProductDetailsPanel] Product updated');
+      logger.log('✅ [ProductDetailsPanel] Product updated');
       alert('Product updated successfully!');
       setEditing(false);
       onProductUpdated?.();
     } catch (error: any) {
-      console.error('❌ [ProductDetailsPanel] Failed to update product:', error);
+      logger.error('❌ [ProductDetailsPanel] Failed to update product:', error);
       alert(`Failed to update product: ${error.message}`);
     } finally {
       setLoading(false);
@@ -136,16 +137,16 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
       try {
         setLoading(true);
         const productId = typeof product.id === 'string' ? parseInt(product.id, 10) : product.id;
-        console.log(`🗑️ [ProductDetailsPanel] Deleting product ${productId}`);
+        logger.log(`🗑️ [ProductDetailsPanel] Deleting product ${productId}`);
         
         await productsService.delete(productId);
         
-        console.log('✅ [ProductDetailsPanel] Product deleted');
+        logger.log('✅ [ProductDetailsPanel] Product deleted');
         alert('Product deleted successfully!');
         onProductDeleted?.();
         onClose();
       } catch (error: any) {
-        console.error('❌ [ProductDetailsPanel] Failed to delete product:', error);
+        logger.error('❌ [ProductDetailsPanel] Failed to delete product:', error);
         alert(`Failed to delete product: ${error.message}`);
       } finally {
         setLoading(false);

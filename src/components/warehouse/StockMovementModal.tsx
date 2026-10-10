@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import inventoryService from '../../services/inventoryService';
+import { logger } from '../../utils/logger';
 
 interface StockMovementModalProps {
   open: boolean;
@@ -42,7 +43,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
       setLoading(true);
       setError(null);
 
-      console.log(`📦 [StockMovementModal] Recording ${type} movement for product ${productId}`);
+      logger.log(`📦 [StockMovementModal] Recording ${type} movement for product ${productId}`);
       await inventoryService.recordMovement(productId!, {
         type,
         quantity: parseInt(quantity),
@@ -50,7 +51,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
         reference: reference.trim() || undefined,
       });
 
-      console.log('✅ [StockMovementModal] Movement recorded');
+      logger.log('✅ [StockMovementModal] Movement recorded');
       alert('Stock movement recorded successfully!');
       setQuantity('');
       setReason('');
@@ -59,7 +60,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
       onSuccess();
       onClose();
     } catch (err: any) {
-      console.error('❌ [StockMovementModal] Failed to record movement:', err);
+      logger.error('❌ [StockMovementModal] Failed to record movement:', err);
       setError(err.message || 'Failed to record movement');
     } finally {
       setLoading(false);

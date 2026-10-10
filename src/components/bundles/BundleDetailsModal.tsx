@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import bundlesService from '../../services/bundlesService';
 import type { Bundle } from '../../services/bundlesService';
+import { logger } from '../../utils/logger';
 
 interface BundleDetailsModalProps {
   open: boolean;
@@ -27,13 +28,13 @@ const BundleDetailsModal: React.FC<BundleDetailsModalProps> = ({
     try {
       setLoading(true);
       setError(null);
-      console.log(`📦 [BundleDetailsModal] Fetching bundle ${bundleId}`);
+      logger.log(`📦 [BundleDetailsModal] Fetching bundle ${bundleId}`);
       
       const data = await bundlesService.getById(bundleId!);
-      console.log('✅ [BundleDetailsModal] Bundle details loaded');
+      logger.log('✅ [BundleDetailsModal] Bundle details loaded');
       setBundle(data);
     } catch (err: any) {
-      console.error('❌ [BundleDetailsModal] Failed to fetch bundle:', err);
+      logger.error('❌ [BundleDetailsModal] Failed to fetch bundle:', err);
       setError(err.message || 'Failed to load bundle details');
     } finally {
       setLoading(false);

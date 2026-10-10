@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ReactApexChart from "react-apexcharts";
 import financeService from "../../services/financeService";
+import { logger } from '../../utils/logger';
 
 const REFRESH_INTERVAL = 15 * 60 * 1000; // 15 minutes
 
@@ -39,7 +40,7 @@ const RevenueByZoneChart: React.FC = () => {
         setError("No zone data available");
       }
     } catch (error: any) {
-      console.error("Failed to fetch revenue by zone:", error);
+      logger.error("Failed to fetch revenue by zone:", error);
       setError(error?.message || "Failed to load zone data");
     } finally {
       setLoading(false);

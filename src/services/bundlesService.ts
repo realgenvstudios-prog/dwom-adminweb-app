@@ -1,4 +1,5 @@
 import type { VariationGroup, VariationOption } from '../components/products/VariationGroupsEditor';
+import { logger } from '../utils/logger';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://dwom-backend.onrender.com';
 
@@ -93,7 +94,7 @@ class BundlesService {
       const data = await response.json();
       return data;
     } catch (error: any) {
-      console.error('❌ [BundlesService] Failed to fetch bundles:', error);
+      logger.error('❌ [BundlesService] Failed to fetch bundles:', error);
       throw error;
     }
   }
@@ -118,7 +119,7 @@ class BundlesService {
       const data = await response.json();
       return data;
     } catch (error: any) {
-      console.error(`❌ [BundlesService] Failed to fetch bundle ${id}:`, error);
+      logger.error(`❌ [BundlesService] Failed to fetch bundle ${id}:`, error);
       throw error;
     }
   }
@@ -144,7 +145,7 @@ class BundlesService {
       const data = await response.json();
       return data;
     } catch (error: any) {
-      console.error('❌ [BundlesService] Failed to create bundle:', error);
+      logger.error('❌ [BundlesService] Failed to create bundle:', error);
       throw error;
     }
   }
@@ -170,7 +171,7 @@ class BundlesService {
       const data = await response.json();
       return data;
     } catch (error: any) {
-      console.error(`❌ [BundlesService] Failed to update bundle ${id}:`, error);
+      logger.error(`❌ [BundlesService] Failed to update bundle ${id}:`, error);
       throw error;
     }
   }
@@ -195,7 +196,7 @@ class BundlesService {
       const data = await response.json();
       return data;
     } catch (error: any) {
-      console.error(`❌ [BundlesService] Failed to delete bundle ${id}:`, error);
+      logger.error(`❌ [BundlesService] Failed to delete bundle ${id}:`, error);
       throw error;
     }
   }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import adminApiClient from "../services/apiClient";
+import { logger } from '../utils/logger';
 
 interface Order {
   id: number;
@@ -29,7 +30,7 @@ const OrdersTable: React.FC = () => {
         .slice(0, 4);
       setOrders(recentOrders);
     } catch (error) {
-      console.error("Failed to fetch orders:", error);
+      logger.error("Failed to fetch orders:", error);
     } finally {
       setLoading(false);
     }

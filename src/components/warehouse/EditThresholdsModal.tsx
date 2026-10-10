@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import inventoryService from "../../services/inventoryService";
 import type { InventoryItem } from "../../services/inventoryService";
+import { logger } from '../../utils/logger';
 
 interface EditThresholdsModalProps {
   isOpen: boolean;
@@ -42,11 +43,11 @@ const EditThresholdsModal: React.FC<EditThresholdsModalProps> = ({
         reorderQuantity
       );
 
-      console.log("✅ Thresholds updated successfully");
+      logger.log("✅ Thresholds updated successfully");
       onSuccess();
       onClose();
     } catch (err: any) {
-      console.error("❌ Failed to update thresholds:", err);
+      logger.error("❌ Failed to update thresholds:", err);
       setError(err.message || "Failed to update thresholds");
     } finally {
       setLoading(false);

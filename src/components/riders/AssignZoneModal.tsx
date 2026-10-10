@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import type { RiderData, Zone } from "../../services/ridersService";
 import ridersService from "../../services/ridersService";
+import { logger } from '../../utils/logger';
 
 interface AssignZoneModalProps {
   isOpen: boolean;
@@ -52,7 +53,7 @@ const AssignZoneModal: React.FC<AssignZoneModalProps> = ({
       onSuccess();
       onClose();
     } catch (err: any) {
-      console.error("Failed to assign zone:", err);
+      logger.error("Failed to assign zone:", err);
       setError(err.message || "Failed to assign zone");
     } finally {
       setLoading(false);

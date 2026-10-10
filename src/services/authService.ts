@@ -1,4 +1,5 @@
 import adminApiClient from './apiClient';
+import { logger } from '../utils/logger';
 // import { supabase } from './supabaseClient'; // Disabled - using hardcoded login for now
 
 export interface AdminLoginRequest {
@@ -57,7 +58,7 @@ export const adminAuthService = {
       const message = response.status === 401
         ? 'Invalid email or password'
         : `Login failed (server returned ${response.status})`;
-      console.error('❌ [AuthService] Login failed:', message);
+      logger.error('❌ [AuthService] Login failed:', message);
       throw new Error(message);
     }
 
@@ -112,7 +113,7 @@ export const adminAuthService = {
    */
   async loginWithSupabase(_email: string, _password: string): Promise<AuthResponse> {
     // try {
-    //   console.log('🔐 [AuthService] Signing in with Supabase (email/password)');
+    //   logger.log('🔐 [AuthService] Signing in with Supabase (email/password)');
     //   const { data, error } = await supabase.auth.signInWithPassword({
     //     email,
     //     password,
@@ -138,7 +139,7 @@ export const adminAuthService = {
     //     admin,
     //   };
     // } catch (error: any) {
-    //   console.error('❌ [AuthService] Supabase login failed:', error);
+    //   logger.error('❌ [AuthService] Supabase login failed:', error);
     //   throw error;
     // }
     throw new Error('Supabase login disabled - use login() instead');
@@ -154,7 +155,7 @@ export const adminAuthService = {
       adminApiClient.clearToken();
       sessionStorage.removeItem('admin_user');
     } catch (error) {
-      console.error('❌ [AuthService] Logout failed:', error);
+      logger.error('❌ [AuthService] Logout failed:', error);
     }
   },
 
@@ -191,7 +192,7 @@ export const adminAuthService = {
       }
       return false;
     } catch (error) {
-      console.error('⚠️ [AuthService] Token verification failed:', error);
+      logger.error('⚠️ [AuthService] Token verification failed:', error);
       // Don't clear token here - let the caller decide what to do
       // This allows for temporary backend failures without logging users out
       throw error;

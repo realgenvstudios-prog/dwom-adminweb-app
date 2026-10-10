@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import inventoryService from "../../services/inventoryService";
 import type { Product } from "./ProductTypes";
+import { logger } from '../../utils/logger';
 
 interface BulkInventoryActionsProps {
   selectedCount: number;
@@ -64,7 +65,7 @@ const BulkInventoryActions: React.FC<BulkInventoryActionsProps> = ({
       setSuccess("✅ Inventory backup downloaded successfully!");
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
-      console.error("❌ [BulkInventoryActions] Download failed:", err);
+      logger.error("❌ [BulkInventoryActions] Download failed:", err);
       setError(`Failed to download backup: ${err.message}`);
     } finally {
       setLoading(false);
@@ -82,7 +83,7 @@ const BulkInventoryActions: React.FC<BulkInventoryActionsProps> = ({
       setError(null);
       setSuccess(null);
 
-      console.log(`📦 [BulkInventoryActions] ${actionMode === "restock" ? "Adding" : "Setting"} ${quantity} units to ${selectedCount} products`);
+      logger.log(`📦 [BulkInventoryActions] ${actionMode === "restock" ? "Adding" : "Setting"} ${quantity} units to ${selectedCount} products`);
 
       const productIds = selectedProductIds.map((id) => parseInt(id, 10));
       let successCount = 0;
@@ -114,7 +115,7 @@ const BulkInventoryActions: React.FC<BulkInventoryActionsProps> = ({
           }
           successCount++;
         } catch (err) {
-          console.error(`Failed to update product ${productId}:`, err);
+          logger.error(`Failed to update product ${productId}:`, err);
           failedCount++;
         }
       }
@@ -129,7 +130,7 @@ const BulkInventoryActions: React.FC<BulkInventoryActionsProps> = ({
       onActionComplete?.();
       setTimeout(() => setSuccess(null), 4000);
     } catch (err: any) {
-      console.error("❌ [BulkInventoryActions] Action failed:", err);
+      logger.error("❌ [BulkInventoryActions] Action failed:", err);
       setError(`Operation failed: ${err.message}`);
     } finally {
       setLoading(false);
