@@ -1,53 +1,123 @@
-import React from "react";
-import type { Rider } from "./RiderTypes";
+import type { RiderData } from "../../services/ridersService";
+import { getStatusColor } from "./riderStatusColor";
 
 interface RidersTableProps {
-  riders: Rider[];
-  onRowClick: (rider: Rider) => void;
+  filteredRiders: RiderData[];
+  onViewDetails: (rider: RiderData) => void;
+  onStatusChange: (rider: RiderData, newStatus: string) => void;
+  onAssignZone: (rider: RiderData) => void;
+  onDeactivate: (rider: RiderData) => void;
+  onReactivate: (rider: RiderData) => void;
 }
 
-const getInitials = (name: string) => name.split(" ").map(n => n[0]).join("").toUpperCase();
-
-const RidersTable: React.FC<RidersTableProps> = ({ riders, onRowClick }) => (
-  <div className="bg-white rounded-xl shadow border border-gray-100 overflow-x-auto">
-    <table className="min-w-full text-sm">
-      <thead>
-        <tr className="bg-gray-50">
-          <th className="px-4 py-3 text-left">Rider</th>
-          <th className="px-4 py-3 text-left">Phone</th>
-          <th className="px-4 py-3 text-left">Zone</th>
-          <th className="px-4 py-3 text-left">Vehicle</th>
-          <th className="px-4 py-3 text-left">Status</th>
-          <th className="px-4 py-3 text-left">Deliveries</th>
-          <th className="px-4 py-3 text-left">Earnings (GHS)</th>
-          <th className="px-4 py-3 text-left">Rating</th>
-          <th className="px-4 py-3 text-left">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {riders.map(rider => (
-          <tr key={rider.id} className="border-t hover:bg-gray-50 cursor-pointer" onClick={() => onRowClick(rider)}>
-            <td className="px-4 py-3 flex items-center gap-2">
-              <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-blue-100 text-blue-700 font-bold text-sm">{getInitials(rider.name)}</span>
-              <span className="font-semibold text-gray-900">{rider.name}</span>
-            </td>
-            <td className="px-4 py-3">{rider.phone}</td>
-            <td className="px-4 py-3">{rider.zone}</td>
-            <td className="px-4 py-3">{rider.vehicleType}</td>
-            <td className="px-4 py-3">
-              <span className={`px-2 py-1 rounded text-xs font-semibold ${rider.status === "Online" ? "bg-green-100 text-green-700" : rider.status === "On Delivery" ? "bg-yellow-100 text-yellow-700" : "bg-gray-200 text-gray-600"}`}>{rider.status}</span>
-            </td>
-            <td className="px-4 py-3">{rider.deliveriesToday}</td>
-            <td className="px-4 py-3">GHS {rider.earningsToday.toFixed(2)}</td>
-            <td className="px-4 py-3">{rider.rating.toFixed(1)}</td>
-            <td className="px-4 py-3">
-              <button className="text-blue-600 hover:underline text-xs" onClick={e => { e.stopPropagation(); onRowClick(rider); }}>View</button>
-            </td>
+// The riders table. Split out of the former monolithic RidersPage.
+export default function RidersTable({
+  filteredRiders,
+  onViewDetails,
+  onStatusChange,
+  onAssignZone,
+  onDeactivate,
+  onReactivate,
+}: RidersTableProps) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-left text-sm">
+        <thead>
+          <tr className="text-gray-500 border-b bg-gray-50">
+            <th className="py-3 px-4 font-medium">Name</th>
+            <th className="py-3 px-4 font-medium">Contact</th>
+            <th className="py-3 px-4 font-medium">Vehicle</th>
+            <th className="py-3 px-4 font-medium">Zone</th>
+            <th className="py-3 px-4 font-medium">Status</th>
+            <th className="py-3 px-4 font-medium">Rating</th>
+            <th className="py-3 px-4 font-medium">Deliveries</th>
+            <th className="py-3 px-4 font-medium">Earnings</th>
+            <th className="py-3 px-4 font-medium">Actions</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-);
-
-export default RidersTable;
+        </thead>
+        <tbody>
+          {filteredRiders.length === 0 ? (
+            <tr>
+              <td colSpan={9} className="py-8 text-center text-gray-500">
+                No riders found
+              </td>
+            </tr>
+          ) : (
+            filteredRiders.map((rider) => (
+              <tr key={rider.id} className="border-b hover:bg-gray-50 cursor-pointer" onClick={() => onViewDetails(rider)}>
+                <td className="py-4 px-4 font-medium">{rider.name}</td>
+                <td className="py-4 px-4 text-gray-600">
+                  <div className="text-sm">{rider.phone}</div>
+                  <div className="text-xs text-gray-500">{rider.email}</div>
+                </td>
+                <td className="py-4 px-4">
+                  <span className="capitalize text-xs bg-blue-50 px-2 py-1 rounded">
+                    {rider.vehicleType}
+                  </span>
+                </td>
+                <td className="py-4 px-4">{rider.zone}</td>
+                <td className="py-4 px-4">
+                  <select
+                    value={rider.status}
+                    onChange={(e) =>
+                      onStatusChange(rider, e.target.value)
+                    }
+                    disabled={!rider.isActive}
+                    className={`px-3 py-1 rounded text-xs font-medium border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 ${getStatusColor(
+                      rider.status
+                    )} ${!rider.isActive ? "opacity-50 cursor-not-allowed" : ""}`}
+                  >
+                    <option value="offline">Offline</option>
+                    <option value="available">Available</option>
+                    <option value="busy">Busy</option>
+                    <option value="on_delivery">On Delivery</option>
+                  </select>
+                </td>
+                <td className="py-4 px-4">
+                  <div className="flex items-center gap-1">
+                    <span className="text-yellow-500">★</span>
+                    <span className="font-semibold">{rider.rating.toFixed(1)}</span>
+                  </div>
+                </td>
+                <td className="py-4 px-4 font-medium">{rider.totalDeliveries}</td>
+                <td className="py-4 px-4 font-medium">
+                  GH₵ {(rider.totalEarnings || 0).toFixed(2)}
+                </td>
+                <td className="py-4 px-4">
+                  <div className="flex gap-2">
+                    {rider.isActive ? (
+                      <>
+                        <button
+                          onClick={(e) => {e.stopPropagation(); onAssignZone(rider);}}
+                          className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200"
+                          title="Assign to zone"
+                        >
+                          Zone
+                        </button>
+                        <button
+                          onClick={(e) => {e.stopPropagation(); onDeactivate(rider);}}
+                          className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200"
+                          title="Deactivate rider"
+                        >
+                          Deactivate
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={(e) => {e.stopPropagation(); onReactivate(rider);}}
+                        className="text-xs px-2 py-1 rounded bg-green-100 text-green-700 hover:bg-green-200"
+                        title="Reactivate rider"
+                      >
+                        Reactivate
+                      </button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
