@@ -51,13 +51,13 @@ class AdminApiClient {
   /**
    * Get authorization headers
    */
-  private getHeaders(): HeadersInit {
-    const headers: HeadersInit = {
+  private getHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {
       ...API_CONFIG.HEADERS,
     };
 
     if (this.token) {
-      (headers as any)['Authorization'] = `Bearer ${this.token}`;
+      headers['Authorization'] = `Bearer ${this.token}`;
     }
 
     return headers;
@@ -99,7 +99,7 @@ class AdminApiClient {
   /**
    * Make a POST request
    */
-  async post<T>(endpoint: string, data?: any): Promise<T> {
+  async post<T>(endpoint: string, data?: unknown): Promise<T> {
     try {
       // Reload token before each request in case it was updated
       this.loadToken();
@@ -142,9 +142,9 @@ class AdminApiClient {
       const formData = new FormData();
       formData.append('file', file);
 
-      const headers: HeadersInit = {};
+      const headers: Record<string, string> = {};
       if (this.token) {
-        (headers as any)['Authorization'] = `Bearer ${this.token}`;
+        headers['Authorization'] = `Bearer ${this.token}`;
       }
 
       const response = await this.fetchWithRetry(`${this.baseURL}${endpoint}`, {
@@ -176,7 +176,7 @@ class AdminApiClient {
   /**
    * Make a PATCH request
    */
-  async patch<T>(endpoint: string, data?: any): Promise<T> {
+  async patch<T>(endpoint: string, data?: unknown): Promise<T> {
     try {
       // Reload token before each request in case it was updated
       this.loadToken();
@@ -210,7 +210,7 @@ class AdminApiClient {
   /**
    * Make a PUT request
    */
-  async put<T>(endpoint: string, data?: any): Promise<T> {
+  async put<T>(endpoint: string, data?: unknown): Promise<T> {
     try {
       // Reload token before each request in case it was updated
       this.loadToken();
