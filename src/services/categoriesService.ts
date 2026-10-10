@@ -1,6 +1,5 @@
+import adminApiClient from './apiClient';
 import { logger } from '../utils/logger';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://dwom-backend.onrender.com';
 
 export interface Category {
   id: number;
@@ -32,20 +31,7 @@ class CategoriesService {
    */
   async getAll(): Promise<Category[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/categories`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch categories: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.get<Category[]>('/categories');
     } catch (error) {
       logger.error('❌ [CategoriesService] Failed to fetch categories:', error);
       throw error;
@@ -57,20 +43,7 @@ class CategoriesService {
    */
   async getById(id: number): Promise<Category> {
     try {
-      const response = await fetch(`${API_BASE_URL}/categories/${id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch category: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.get<Category>(`/categories/${id}`);
     } catch (error) {
       logger.error(`❌ [CategoriesService] Failed to fetch category ${id}:`, error);
       throw error;
@@ -82,21 +55,7 @@ class CategoriesService {
    */
   async create(dto: CreateCategoryDto): Promise<Category> {
     try {
-      const response = await fetch(`${API_BASE_URL}/categories`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-        body: JSON.stringify(dto),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to create category: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.post<Category>('/categories', dto);
     } catch (error) {
       logger.error('❌ [CategoriesService] Failed to create category:', error);
       throw error;
@@ -108,21 +67,7 @@ class CategoriesService {
    */
   async update(id: number, dto: UpdateCategoryDto): Promise<Category> {
     try {
-      const response = await fetch(`${API_BASE_URL}/categories/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-        body: JSON.stringify(dto),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to update category: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.patch<Category>(`/categories/${id}`, dto);
     } catch (error) {
       logger.error(`❌ [CategoriesService] Failed to update category ${id}:`, error);
       throw error;
@@ -134,18 +79,7 @@ class CategoriesService {
    */
   async delete(id: number): Promise<void> {
     try {
-      const response = await fetch(`${API_BASE_URL}/categories/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to delete category: ${response.status}`);
-      }
-
+      await adminApiClient.delete(`/categories/${id}`);
     } catch (error) {
       logger.error(`❌ [CategoriesService] Failed to delete category ${id}:`, error);
       throw error;

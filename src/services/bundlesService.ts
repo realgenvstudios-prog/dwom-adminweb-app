@@ -1,7 +1,6 @@
+import adminApiClient from './apiClient';
 import type { VariationGroup, VariationOption } from '../components/products/VariationGroupsEditor';
 import { logger } from '../utils/logger';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://dwom-backend.onrender.com';
 
 // Both VariationGroup and VariationOption are create/edit-flow types with no
 // `id` (a group/option being authored doesn't have one yet). The product's
@@ -79,20 +78,7 @@ class BundlesService {
    */
   async getAll(): Promise<Bundle[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/bundles?includeInactive=true`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch bundles: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.get<Bundle[]>('/bundles?includeInactive=true');
     } catch (error) {
       logger.error('❌ [BundlesService] Failed to fetch bundles:', error);
       throw error;
@@ -104,20 +90,7 @@ class BundlesService {
    */
   async getById(id: number): Promise<Bundle> {
     try {
-      const response = await fetch(`${API_BASE_URL}/bundles/${id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch bundle: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.get<Bundle>(`/bundles/${id}`);
     } catch (error) {
       logger.error(`❌ [BundlesService] Failed to fetch bundle ${id}:`, error);
       throw error;
@@ -129,21 +102,7 @@ class BundlesService {
    */
   async create(dto: CreateBundleDto): Promise<Bundle> {
     try {
-      const response = await fetch(`${API_BASE_URL}/bundles`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-        body: JSON.stringify(dto),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to create bundle: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.post<Bundle>('/bundles', dto);
     } catch (error) {
       logger.error('❌ [BundlesService] Failed to create bundle:', error);
       throw error;
@@ -155,21 +114,7 @@ class BundlesService {
    */
   async update(id: number, dto: UpdateBundleDto): Promise<Bundle> {
     try {
-      const response = await fetch(`${API_BASE_URL}/bundles/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-        body: JSON.stringify(dto),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to update bundle: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.patch<Bundle>(`/bundles/${id}`, dto);
     } catch (error) {
       logger.error(`❌ [BundlesService] Failed to update bundle ${id}:`, error);
       throw error;
@@ -181,20 +126,7 @@ class BundlesService {
    */
   async delete(id: number): Promise<{ message: string }> {
     try {
-      const response = await fetch(`${API_BASE_URL}/bundles/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to delete bundle: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.delete<{ message: string }>(`/bundles/${id}`);
     } catch (error) {
       logger.error(`❌ [BundlesService] Failed to delete bundle ${id}:`, error);
       throw error;

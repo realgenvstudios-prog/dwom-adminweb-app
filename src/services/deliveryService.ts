@@ -1,6 +1,5 @@
+import adminApiClient from './apiClient';
 import { logger } from '../utils/logger';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://dwom-backend.onrender.com';
 
 export interface DeliveryZone {
   id: number;
@@ -34,20 +33,7 @@ const deliveryService = {
    */
   async getAllZones(): Promise<DeliveryZone[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/delivery/zones`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch zones: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.get<DeliveryZone[]>('/delivery/zones');
     } catch (error) {
       logger.error('❌ [DeliveryService] Failed to fetch zones:', error);
       throw error;
@@ -59,22 +45,7 @@ const deliveryService = {
    */
   async updateZone(zoneId: number, data: Partial<DeliveryZone>): Promise<DeliveryZone> {
     try {
-      const response = await fetch(`${API_BASE_URL}/delivery/zones/${zoneId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `Failed to update zone: ${response.status}`);
-      }
-
-      const result = await response.json();
-      return result;
+      return await adminApiClient.patch<DeliveryZone>(`/delivery/zones/${zoneId}`, data);
     } catch (error) {
       logger.error('❌ [DeliveryService] Failed to update zone:', error);
       throw error;
@@ -86,21 +57,7 @@ const deliveryService = {
    */
   async toggleZone(zoneId: number): Promise<DeliveryZone> {
     try {
-      const response = await fetch(`${API_BASE_URL}/delivery/zones/${zoneId}/toggle`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `Failed to toggle zone: ${response.status}`);
-      }
-
-      const result = await response.json();
-      return result;
+      return await adminApiClient.patch<DeliveryZone>(`/delivery/zones/${zoneId}/toggle`);
     } catch (error) {
       logger.error('❌ [DeliveryService] Failed to toggle zone:', error);
       throw error;
@@ -112,21 +69,7 @@ const deliveryService = {
    */
   async deleteZone(zoneId: number): Promise<{ success: boolean; message: string }> {
     try {
-      const response = await fetch(`${API_BASE_URL}/delivery/zones/${zoneId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `Failed to delete zone: ${response.status}`);
-      }
-
-      const result = await response.json();
-      return result;
+      return await adminApiClient.delete<{ success: boolean; message: string }>(`/delivery/zones/${zoneId}`);
     } catch (error) {
       logger.error('❌ [DeliveryService] Failed to delete zone:', error);
       throw error;
@@ -138,19 +81,7 @@ const deliveryService = {
    */
   async checkDelivery(lat: number, lng: number): Promise<DeliveryCheckResult> {
     try {
-      const response = await fetch(`${API_BASE_URL}/delivery/check?lat=${lat}&lng=${lng}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to check delivery: ${response.status}`);
-      }
-
-      return await response.json();
+      return await adminApiClient.get<DeliveryCheckResult>(`/delivery/check?lat=${lat}&lng=${lng}`);
     } catch (error) {
       logger.error('❌ [DeliveryService] Failed to check delivery:', error);
       throw error;
@@ -165,22 +96,7 @@ const deliveryService = {
     predictions: { place_id: string; description: string; main_text: string; secondary_text: string }[];
   }> {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/delivery/geocode/autocomplete?input=${encodeURIComponent(input)}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Autocomplete failed: ${response.status}`);
-      }
-
-      return await response.json();
+      return await adminApiClient.get(`/delivery/geocode/autocomplete?input=${encodeURIComponent(input)}`);
     } catch (error) {
       logger.error('❌ [DeliveryService] Autocomplete failed:', error);
       throw error;
@@ -195,22 +111,7 @@ const deliveryService = {
     result: { name: string; formatted_address: string; lat: number; lng: number } | null;
   }> {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/delivery/geocode/details?placeId=${encodeURIComponent(placeId)}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Place details failed: ${response.status}`);
-      }
-
-      return await response.json();
+      return await adminApiClient.get(`/delivery/geocode/details?placeId=${encodeURIComponent(placeId)}`);
     } catch (error) {
       logger.error('❌ [DeliveryService] Place details failed:', error);
       throw error;

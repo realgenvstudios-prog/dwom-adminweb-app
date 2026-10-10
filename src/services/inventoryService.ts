@@ -1,6 +1,5 @@
+import adminApiClient from './apiClient';
 import { logger } from '../utils/logger';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://dwom-backend.onrender.com';
 
 export interface InventoryItem {
   id: number;
@@ -62,20 +61,7 @@ class InventoryService {
    */
   async getAll(): Promise<InventoryItem[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/inventory`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch inventory: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.get<InventoryItem[]>('/inventory');
     } catch (error) {
       logger.error('❌ [InventoryService] Failed to fetch inventory:', error);
       throw error;
@@ -87,20 +73,7 @@ class InventoryService {
    */
   async getByProduct(productId: number): Promise<InventoryItem> {
     try {
-      const response = await fetch(`${API_BASE_URL}/inventory/product/${productId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch inventory: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.get<InventoryItem>(`/inventory/product/${productId}`);
     } catch (error) {
       logger.error(`❌ [InventoryService] Failed to fetch inventory for product ${productId}:`, error);
       throw error;
@@ -112,20 +85,7 @@ class InventoryService {
    */
   async getLowStock(): Promise<InventoryItem[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/inventory/low-stock`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch low stock items: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.get<InventoryItem[]>('/inventory/low-stock');
     } catch (error) {
       logger.error('❌ [InventoryService] Failed to fetch low stock items:', error);
       throw error;
@@ -137,20 +97,7 @@ class InventoryService {
    */
   async getStats(): Promise<InventoryStats> {
     try {
-      const response = await fetch(`${API_BASE_URL}/inventory/stats`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch stats: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.get<InventoryStats>('/inventory/stats');
     } catch (error) {
       logger.error('❌ [InventoryService] Failed to fetch stats:', error);
       throw error;
@@ -162,21 +109,7 @@ class InventoryService {
    */
   async restock(productId: number, dto: RestockInventoryDto): Promise<InventoryItem> {
     try {
-      const response = await fetch(`${API_BASE_URL}/inventory/product/${productId}/restock`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-        body: JSON.stringify(dto),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to restock: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.patch<InventoryItem>(`/inventory/product/${productId}/restock`, dto);
     } catch (error) {
       logger.error(`❌ [InventoryService] Failed to restock product ${productId}:`, error);
       throw error;
@@ -188,21 +121,7 @@ class InventoryService {
    */
   async recordMovement(productId: number, dto: RecordMovementDto): Promise<MovementRecord> {
     try {
-      const response = await fetch(`${API_BASE_URL}/inventory/product/${productId}/movement`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-        body: JSON.stringify(dto),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to record movement: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.post<MovementRecord>(`/inventory/product/${productId}/movement`, dto);
     } catch (error) {
       logger.error(`❌ [InventoryService] Failed to record movement for product ${productId}:`, error);
       throw error;
@@ -214,20 +133,7 @@ class InventoryService {
    */
   async getMovementHistory(productId: number, limit: number = 20): Promise<MovementRecord[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/inventory/product/${productId}/history?limit=${limit}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch movement history: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.get<MovementRecord[]>(`/inventory/product/${productId}/history?limit=${limit}`);
     } catch (error) {
       logger.error(`❌ [InventoryService] Failed to fetch movement history for product ${productId}:`, error);
       throw error;
@@ -239,21 +145,7 @@ class InventoryService {
    */
   async create(dto: CreateInventoryDto): Promise<InventoryItem> {
     try {
-      const response = await fetch(`${API_BASE_URL}/inventory`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-        body: JSON.stringify(dto),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to create inventory: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.post<InventoryItem>('/inventory', dto);
     } catch (error) {
       logger.error(`❌ [InventoryService] Failed to create inventory:`, error);
       throw error;
@@ -265,21 +157,7 @@ class InventoryService {
    */
   async updateThresholds(productId: number, reorderLevel: number, reorderQuantity: number): Promise<InventoryItem> {
     try {
-      const response = await fetch(`${API_BASE_URL}/inventory/product/${productId}/thresholds`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-        body: JSON.stringify({ reorderLevel, reorderQuantity }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to update thresholds: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.patch<InventoryItem>(`/inventory/product/${productId}/thresholds`, { reorderLevel, reorderQuantity });
     } catch (error) {
       logger.error(`❌ [InventoryService] Failed to update thresholds for product ${productId}:`, error);
       throw error;

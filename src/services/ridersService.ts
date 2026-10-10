@@ -1,6 +1,5 @@
+import adminApiClient from './apiClient';
 import { logger } from '../utils/logger';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://dwom-backend.onrender.com';
 
 export interface RiderData {
   id: number;
@@ -60,20 +59,7 @@ class RidersService {
    */
   async getAllRiders(): Promise<RiderData[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/riders/admin/all`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch riders: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.get<RiderData[]>('/riders/admin/all');
     } catch (error) {
       logger.error('❌ [RidersService] Failed to fetch riders:', error);
       throw error;
@@ -85,20 +71,7 @@ class RidersService {
    */
   async getAllZones(): Promise<Zone[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/riders/zones`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch zones: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.get<Zone[]>('/riders/zones');
     } catch (error) {
       logger.error('❌ [RidersService] Failed to fetch zones:', error);
       throw error;
@@ -110,22 +83,7 @@ class RidersService {
    */
   async createZone(dto: { name: string; description?: string; lat: number; lng: number; radius: number; deliveryFee?: number }): Promise<Zone> {
     try {
-      const response = await fetch(`${API_BASE_URL}/riders/zones`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-        body: JSON.stringify(dto),
-      });
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `Failed to create zone: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.post<Zone>('/riders/zones', dto);
     } catch (error) {
       logger.error('❌ [RidersService] Failed to create zone:', error);
       throw error;
@@ -137,21 +95,7 @@ class RidersService {
    */
   async updateRiderStatus(riderId: number, status: string): Promise<RiderData> {
     try {
-      const response = await fetch(`${API_BASE_URL}/riders/admin/${riderId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-        body: JSON.stringify({ status }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to update rider status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.patch<RiderData>(`/riders/admin/${riderId}/status`, { status });
     } catch (error) {
       logger.error(`❌ [RidersService] Failed to update rider status:`, error);
       throw error;
@@ -163,20 +107,7 @@ class RidersService {
    */
   async deactivateRider(riderId: number): Promise<RiderData> {
     try {
-      const response = await fetch(`${API_BASE_URL}/riders/admin/${riderId}/deactivate`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to deactivate rider: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.patch<RiderData>(`/riders/admin/${riderId}/deactivate`);
     } catch (error) {
       logger.error(`❌ [RidersService] Failed to deactivate rider:`, error);
       throw error;
@@ -188,21 +119,7 @@ class RidersService {
    */
   async registerRider(dto: CreateRiderDto): Promise<RiderData> {
     try {
-      const response = await fetch(`${API_BASE_URL}/riders/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-        body: JSON.stringify(dto),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to register rider: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.post<RiderData>('/riders/register', dto);
     } catch (error) {
       logger.error(`❌ [RidersService] Failed to register rider:`, error);
       throw error;
@@ -214,22 +131,7 @@ class RidersService {
    */
   async createRiderAdmin(dto: { name: string; phone: string; email?: string; vehicleType: string; licenseNumber?: string }): Promise<RiderData> {
     try {
-      const response = await fetch(`${API_BASE_URL}/riders/admin/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-        body: JSON.stringify(dto),
-      });
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `Failed to create rider: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.post<RiderData>('/riders/admin/create', dto);
     } catch (error) {
       logger.error(`❌ [RidersService] Failed to create rider:`, error);
       throw error;
@@ -241,20 +143,7 @@ class RidersService {
    */
   async getAllUsers(): Promise<User[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/users`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch users: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.get<User[]>('/users');
     } catch (error) {
       logger.error('❌ [RidersService] Failed to fetch users:', error);
       throw error;
@@ -266,20 +155,7 @@ class RidersService {
    */
   async reactivateRider(riderId: number): Promise<RiderData> {
     try {
-      const response = await fetch(`${API_BASE_URL}/riders/admin/${riderId}/reactivate`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to reactivate rider: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.patch<RiderData>(`/riders/admin/${riderId}/reactivate`);
     } catch (error) {
       logger.error(`❌ [RidersService] Failed to reactivate rider:`, error);
       throw error;
@@ -291,21 +167,7 @@ class RidersService {
    */
   async assignZone(riderId: number, zoneId: number): Promise<RiderData> {
     try {
-      const response = await fetch(`${API_BASE_URL}/riders/admin/${riderId}/zone`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('admin_token')}`,
-        },
-        body: JSON.stringify({ zoneId }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to assign zone: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return await adminApiClient.patch<RiderData>(`/riders/admin/${riderId}/zone`, { zoneId });
     } catch (error) {
       logger.error(`❌ [RidersService] Failed to assign zone:`, error);
       throw error;

@@ -1,4 +1,4 @@
-import apiClient from './apiClient';
+import adminApiClient from './apiClient';
 import { logger } from '../utils/logger';
 
 export interface CustomerMetrics {
@@ -72,14 +72,14 @@ class CustomersService {
     try {
       
       // Fetch all users from the backend
-      const response = await apiClient.get<{ data?: RawUser[] } | RawUser[]>('/users');
+      const response = await adminApiClient.get<{ data?: RawUser[] } | RawUser[]>('/users');
       const users = Array.isArray(response) ? response : response?.data || [];
 
       // For each user, fetch their orders to calculate stats
       const customersWithStats = await Promise.all(
         users.map(async (user) => {
           try {
-            const ordersResponse = await apiClient.get<{ data?: RawOrder[] } | RawOrder[]>(`/orders?userId=${user.id}`);
+            const ordersResponse = await adminApiClient.get<{ data?: RawOrder[] } | RawOrder[]>(`/orders?userId=${user.id}`);
             const orders = Array.isArray(ordersResponse) ? ordersResponse : ordersResponse?.data || [];
 
             const totalOrders = orders.length;
