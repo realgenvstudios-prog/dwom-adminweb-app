@@ -1,17 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import seasonalService from '../services/seasonalService';
 import productsService from '../services/productsService';
+import type { Product } from '../services/productsService';
 import { logger } from '../utils/logger';
-
-interface Product {
-  id: number;
-  nameEnglish: string;
-  nameLocal: string;
-  price: number;
-  pricePerUnit: number;
-  seasonal: boolean;
-  imageUrl?: string;
-}
 
 interface SeasonalConfig {
   rotationFrequency: 'daily' | 'weekly' | 'monthly';
@@ -48,10 +39,12 @@ const SeasonalProductsPage: React.FC = () => {
 
       setAllProducts(allProds || []);
       setSeasonalProducts(seasonalProds || []);
-      setConfig(seasonalConfig);
-    } catch (err: any) {
+      if (seasonalConfig) {
+        setConfig(seasonalConfig);
+      }
+    } catch (err) {
       logger.error('Failed to fetch seasonal data:', err);
-      setError(err.message || 'Failed to load data');
+      setError((err as Error).message || 'Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -79,9 +72,9 @@ const SeasonalProductsPage: React.FC = () => {
 
       // Refresh data from server
       await fetchData();
-    } catch (err: any) {
+    } catch (err) {
       logger.error('Failed to toggle seasonal status:', err);
-      setError(err.message || 'Failed to update product');
+      setError((err as Error).message || 'Failed to update product');
     } finally {
       setSaving(false);
     }
@@ -91,7 +84,7 @@ const SeasonalProductsPage: React.FC = () => {
   const handleSaveConfig = async () => {
     try {
       setSaving(true);
-      const updateData: any = {
+      const updateData: Partial<SeasonalConfig> = {
         rotationFrequency: config.rotationFrequency,
         featuredProductId: config.featuredProductId,
       };
@@ -99,9 +92,9 @@ const SeasonalProductsPage: React.FC = () => {
       await seasonalService.updateSeasonalConfig(updateData);
       setError(null);
       alert('Configuration saved successfully!');
-    } catch (err: any) {
+    } catch (err) {
       logger.error('Failed to save configuration:', err);
-      setError(err.message || 'Failed to save configuration');
+      setError((err as Error).message || 'Failed to save configuration');
     } finally {
       setSaving(false);
     }
@@ -236,9 +229,9 @@ const SeasonalProductsPage: React.FC = () => {
                     <label className="inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={product.seasonal}
+                        checked={!!product.seasonal}
                         onChange={() =>
-                          handleToggleSeasonal(product.id, product.seasonal)
+                          handleToggleSeasonal(product.id, !!product.seasonal)
                         }
                         disabled={saving}
                         className="w-5 h-5 rounded border-gray-300 text-red-600 focus:ring-red-500"

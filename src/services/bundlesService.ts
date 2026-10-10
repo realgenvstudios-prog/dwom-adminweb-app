@@ -93,7 +93,7 @@ class BundlesService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error('❌ [BundlesService] Failed to fetch bundles:', error);
       throw error;
     }
@@ -118,7 +118,7 @@ class BundlesService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [BundlesService] Failed to fetch bundle ${id}:`, error);
       throw error;
     }
@@ -144,7 +144,7 @@ class BundlesService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error('❌ [BundlesService] Failed to create bundle:', error);
       throw error;
     }
@@ -170,7 +170,7 @@ class BundlesService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [BundlesService] Failed to update bundle ${id}:`, error);
       throw error;
     }
@@ -195,7 +195,7 @@ class BundlesService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [BundlesService] Failed to delete bundle ${id}:`, error);
       throw error;
     }

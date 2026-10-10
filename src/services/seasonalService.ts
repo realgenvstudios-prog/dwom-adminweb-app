@@ -1,4 +1,5 @@
 import adminApiClient from './apiClient';
+import type { Product } from './productsService';
 import { logger } from '../utils/logger';
 
 const BASE_URL = '/seasonal';
@@ -9,12 +10,18 @@ interface SeasonalConfig {
   featuredProductId: number;
 }
 
+function unwrap<T>(response: { data?: T } | T): T | undefined {
+  return response && typeof response === 'object' && 'data' in response
+    ? (response as { data?: T }).data
+    : (response as T);
+}
+
 const seasonalService = {
   // Get all seasonal products
-  async getSeasonalProducts() {
+  async getSeasonalProducts(): Promise<Product[]> {
     try {
-      const response: any = await adminApiClient.get(`${BASE_URL}/products`);
-      return response?.data || response || [];
+      const response = await adminApiClient.get<{ data?: Product[] } | Product[]>(`${BASE_URL}/products`);
+      return unwrap(response) || [];
     } catch (error) {
       logger.error('Failed to fetch seasonal products:', error);
       return [];
@@ -22,10 +29,10 @@ const seasonalService = {
   },
 
   // Get featured seasonal product
-  async getFeaturedSeasonalProduct() {
+  async getFeaturedSeasonalProduct(): Promise<Product | null> {
     try {
-      const response: any = await adminApiClient.get(`${BASE_URL}/featured`);
-      return response?.data || response || null;
+      const response = await adminApiClient.get<{ data?: Product } | Product>(`${BASE_URL}/featured`);
+      return unwrap(response) || null;
     } catch (error) {
       logger.error('Failed to fetch featured product:', error);
       return null;
@@ -33,10 +40,10 @@ const seasonalService = {
   },
 
   // Get seasonal configuration
-  async getSeasonalConfig() {
+  async getSeasonalConfig(): Promise<SeasonalConfig | null> {
     try {
-      const response: any = await adminApiClient.get(`${BASE_URL}/config`);
-      return response?.data || response || null;
+      const response = await adminApiClient.get<{ data?: SeasonalConfig } | SeasonalConfig>(`${BASE_URL}/config`);
+      return unwrap(response) || null;
     } catch (error) {
       logger.error('Failed to fetch seasonal config:', error);
       return null;
@@ -44,17 +51,17 @@ const seasonalService = {
   },
 
   // Update seasonal configuration (banner, rotation frequency, featured product)
-  async updateSeasonalConfig(config: Partial<SeasonalConfig>) {
-    const response: any = await adminApiClient.patch(`${BASE_URL}/config`, config);
-    return response?.data || response || config;
+  async updateSeasonalConfig(config: Partial<SeasonalConfig>): Promise<Partial<SeasonalConfig>> {
+    const response = await adminApiClient.patch<{ data?: SeasonalConfig } | SeasonalConfig>(`${BASE_URL}/config`, config);
+    return unwrap(response) || config;
   },
 
   // Toggle product as seasonal
-  async toggleSeasonalStatus(productId: number, seasonal: boolean) {
-    const response: any = await adminApiClient.patch(`${BASE_URL}/products/${productId}/toggle`, {
+  async toggleSeasonalStatus(productId: number, seasonal: boolean): Promise<Product | undefined> {
+    const response = await adminApiClient.patch<{ data?: Product } | Product>(`${BASE_URL}/products/${productId}/toggle`, {
       seasonal,
     });
-    return response?.data || response;
+    return unwrap(response);
   },
 
 };

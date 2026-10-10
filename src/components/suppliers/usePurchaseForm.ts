@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import procurementService from "../../services/procurementService";
 import productsService from "../../services/productsService";
+import type { Product } from "../../services/productsService";
 import { logger } from '../../utils/logger';
 
 // A purchase is one trip to one supplier that can cover several products —
@@ -15,7 +16,7 @@ const emptyPurchaseTrip = { supplierId: "", purchasedBy: "", notes: "" };
 // SuppliersPage. Takes loadPurchases from usePurchaseHistory since a
 // successful record needs to refresh that table.
 export function usePurchaseForm(loadPurchases: () => Promise<void>) {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [purchaseTrip, setPurchaseTrip] = useState(emptyPurchaseTrip);
   const [purchaseItems, setPurchaseItems] = useState<PurchaseLineItem[]>([{ ...emptyLineItem }]);
   const [recordingPurchase, setRecordingPurchase] = useState(false);
@@ -25,7 +26,7 @@ export function usePurchaseForm(loadPurchases: () => Promise<void>) {
   const loadProducts = async () => {
     try {
       const data = await productsService.getAll();
-      setProducts(Array.isArray(data) ? data : data?.items || []);
+      setProducts(data);
     } catch (err) {
       logger.error("❌ [SuppliersPage] Failed to load products:", err);
     }
@@ -77,8 +78,8 @@ export function usePurchaseForm(loadPurchases: () => Promise<void>) {
       setPurchaseTrip(emptyPurchaseTrip);
       setPurchaseItems([{ ...emptyLineItem }]);
       await loadPurchases();
-    } catch (err: any) {
-      setPurchaseError(err.message || "Failed to record purchase");
+    } catch (err) {
+      setPurchaseError((err as Error).message || "Failed to record purchase");
     } finally {
       setRecordingPurchase(false);
     }

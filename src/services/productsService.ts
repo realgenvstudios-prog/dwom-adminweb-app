@@ -1,5 +1,12 @@
 import adminApiClient from './apiClient';
+import type { VariationGroup } from '../components/products/VariationGroupsEditor';
 import { logger } from '../utils/logger';
+
+export interface Category {
+  id: number;
+  name: string;
+  description?: string;
+}
 
 export interface Product {
   id: number;
@@ -7,20 +14,16 @@ export interface Product {
   nameFrench?: string;
   nameLocal: string;
   categoryId: number;
-  category?: any;
+  category?: Category;
   description?: string;
   pricePerUnit: number;
   unitType: string;
   active: boolean;
   discount?: number;
+  seasonal?: boolean;
+  imageUrl?: string;
   createdAt?: string;
   updatedAt?: string;
-}
-
-export interface Category {
-  id: number;
-  name: string;
-  description?: string;
 }
 
 export interface CreateProductDto {
@@ -34,7 +37,7 @@ export interface CreateProductDto {
   imageUrl?: string;
   inventoryQuantity?: number;
   showPreparationOptions?: boolean;
-  variationGroups?: any[];
+  variationGroups?: VariationGroup[];
 }
 
 export interface UpdateProductDto {
@@ -49,7 +52,7 @@ export interface UpdateProductDto {
   imageUrl?: string;
   discount?: number;
   showPreparationOptions?: boolean;
-  variationGroups?: any[];
+  variationGroups?: VariationGroup[];
 }
 
 export const productsService = {
@@ -61,7 +64,7 @@ export const productsService = {
     search?: string,
     skip?: number,
     take?: number
-  ): Promise<any> {
+  ): Promise<Product[]> {
     try {
       const params = new URLSearchParams();
       if (categoryId) params.append('categoryId', categoryId.toString());
@@ -69,7 +72,7 @@ export const productsService = {
       if (skip) params.append('skip', skip.toString());
       if (take) params.append('take', take.toString());
 
-      const response = await adminApiClient.get<any>(
+      const response = await adminApiClient.get<Product[]>(
         `/products${params.toString() ? '?' + params.toString() : ''}`
       );
       return response;
@@ -121,7 +124,7 @@ export const productsService = {
   /**
    * Delete product
    */
-  async delete(id: number): Promise<any> {
+  async delete(id: number): Promise<unknown> {
     try {
       const response = await adminApiClient.delete(`/products/${id}`);
       return response;

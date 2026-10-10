@@ -46,7 +46,7 @@ class CategoriesService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error('❌ [CategoriesService] Failed to fetch categories:', error);
       throw error;
     }
@@ -71,7 +71,7 @@ class CategoriesService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [CategoriesService] Failed to fetch category ${id}:`, error);
       throw error;
     }
@@ -97,7 +97,7 @@ class CategoriesService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error('❌ [CategoriesService] Failed to create category:', error);
       throw error;
     }
@@ -123,7 +123,7 @@ class CategoriesService {
 
       const data = await response.json();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [CategoriesService] Failed to update category ${id}:`, error);
       throw error;
     }
@@ -146,7 +146,7 @@ class CategoriesService {
         throw new Error(`Failed to delete category: ${response.status}`);
       }
 
-    } catch (error: any) {
+    } catch (error) {
       logger.error(`❌ [CategoriesService] Failed to delete category ${id}:`, error);
       throw error;
     }
