@@ -24,6 +24,7 @@ import DataDeletionRequestsPage from './components/DataDeletionRequestsPage';
 import DeliveryZonesPage from './components/DeliveryZonesPage';
 import CouponsPage from './components/CouponsPage';
 import SuppliersPage from './components/SuppliersPage';
+import AnalyticsPage from './components/AnalyticsPage';
 import './App.css';
 
 const App: React.FC = () => {
@@ -137,6 +138,16 @@ const App: React.FC = () => {
           <ProtectedRoute>
             <Layout>
               <RidersPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analytics"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <AnalyticsPage />
             </Layout>
           </ProtectedRoute>
         }
