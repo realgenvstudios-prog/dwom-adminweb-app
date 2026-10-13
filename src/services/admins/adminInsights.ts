@@ -60,42 +60,14 @@ export class AdminInsightsService {
   }
 
   /**
-   * Get admin activity (mock for now - would need backend logging)
+   * Admin activity feed — intentionally empty. There is no backend audit
+   * log of admin actions yet (no endpoint, no table), so this used to
+   * return fabricated entries with fictional admin names standing in for
+   * real events. Returning [] lets AdminsPage's existing "No activity yet"
+   * empty state do its job honestly until a real audit log is built.
    */
   async getAdminActivity(): Promise<AdminActivity[]> {
-    try {
-      // This would ideally come from an audit log in the backend
-      // For now, returning mock data
-      return [
-        {
-          time: 'Today 14:21',
-          text: 'Admin updated warehouse zones',
-          adminId: 1,
-          adminName: 'Ama Serwaa',
-        },
-        {
-          time: 'Today 09:04',
-          text: 'New admin invited',
-          adminId: 2,
-          adminName: 'Yaw Mensah',
-        },
-        {
-          time: 'Yesterday 19:33',
-          text: 'Failed login attempt',
-          adminId: 4,
-          adminName: 'Akosua Dede',
-        },
-        {
-          time: 'Yesterday 17:20',
-          text: 'Admin permissions updated',
-          adminId: 5,
-          adminName: 'Kwabena Brown',
-        },
-      ];
-    } catch (error) {
-      logger.error('❌ [AdminsService] Error fetching activity:', error);
-      return [];
-    }
+    return [];
   }
 
   /**

@@ -23,16 +23,6 @@ export interface UpdateAdminUserDto {
   role?: 'admin' | 'manager' | 'finance' | 'warehouse' | 'support';
 }
 
-export type AuditLog = {
-  id: number;
-  adminId: number;
-  adminName: string;
-  action: string;
-  description: string;
-  timestamp: string;
-  ipAddress?: string;
-}
-
 export const adminUsersService = {
   /**
    * Get all admin users
@@ -94,19 +84,6 @@ export const adminUsersService = {
       await adminApiClient.delete(`/admin/users/${id}`);
     } catch (error) {
       logger.error(`❌ [AdminUsersService] Failed to delete admin user ${id}:`, error);
-      throw error;
-    }
-  },
-
-  /**
-   * Get audit logs
-   */
-  async getAuditLogs(limit?: number): Promise<AuditLog[]> {
-    try {
-      const logs = await adminApiClient.get<AuditLog[]>(`/admin/audit-logs${limit ? `?limit=${limit}` : ''}`);
-      return logs;
-    } catch (error) {
-      logger.error('❌ [AdminUsersService] Failed to fetch audit logs:', error);
       throw error;
     }
   },
