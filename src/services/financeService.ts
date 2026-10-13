@@ -26,10 +26,20 @@ export interface FinanceKPIs {
   netRevenue: number;
   grossProfit: number;
   grossProfitMargin: number;
+  grossProfitIsEstimate: boolean;
   avgOrderValue: number;
   mrr: number;
   activeSubscriptions: number;
   failedPaymentRate: number;
+}
+
+export interface PnLBucket {
+  period: string;
+  revenue: number;
+  cogs: number;
+  contribution: number;
+  opex: number;
+  operatingResult: number;
 }
 
 export interface RevenueTrend {
@@ -62,80 +72,20 @@ export interface FailedPayment {
 
 class FinanceService {
   /**
-   * Get finance KPIs - Calculate from orders data with error handling
+   * Get finance KPIs from the backend's real-cost calculation
+   * (CostCalculationService), not re-derived client-side.
    */
   async getFinanceKPIs(): Promise<FinanceKPIs> {
     try {
-
-      // Fetch all orders
-      let allOrders: AdminOrderSummary[] = [];
-      try {
-        allOrders = await fetchAllOrders();
-      } catch (orderError) {
-        logger.warn('⚠️ Could not fetch /orders/admin/all, returning zero values', orderError);
-        // Return zero values if orders can't be fetched
-        return {
-          gmv: 0,
-          netRevenue: 0,
-          grossProfit: 0,
-          grossProfitMargin: 22.0,
-          avgOrderValue: 0,
-          mrr: 0,
-          activeSubscriptions: 0,
-          failedPaymentRate: 0,
-        };
-      }
-
-      // Calculate GMV (all orders)
-      const gmv = allOrders.reduce((sum: number, order) => sum + (order.total || 0), 0);
-      
-      // Net revenue (paid orders only)
-      const paidOrders = allOrders.filter((o) => o.paymentStatus === 'paid');
-      const netRevenue = paidOrders.reduce((sum: number, order) => sum + (order.total || 0), 0);
-      
-      // Gross profit margin (22% default, will be configurable via backend later)
-      const grossProfitMargin = 22.0;
-      const grossProfit = netRevenue * (grossProfitMargin / 100);
-      
-      // Average order value (from paid orders)
-      const avgOrderValue = paidOrders.length > 0 ? netRevenue / paidOrders.length : 0;
-      
-      // MRR from subscriptions
-      let activeSubscriptions = 0;
-      try {
-        const subscriptions = await fetchAllSubscriptions();
-        activeSubscriptions = subscriptions.filter((s) => s.status === 'active').length;
-      } catch (subError) {
-        logger.warn('⚠️ Could not fetch subscriptions', subError);
-      }
-      
-      const subscriptionPrice = 25.0; // Default GHS/month
-      const mrr = activeSubscriptions * subscriptionPrice;
-      
-      // Failed payment rate
-      const failedOrders = allOrders.filter((o) => o.paymentStatus === 'failed');
-      const failedPaymentRate = allOrders.length > 0 ? failedOrders.length / allOrders.length : 0;
-
-      const kpis: FinanceKPIs = {
-        gmv: parseFloat(gmv.toFixed(2)),
-        netRevenue: parseFloat(netRevenue.toFixed(2)),
-        grossProfit: parseFloat(grossProfit.toFixed(2)),
-        grossProfitMargin: grossProfitMargin,
-        avgOrderValue: parseFloat(avgOrderValue.toFixed(2)),
-        mrr: parseFloat(mrr.toFixed(2)),
-        activeSubscriptions,
-        failedPaymentRate,
-      };
-
-      return kpis;
+      return await adminApiClient.get<FinanceKPIs>('/admin/finance/kpis');
     } catch (error) {
-      logger.error('❌ [FinanceService] Failed to calculate KPIs:', (error as Error).message);
-      // Return zero values on error instead of throwing
+      logger.error('❌ [FinanceService] Failed to fetch KPIs:', (error as Error).message);
       return {
         gmv: 0,
         netRevenue: 0,
         grossProfit: 0,
         grossProfitMargin: 22.0,
+        grossProfitIsEstimate: true,
         avgOrderValue: 0,
         mrr: 0,
         activeSubscriptions: 0,
@@ -145,53 +95,14 @@ class FinanceService {
   }
 
   /**
-   * Get revenue trends for the past N days with error handling
+   * Get revenue trends for the past N days from the backend.
    */
   async getRevenueTrends(days: number = 7): Promise<RevenueTrend[]> {
     try {
-
-      let allOrders: AdminOrderSummary[] = [];
-      try {
-        allOrders = await fetchAllOrders();
-      } catch (orderError) {
-        logger.warn('⚠️ Could not fetch /orders/admin/all for trends', orderError);
-        return [];
-      }
-
-      if (!allOrders || allOrders.length === 0) {
-        return [];
-      }
-
-      // Group by date
-      const dateMap = new Map<string, { gmv: number; net: number }>();
-
-      allOrders.forEach((order) => {
-        const orderDate = new Date(order.createdAt);
-        const dateKey = orderDate.toISOString().split('T')[0]; // YYYY-MM-DD format
-
-        if (!dateMap.has(dateKey)) {
-          dateMap.set(dateKey, { gmv: 0, net: 0 });
-        }
-
-        const existing = dateMap.get(dateKey)!;
-        existing.gmv += order.total || 0;
-
-        if (order.paymentStatus === 'paid') {
-          existing.net += order.total || 0;
-        }
-      });
-
-      // Convert to array and sort
-      const trends = Array.from(dateMap.entries())
-        .map(([date, data]) => ({
-          date,
-          gmv: parseFloat(data.gmv.toFixed(2)),
-          net: parseFloat(data.net.toFixed(2)),
-        }))
-        .sort((a, b) => a.date.localeCompare(b.date))
-        .slice(-days);
-
-      return trends;
+      const trends = await adminApiClient.get<{ date: string; gmv: number; net: number; orders: number }[]>(
+        `/admin/finance/revenue-trends?days=${days}`,
+      );
+      return trends.map(({ date, gmv, net }) => ({ date, gmv, net }));
     } catch (error) {
       logger.error('❌ [FinanceService] Failed to fetch revenue trends:', (error as Error).message);
       return [];
@@ -199,36 +110,31 @@ class FinanceService {
   }
 
   /**
-   * Get revenue breakdown by zone
+   * Get revenue breakdown by zone from the backend's persisted Order.zoneId.
    */
   async getRevenueByZone(): Promise<RevenueByZone[]> {
     try {
-
-      const allOrders = await fetchAllOrders();
-
-      // Group by zone — the admin orders endpoint doesn't select a Zone
-      // relation, so every order currently falls into "Unassigned". Fixing
-      // that is a backend change (adding Zone to findAllForAdmin's select),
-      // out of scope here.
-      const zoneMap = new Map<string, number>();
-
-      allOrders.forEach((order) => {
-        const zoneName = 'Unassigned';
-        const currentRevenue = zoneMap.get(zoneName) || 0;
-        zoneMap.set(zoneName, currentRevenue + (order.total || 0));
-      });
-
-      // Convert to array and sort by revenue descending
-      const zones = Array.from(zoneMap.entries())
-        .map(([zone, revenue]) => ({
-          zone,
-          revenue: parseFloat(revenue.toFixed(2)),
-        }))
-        .sort((a, b) => b.revenue - a.revenue);
-
-      return zones;
+      const zones = await adminApiClient.get<{ zoneId: number | null; zoneName: string; revenue: number; orders: number }[]>(
+        '/admin/finance/revenue-by-zone',
+      );
+      return zones.map(({ zoneName, revenue }) => ({ zone: zoneName, revenue }));
     } catch (error) {
       logger.error('❌ [FinanceService] Failed to fetch revenue by zone:', (error as Error).message);
+      return [];
+    }
+  }
+
+  /**
+   * Get period P&L (contribution vs opex) from the backend.
+   */
+  async getPeriodPnL(period: 'daily' | 'weekly' | 'monthly', start?: string, end?: string): Promise<PnLBucket[]> {
+    try {
+      const params = new URLSearchParams({ period });
+      if (start) params.set('start', start);
+      if (end) params.set('end', end);
+      return await adminApiClient.get<PnLBucket[]>(`/admin/finance/pnl?${params.toString()}`);
+    } catch (error) {
+      logger.error('❌ [FinanceService] Failed to fetch P&L:', (error as Error).message);
       return [];
     }
   }

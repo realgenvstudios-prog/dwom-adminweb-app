@@ -6,6 +6,7 @@ import SubscriptionPanel from "./finance/SubscriptionPanel";
 import TopCustomersTable from "./finance/TopCustomersTable";
 import FailedPaymentsPanel from "./finance/FailedPaymentsPanel";
 import FinanceAlertsBox from "./finance/FinanceAlertsBox";
+import PnLPanel from "./finance/PnLPanel";
 
 const FinancePage: React.FC = () => {
   return (
@@ -22,6 +23,8 @@ const FinancePage: React.FC = () => {
             <FinanceKpiRow row={2} />
           </div>
         </div>
+        {/* P&L */}
+        <PnLPanel />
         {/* Main Charts Row */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-8">
           <div className="md:col-span-8">

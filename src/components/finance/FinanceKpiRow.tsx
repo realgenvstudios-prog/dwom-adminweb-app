@@ -39,6 +39,7 @@ const FinanceKpiRow: React.FC<FinanceKpiRowProps> = ({ row }) => {
         netRevenue: 0,
         grossProfit: 0,
         grossProfitMargin: 22.0,
+        grossProfitIsEstimate: true,
         avgOrderValue: 0,
         mrr: 0,
         activeSubscriptions: 0,
@@ -53,6 +54,10 @@ const FinanceKpiRow: React.FC<FinanceKpiRowProps> = ({ row }) => {
     ? [
         { label: "GMV", value: `GHS ${kpis.gmv.toLocaleString()}` },
         { label: "Net Revenue", value: `GHS ${kpis.netRevenue.toLocaleString()}` },
+        {
+          label: `Gross Profit${kpis.grossProfitIsEstimate ? " (est.)" : ""}`,
+          value: `GHS ${kpis.grossProfit.toLocaleString()}`,
+        },
         { label: "Gross Profit Margin", value: `${kpis.grossProfitMargin.toFixed(1)}%` },
         { label: "Avg Order Value", value: `GHS ${kpis.avgOrderValue}` },
         { label: "MRR", value: `GHS ${kpis.mrr.toLocaleString()}` },

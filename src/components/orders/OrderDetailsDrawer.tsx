@@ -11,6 +11,7 @@ import PaymentInfoCard from "./orderDetails/PaymentInfoCard";
 import RatingsSection from "./orderDetails/RatingsSection";
 import InternalTimelineSection from "./orderDetails/InternalTimelineSection";
 import RiderAssignmentModal from "./orderDetails/RiderAssignmentModal";
+import OrderEconomicsCard from "./orderDetails/OrderEconomicsCard";
 
 interface Props {
   open: boolean;
@@ -90,6 +91,8 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
             <OrderItemsList items={detailsItems} loading={detailsLoading} error={detailsError} />
 
             <PaymentInfoCard order={order} selectedPaymentStatus={selectedPaymentStatus} />
+
+            <OrderEconomicsCard orderId={orderIdNum} />
 
             <RatingsSection riderRatingData={riderRatingData} productReviewsData={productReviewsData} />
 
