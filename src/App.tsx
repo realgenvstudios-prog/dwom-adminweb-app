@@ -25,6 +25,7 @@ import DeliveryZonesPage from './components/DeliveryZonesPage';
 import CouponsPage from './components/CouponsPage';
 import SuppliersPage from './components/SuppliersPage';
 import ExpensesPage from './components/ExpensesPage';
+import WorkersPage from './components/WorkersPage';
 import AnalyticsPage from './components/AnalyticsPage';
 import './App.css';
 
@@ -89,6 +90,16 @@ const App: React.FC = () => {
           <ProtectedRoute>
             <Layout>
               <ExpensesPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/workers"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <WorkersPage />
             </Layout>
           </ProtectedRoute>
         }
