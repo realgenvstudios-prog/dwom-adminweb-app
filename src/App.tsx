@@ -14,7 +14,7 @@ import BundlesPage from './components/BundlesPage';
 import SeasonalProductsPage from './components/SeasonalProductsPage';
 import SubscriptionsPage from './components/SubscriptionsPage';
 import RidersPage from './components/RidersPage';
-import FinancePage from './components/FinancePage';
+import FinanceHubPage from './components/FinanceHubPage';
 import MarketingPage from './components/MarketingPage';
 import CustomersPage from './components/CustomersPage';
 import NotesTrackingPage from './components/NotesTrackingPage';
@@ -24,9 +24,7 @@ import DataDeletionRequestsPage from './components/DataDeletionRequestsPage';
 import DeliveryZonesPage from './components/DeliveryZonesPage';
 import CouponsPage from './components/CouponsPage';
 import SuppliersPage from './components/SuppliersPage';
-import ExpensesPage from './components/ExpensesPage';
 import WorkersPage from './components/WorkersPage';
-import FounderLedgerPage from './components/FounderLedgerPage';
 import AnalyticsPage from './components/AnalyticsPage';
 import './App.css';
 
@@ -85,16 +83,7 @@ const App: React.FC = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/expenses"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <ExpensesPage />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/expenses" element={<Navigate to="/finance" replace />} />
       <Route
         path="/workers"
         element={
@@ -105,16 +94,7 @@ const App: React.FC = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/founder-ledger"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <FounderLedgerPage />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/founder-ledger" element={<Navigate to="/finance" replace />} />
       <Route
         path="/products"
         element={
@@ -190,7 +170,7 @@ const App: React.FC = () => {
         element={
           <ProtectedRoute>
             <Layout>
-              <FinancePage />
+              <FinanceHubPage />
             </Layout>
           </ProtectedRoute>
         }

@@ -4,8 +4,8 @@ import { logger } from "../utils/logger";
 
 const today = () => new Date().toISOString().split("T")[0];
 
-const emptyWorkerForm = { name: "", phone: "", type: "kayayie", standardRate: "" };
-const emptyTripForm = { workerId: "", date: today(), totalCost: "", orderIds: "", notes: "" };
+const emptyWorkerForm = { name: "", phone: "", type: "kayayie" };
+const emptyTripForm = { workerId: "", date: today(), orderIds: "", notes: "" };
 
 const WorkersPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"trips" | "workers">("trips");
@@ -21,6 +21,7 @@ const WorkersPage: React.FC = () => {
   const [tripForm, setTripForm] = useState(emptyTripForm);
   const [savingTrip, setSavingTrip] = useState(false);
   const [tripError, setTripError] = useState<string | null>(null);
+  const [lastDaySummary, setLastDaySummary] = useState<string | null>(null);
 
   const loadWorkers = useCallback(async () => {
     try {
@@ -49,17 +50,6 @@ const WorkersPage: React.FC = () => {
     loadTrips();
   }, [loadWorkers, loadTrips]);
 
-  const selectedWorker = workers.find((w) => w.id === parseInt(tripForm.workerId, 10));
-
-  const handleWorkerSelect = (workerId: string) => {
-    const worker = workers.find((w) => w.id === parseInt(workerId, 10));
-    setTripForm({
-      ...tripForm,
-      workerId,
-      totalCost: worker ? String(worker.standardRate) : tripForm.totalCost,
-    });
-  };
-
   const handleSaveWorker = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!workerForm.name.trim()) {
@@ -73,7 +63,6 @@ const WorkersPage: React.FC = () => {
         name: workerForm.name,
         phone: workerForm.phone || undefined,
         type: workerForm.type,
-        standardRate: workerForm.standardRate ? parseFloat(workerForm.standardRate) : 0,
       });
       setWorkerForm(emptyWorkerForm);
       await loadWorkers();
@@ -114,15 +103,31 @@ const WorkersPage: React.FC = () => {
     try {
       setSavingTrip(true);
       setTripError(null);
+      setLastDaySummary(null);
       await workersService.createTrip({
         workerId,
         date: tripForm.date,
-        totalCost: tripForm.totalCost ? parseFloat(tripForm.totalCost) : undefined,
         orderIds,
         notes: tripForm.notes || undefined,
       });
+      const updatedTrips = await workersService.getTrips();
+      setTrips(updatedTrips);
+
+      // Pay is computed per worker per day, across every trip that day —
+      // summarize the day's total so the admin can see the formula land,
+      // not just this one trip's slice of it.
+      const dayKey = tripForm.date;
+      const sameDay = updatedTrips.filter(
+        (t) => t.workerId === workerId && new Date(t.date).toISOString().split("T")[0] === dayKey,
+      );
+      const dayOrderCount = sameDay.reduce((sum, t) => sum + t.TripOrder.length, 0);
+      const dayTotal = sameDay.reduce((sum, t) => sum + t.totalCost, 0);
+      const workerName = workers.find((w) => w.id === workerId)?.name || "This worker";
+      setLastDaySummary(
+        `${workerName} has handled ${dayOrderCount} order${dayOrderCount === 1 ? "" : "s"} on ${dayKey} — GHS ${dayTotal.toFixed(2)} total for the day, split across those orders.`,
+      );
+
       setTripForm(emptyTripForm);
-      await loadTrips();
     } catch (err) {
       logger.error("Failed to save trip:", err);
       setTripError("Failed to save trip");
@@ -135,7 +140,7 @@ const WorkersPage: React.FC = () => {
     if (!window.confirm("Delete this trip?")) return;
     try {
       await workersService.deleteTrip(id);
-      setTrips((prev) => prev.filter((t) => t.id !== id));
+      await loadTrips();
     } catch (err) {
       logger.error("Failed to delete trip:", err);
     }
@@ -147,7 +152,8 @@ const WorkersPage: React.FC = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Workers & Trips</h1>
           <p className="text-gray-600 mt-1">
-            Kayayie/picker roster and market-run costs. A worker's rate auto-fills each new trip — no need to type a cost every time.
+            Kayayie/picker roster and market-run logging. Pay is computed automatically per worker per day — GHS per order once they
+            hit the daily threshold, otherwise a flat daily minimum. Configure the rates on the Finance page's Settings tab.
           </p>
         </div>
 
@@ -174,12 +180,12 @@ const WorkersPage: React.FC = () => {
           <>
             <form onSubmit={handleSaveTrip} className="bg-white shadow-sm rounded-xl border border-gray-100 p-6 mb-8">
               <h2 className="text-lg font-semibold mb-4">Log a trip</h2>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm text-gray-600 mb-1">Worker</label>
                   <select
                     value={tripForm.workerId}
-                    onChange={(e) => handleWorkerSelect(e.target.value)}
+                    onChange={(e) => setTripForm({ ...tripForm, workerId: e.target.value })}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2"
                     required
                   >
@@ -199,20 +205,6 @@ const WorkersPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 mb-1">
-                    Trip cost (GHS){selectedWorker && <span className="text-gray-400"> — rate: {selectedWorker.standardRate}</span>}
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={tripForm.totalCost}
-                    onChange={(e) => setTripForm({ ...tripForm, totalCost: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2"
-                    placeholder="auto-filled from rate"
-                  />
-                </div>
-                <div>
                   <label className="block text-sm text-gray-600 mb-1">Order ID(s) covered</label>
                   <input
                     type="text"
@@ -223,7 +215,7 @@ const WorkersPage: React.FC = () => {
                     required
                   />
                 </div>
-                <div className="md:col-span-4">
+                <div className="md:col-span-3">
                   <label className="block text-sm text-gray-600 mb-1">Notes</label>
                   <input
                     type="text"
@@ -233,12 +225,8 @@ const WorkersPage: React.FC = () => {
                   />
                 </div>
               </div>
-              {tripForm.orderIds.split(",").filter((s) => s.trim()).length > 1 && (
-                <p className="text-xs text-gray-400 mt-2">
-                  Cost will be split evenly across {tripForm.orderIds.split(",").filter((s) => s.trim()).length} orders.
-                </p>
-              )}
               {tripError && <p className="text-red-600 text-sm mt-3">⚠️ {tripError}</p>}
+              {lastDaySummary && <p className="text-green-700 text-sm mt-3">✅ {lastDaySummary}</p>}
               <button
                 type="submit"
                 disabled={savingTrip}
@@ -261,7 +249,7 @@ const WorkersPage: React.FC = () => {
                       <tr className="text-left text-gray-500 border-b border-gray-100">
                         <th className="py-2 pr-4">Date</th>
                         <th className="py-2 pr-4">Worker</th>
-                        <th className="py-2 pr-4">Trip cost</th>
+                        <th className="py-2 pr-4">This trip's pay</th>
                         <th className="py-2 pr-4">Orders</th>
                         <th className="py-2 pr-4">Notes</th>
                         <th className="py-2"></th>
@@ -294,7 +282,7 @@ const WorkersPage: React.FC = () => {
           <>
             <form onSubmit={handleSaveWorker} className="bg-white shadow-sm rounded-xl border border-gray-100 p-6 mb-8">
               <h2 className="text-lg font-semibold mb-4">Add a worker</h2>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm text-gray-600 mb-1">Name</label>
                   <input
@@ -325,17 +313,6 @@ const WorkersPage: React.FC = () => {
                     <option value="picker">Picker</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">Standard rate (GHS/trip)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={workerForm.standardRate}
-                    onChange={(e) => setWorkerForm({ ...workerForm, standardRate: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2"
-                  />
-                </div>
               </div>
               {workerError && <p className="text-red-600 text-sm mt-3">⚠️ {workerError}</p>}
               <button
@@ -361,7 +338,6 @@ const WorkersPage: React.FC = () => {
                         <th className="py-2 pr-4">Name</th>
                         <th className="py-2 pr-4">Type</th>
                         <th className="py-2 pr-4">Phone</th>
-                        <th className="py-2 pr-4">Standard rate</th>
                         <th className="py-2 pr-4">Status</th>
                         <th className="py-2"></th>
                       </tr>
@@ -372,7 +348,6 @@ const WorkersPage: React.FC = () => {
                           <td className="py-2 pr-4 font-medium">{w.name}</td>
                           <td className="py-2 pr-4 capitalize">{w.type}</td>
                           <td className="py-2 pr-4">{w.phone || "—"}</td>
-                          <td className="py-2 pr-4">GHS {w.standardRate.toLocaleString()}</td>
                           <td className="py-2 pr-4">
                             <span className={`text-xs px-2 py-0.5 rounded-full ${w.active ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}>
                               {w.active ? "Active" : "Inactive"}

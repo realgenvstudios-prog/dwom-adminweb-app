@@ -39,6 +39,17 @@ export interface Settings {
   isServiceClosed: boolean;
   serviceClosedMessage: string;
 
+  // Finance & Revenue
+  subscriptionPriceGHS: number;
+  grossProfitMarginPercent: number;
+  minimumOrderValue: number;
+  maxSmallOrderFee: number;
+  paystackFeePercent: number;
+  packagingCostPerOrder: number;
+  pickerRatePerOrder: number;
+  pickerDailyMinimumPay: number;
+  pickerDailyThreshold: number;
+
   updatedAt: Date;
 }
 

@@ -28,7 +28,6 @@ const ROUTE_ROLES: Record<string, UiRole[]> = {
   '/customers': ['Support', 'Marketing'],
   '/notes': ['Operations', 'Marketing'],
   '/finance': ['Finance'],
-  '/expenses': ['Finance'],
   '/workers': ['Operations', 'Finance'],
   '/marketing': ['Marketing'],
   '/coupons': ['Marketing', 'Finance'],
@@ -60,7 +59,6 @@ export const ALL_PAGES: { path: string; label: string }[] = [
   { path: '/customers', label: 'Customers' },
   { path: '/notes', label: 'Notes & Search Tracking' },
   { path: '/finance', label: 'Finance' },
-  { path: '/expenses', label: 'Expenses' },
   { path: '/workers', label: 'Workers & Trips' },
   { path: '/marketing', label: 'Marketing' },
   { path: '/coupons', label: 'Discount Codes' },
@@ -68,7 +66,6 @@ export const ALL_PAGES: { path: string; label: string }[] = [
   { path: '/data-deletion-requests', label: 'Data Deletion Requests' },
   { path: '/support', label: 'Support' },
   { path: '/settings', label: 'Settings' },
-  { path: '/founder-ledger', label: 'Founder Ledger' },
 ];
 
 /** For each role, the page labels it can actually reach — the real thing

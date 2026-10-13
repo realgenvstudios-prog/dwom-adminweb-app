@@ -5,7 +5,6 @@ export interface Worker {
   name: string;
   phone: string | null;
   type: string;
-  standardRate: number;
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -32,13 +31,11 @@ export interface CreateWorkerInput {
   name: string;
   phone?: string;
   type?: string;
-  standardRate?: number;
 }
 
 export interface CreateTripInput {
   workerId: number;
   date?: string;
-  totalCost?: number;
   orderIds?: number[];
   notes?: string;
 }
