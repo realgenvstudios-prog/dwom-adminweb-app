@@ -68,6 +68,7 @@ export const ALL_PAGES: { path: string; label: string }[] = [
   { path: '/data-deletion-requests', label: 'Data Deletion Requests' },
   { path: '/support', label: 'Support' },
   { path: '/settings', label: 'Settings' },
+  { path: '/founder-ledger', label: 'Founder Ledger' },
 ];
 
 /** For each role, the page labels it can actually reach — the real thing

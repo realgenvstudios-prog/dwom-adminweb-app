@@ -26,6 +26,7 @@ import CouponsPage from './components/CouponsPage';
 import SuppliersPage from './components/SuppliersPage';
 import ExpensesPage from './components/ExpensesPage';
 import WorkersPage from './components/WorkersPage';
+import FounderLedgerPage from './components/FounderLedgerPage';
 import AnalyticsPage from './components/AnalyticsPage';
 import './App.css';
 
@@ -100,6 +101,16 @@ const App: React.FC = () => {
           <ProtectedRoute>
             <Layout>
               <WorkersPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/founder-ledger"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <FounderLedgerPage />
             </Layout>
           </ProtectedRoute>
         }
