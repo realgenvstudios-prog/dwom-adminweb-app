@@ -12,8 +12,14 @@ export interface Campaign {
   impressions: number;
   clicks: number;
   conversions: number;
+  revenue: number;
   cac: number;
   roas: number;
+  // True when conversions/revenue/cac/roas are the manually-typed columns
+  // rather than real Order/Coupon data — no paid order has been
+  // attributed to this campaign yet (e.g. a social campaign with no
+  // trackable link).
+  metricsAreEstimate: boolean;
   content: string;
   imageUrl?: string;
   title?: string;

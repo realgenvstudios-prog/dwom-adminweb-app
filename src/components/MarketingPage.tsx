@@ -168,6 +168,7 @@ const MarketingPage: React.FC = () => {
                       <th className="py-2 pr-4 font-medium">Spend</th>
                       <th className="py-2 pr-4 font-medium">Impressions</th>
                       <th className="py-2 pr-4 font-medium">Conversions</th>
+                      <th className="py-2 pr-4 font-medium">Revenue</th>
                       <th className="py-2 pr-4 font-medium">ROAS</th>
                       <th className="py-2 pr-4 font-medium">Actions</th>
                     </tr>
@@ -188,7 +189,13 @@ const MarketingPage: React.FC = () => {
                         </td>
                         <td className="py-2 pr-4">GHS {campaign.actualSpend.toLocaleString()}</td>
                         <td className="py-2 pr-4">{campaign.impressions.toLocaleString()}</td>
-                        <td className="py-2 pr-4">{campaign.conversions}</td>
+                        <td className="py-2 pr-4">
+                          {campaign.conversions}
+                          {campaign.metricsAreEstimate && (
+                            <span className="ml-1 text-xs text-gray-400" title="No tracked orders yet — manually entered value">(est.)</span>
+                          )}
+                        </td>
+                        <td className="py-2 pr-4">GHS {(campaign.revenue ?? 0).toLocaleString()}</td>
                         <td className="py-2 pr-4">{campaign.roas.toFixed(1)}x</td>
                         <td className="py-2 pr-4">
                           {campaign.status === 'draft' && (
@@ -261,8 +268,8 @@ const MarketingPage: React.FC = () => {
                 <button onClick={() => setTemplateModalOpen(true)} className="w-full border border-gray-300 rounded-lg py-2 font-medium hover:bg-gray-50 text-gray-700">Create Template</button>
                 <button onClick={() => {
                   const csv = [
-                    ['Campaign Name', 'Channel', 'Status', 'Spend', 'Impressions', 'Conversions', 'ROAS'],
-                    ...campaigns.map(c => [c.name, c.channel, c.status, c.actualSpend, c.impressions, c.conversions, c.roas])
+                    ['Campaign Name', 'Channel', 'Status', 'Spend', 'Impressions', 'Conversions', 'Revenue', 'ROAS'],
+                    ...campaigns.map(c => [c.name, c.channel, c.status, c.actualSpend, c.impressions, c.conversions, c.revenue, c.roas])
                   ].map(row => row.join(',')).join('\n');
                   const link = document.createElement('a');
                   link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);

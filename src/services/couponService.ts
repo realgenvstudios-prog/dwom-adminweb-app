@@ -14,6 +14,7 @@ export interface Coupon {
   expiresAt: string | null;
   active: boolean;
   imageUrl?: string | null;
+  campaignId?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -27,6 +28,7 @@ export interface CreateCouponPayload {
   maxUses?: number | null;
   usagePerUser?: number;
   expiresAt?: string | null;
+  campaignId?: number | null;
 }
 
 export interface CouponStats {

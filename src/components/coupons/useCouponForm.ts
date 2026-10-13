@@ -11,6 +11,7 @@ export const EMPTY_FORM: CreateCouponPayload = {
   maxUses: null,
   usagePerUser: 1,
   expiresAt: null,
+  campaignId: null,
 };
 
 // The create/edit coupon form. Split out of the former monolithic
@@ -41,6 +42,7 @@ export function useCouponForm(setCoupons: React.Dispatch<React.SetStateAction<Co
       maxUses: coupon.maxUses,
       usagePerUser: coupon.usagePerUser,
       expiresAt: coupon.expiresAt ? coupon.expiresAt.split('T')[0] : null,
+      campaignId: coupon.campaignId ?? null,
     });
     setFormError('');
     setShowModal(true);

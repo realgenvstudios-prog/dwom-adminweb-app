@@ -1,4 +1,7 @@
+import { useState, useEffect } from 'react';
 import type { Coupon, CreateCouponPayload } from '../../services/couponService';
+import marketingService, { type Campaign } from '../../services/marketingService';
+import { logger } from '../../utils/logger';
 import { formatPreview } from './couponFormat';
 
 interface CouponFormModalProps {
@@ -14,6 +17,12 @@ interface CouponFormModalProps {
 // The create/edit coupon modal. Split out of the former monolithic
 // CouponsPage.
 export default function CouponFormModal({ editingCoupon, form, setForm, formError, saving, onClose, onSave }: CouponFormModalProps) {
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+
+  useEffect(() => {
+    marketingService.getCampaigns().then(setCampaigns).catch((err) => logger.error('Failed to load campaigns:', err));
+  }, []);
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -145,6 +154,24 @@ export default function CouponFormModal({ editingCoupon, form, setForm, formErro
                 ⚠ This date is in the past — the coupon will be expired immediately.
               </p>
             )}
+          </div>
+
+          {/* Campaign link */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Linked Campaign</label>
+            <select
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+              value={form.campaignId ?? ''}
+              onChange={e => setForm(f => ({ ...f, campaignId: e.target.value ? parseInt(e.target.value, 10) : null }))}
+            >
+              <option value="">None</option>
+              {campaigns.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-400 mt-1">
+              Links this coupon's real usage/revenue to the campaign that distributed it.
+            </p>
           </div>
 
           {/* Preview */}
