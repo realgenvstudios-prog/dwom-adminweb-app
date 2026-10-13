@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { logger } from '../utils/logger';
+import adminAuthService from '../services/authService';
+import { canAccessRoute, resolveUiRole, DEFAULT_ROUTE } from '../config/permissions';
 
-interface ProtectedRouteProps { 
-  children: React.ReactNode; 
+interface ProtectedRouteProps {
+  children: React.ReactNode;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
@@ -15,17 +17,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     const checkAuth = () => {
       const token = sessionStorage.getItem('admin_token');
       const adminUser = sessionStorage.getItem('admin_user');
-      
-      logger.log('🔐 [ProtectedRoute] Checking auth:', { 
-        hasToken: !!token, 
+
+      logger.log('🔐 [ProtectedRoute] Checking auth:', {
+        hasToken: !!token,
         hasUser: !!adminUser,
-        path: location.pathname 
+        path: location.pathname
       });
-      
+
       const authenticated = !!(token && adminUser);
       setIsAuthenticated(authenticated);
       setIsVerifying(false);
-      
+
       if (!authenticated) {
         logger.log('❌ [ProtectedRoute] Not authenticated, will redirect to login');
       } else {
@@ -51,6 +53,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  const currentAdmin = adminAuthService.getCurrentAdmin();
+  const role = resolveUiRole(currentAdmin);
+
+  if (!canAccessRoute(role, location.pathname)) {
+    logger.log(`⛔ [ProtectedRoute] Role "${role}" cannot access ${location.pathname}, redirecting`);
+    return <Navigate to={DEFAULT_ROUTE} replace />;
   }
 
   return <>{children}</>;

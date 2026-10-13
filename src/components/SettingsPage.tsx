@@ -8,22 +8,6 @@ import EmailNotificationSection from "./settings/EmailNotificationSection";
 import SecurityAuditSection from "./settings/SecurityAuditSection";
 
 const SettingsPage: React.FC = () => {
-  // Mock data — not backend-synced (see UserRolesSection)
-  const roleTemplates = ["Owner", "Manager", "Finance", "Warehouse", "Support"];
-  const adminUsers = [
-    { name: "Ama Serwaa", email: "ama@dwom.com", role: "Owner", lastActive: "2025-12-11 09:12" },
-    { name: "Yaw Mensah", email: "yaw@dwom.com", role: "Manager", lastActive: "2025-12-10 18:44" },
-    { name: "Kojo Owusu", email: "kojo@dwom.com", role: "Finance", lastActive: "2025-12-09 15:20" },
-    { name: "Akosua Dede", email: "akosua@dwom.com", role: "Warehouse", lastActive: "2025-12-08 11:05" },
-  ];
-  const permissionsMatrix = [
-    { role: "Owner", permissions: ["All"] },
-    { role: "Manager", permissions: ["Orders", "Products", "Riders", "Warehouse"] },
-    { role: "Finance", permissions: ["Finance", "Billing"] },
-    { role: "Warehouse", permissions: ["Inventory", "Warehouse"] },
-    { role: "Support", permissions: ["Support", "Customers"] },
-  ];
-
   const s = useSettingsData();
 
   return (
@@ -89,12 +73,7 @@ const SettingsPage: React.FC = () => {
             saving={s.saving} settingsLoaded={s.settingsLoaded} onSave={s.handleSave}
           />
 
-          <UserRolesSection
-            adminUsers={adminUsers}
-            roleTemplates={roleTemplates}
-            permissionsMatrix={permissionsMatrix}
-            saving={s.saving} settingsLoaded={s.settingsLoaded} onSave={s.handleSave}
-          />
+          <UserRolesSection />
 
           <PaymentBillingSection
             paystackPub={s.paystackPub} setPaystackPub={s.setPaystackPub}

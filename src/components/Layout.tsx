@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import adminAuthService from '../services/authService';
+import { canAccessRoute, resolveUiRole, ALL_PAGES } from '../config/permissions';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,29 +11,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const menuItems = [
-    { path: '/dashboard', label: 'Dashboard' },
-    { path: '/analytics', label: 'Analytics' },
-    { path: '/orders', label: 'Orders' },
-    { path: '/delivery-zones', label: 'Delivery Zones' },
-    { path: '/warehouse', label: 'Warehouse Operations' },
-    { path: '/suppliers', label: 'Suppliers & Purchases' },
-    { path: '/products', label: 'Products' },
-    { path: '/categories', label: 'Categories' },
-    { path: '/bundles', label: 'Bundles' },
-    { path: '/seasonal', label: 'Seasonal Products' },
-    { path: '/subscriptions', label: 'Subscriptions' },
-    { path: '/riders', label: 'Riders' },
-    { path: '/customers', label: 'Customers' },
-    { path: '/notes', label: 'Notes & Search Tracking' },
-    { path: '/finance', label: 'Finance' },
-    { path: '/marketing', label: 'Marketing' },
-    { path: '/coupons', label: 'Discount Codes' },
-    { path: '/admins', label: 'Admins' },
-    { path: '/data-deletion-requests', label: 'Data Deletion Requests' },
-    { path: '/support', label: 'Support' },
-    { path: '/settings', label: 'Settings' },
-  ];
+  const currentAdmin = adminAuthService.getCurrentAdmin();
+  const role = resolveUiRole(currentAdmin);
+  const menuItems = ALL_PAGES.filter((item) => canAccessRoute(role, item.path));
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -87,9 +68,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="bg-white border-b border-gray-200 px-8 py-6 flex items-center justify-between shadow-sm">
           <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">Admin User</span>
+            <div className="text-right">
+              <p className="text-sm font-medium text-gray-900 leading-tight">{currentAdmin?.name || currentAdmin?.email || 'Admin User'}</p>
+              <p className="text-xs text-gray-500 leading-tight">{role}</p>
+            </div>
             <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center text-white font-bold">
-              A
+              {(currentAdmin?.name || currentAdmin?.email || 'A').charAt(0).toUpperCase()}
             </div>
           </div>
         </div>

@@ -62,6 +62,12 @@ const DashboardPage: React.FC = () => {
           change: `${dashboardData.productStats.outOfStockProducts} out of stock`,
           color: 'bg-orange-500',
         },
+        {
+          title: 'Total Customers',
+          value: dashboardData.totalCustomers,
+          change: 'Registered accounts',
+          color: 'bg-pink-500',
+        },
       ];
 
       setKpis(kpiData);
@@ -94,6 +100,12 @@ const DashboardPage: React.FC = () => {
           change: 'Loading...',
           color: 'bg-orange-500',
         },
+        {
+          title: 'Total Customers',
+          value: '0',
+          change: 'Loading...',
+          color: 'bg-pink-500',
+        },
       ]);
     } finally {
     }
@@ -115,7 +127,7 @@ const DashboardPage: React.FC = () => {
       )}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         {kpis.map((kpi, index) => (
           <div key={index} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between">

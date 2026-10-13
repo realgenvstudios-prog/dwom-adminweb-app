@@ -3,8 +3,14 @@ import ReactApexChart from "react-apexcharts";
 import dashboardService from "../services/dashboardService";
 import { logger } from '../utils/logger';
 
+const formatDayLabel = (isoDate: string): string => {
+  const d = new Date(isoDate + 'T00:00:00');
+  return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+};
+
 const OrdersOverviewChart: React.FC = () => {
   const [series, setSeries] = useState<any[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -15,11 +21,12 @@ const OrdersOverviewChart: React.FC = () => {
     try {
       setLoading(true);
       const trends = await dashboardService.getRevenueOverTime(7);
-      
+
       if (trends && trends.length > 0) {
         const orderCounts = trends.map((t) => t.orders);
         const revenues = trends.map((t) => parseFloat(t.revenue.toFixed(2)));
-        
+
+        setCategories(trends.map((t) => formatDayLabel(t.date)));
         setSeries([
           {
             name: "Orders",
@@ -34,6 +41,7 @@ const OrdersOverviewChart: React.FC = () => {
     } catch (error) {
       logger.error("Failed to fetch order trends:", error);
       // Fallback to empty data
+      setCategories(["", "", "", "", "", "", ""]);
       setSeries([
         { name: "Orders", data: [0, 0, 0, 0, 0, 0, 0] },
         { name: "Revenue (GH₵)", data: [0, 0, 0, 0, 0, 0, 0] },
@@ -59,7 +67,7 @@ const OrdersOverviewChart: React.FC = () => {
     dataLabels: { enabled: false },
     legend: { show: false },
     xaxis: {
-      categories: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      categories,
       labels: { show: false },
       axisBorder: { show: false },
       axisTicks: { show: false },

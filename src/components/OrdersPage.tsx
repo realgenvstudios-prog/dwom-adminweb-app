@@ -6,6 +6,7 @@ import OrderDetailsDrawer from "./orders/OrderDetailsDrawer";
 import CreateOrderModal from "./orders/CreateOrderModal";
 import type { Order, OrdersFilterState, RiderSummary } from "./orders/OrderTypes";
 import ordersService from "../services/ordersService";
+import ridersService from "../services/ridersService";
 import { logger } from '../utils/logger';
 
 // Normalize backend order status to consistent lowercase format
@@ -52,7 +53,29 @@ const OrdersPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [allRiders, setAllRiders] = useState<RiderSummary[]>([]);
+  const [allZones, setAllZones] = useState<string[]>([]);
   const pageSize = 10;
+
+  // Full riders/zones lists for the filter dropdowns — independent of
+  // which orders happened to load, so a rider/zone with zero orders today
+  // still shows up as a filter option.
+  useEffect(() => {
+    const fetchFilterOptions = async () => {
+      try {
+        const [riders, zones] = await Promise.all([
+          ridersService.getAllRiders(),
+          ridersService.getAllZones(),
+        ]);
+        setAllRiders(riders.map(r => ({ id: r.id.toString(), name: r.name })));
+        setAllZones(zones.map(z => z.name));
+      } catch (err) {
+        logger.error('❌ [OrdersPage] Failed to fetch riders/zones for filters:', err);
+      }
+    };
+
+    fetchFilterOptions();
+  }, []);
 
   // Fetch orders from backend
   useEffect(() => {
@@ -121,15 +144,6 @@ const OrdersPage: React.FC = () => {
     fetchOrders();
   }, [page]);
 
-  // Mock data for zones and riders (replace with backend calls later)
-  const mockRiders: RiderSummary[] = orders
-    .filter(o => o.rider)
-    .map(o => o.rider!)
-    .filter((rider, idx, arr) => arr.findIndex(r => r.id === rider.id) === idx)
-    .slice(0, 5);
-
-  const mockZones = Array.from(new Set(orders.map(o => o.zone))).slice(0, 5);
-
   // Filter logic
   const filtered = orders.filter(o =>
     (filter.status === "All" || o.orderStatus === filter.status) &&
@@ -185,7 +199,7 @@ const OrdersPage: React.FC = () => {
         {!loading && (
           <>
             {/* Filters */}
-            <OrdersFiltersBar filter={filter} onChange={f => setFilter({ ...filter, ...f })} zones={mockZones} riders={mockRiders} />
+            <OrdersFiltersBar filter={filter} onChange={f => setFilter({ ...filter, ...f })} zones={allZones} riders={allRiders} />
             {/* KPIs */}
             <OrdersKpiCards />
             {/* Table */}

@@ -72,6 +72,7 @@ export interface DashboardData {
   productStats: ProductStats;
   orderTrends?: OrderTrend[];
   popularProducts?: PopularProduct[];
+  totalCustomers: number;
 }
 
 class DashboardService {
@@ -163,10 +164,11 @@ class DashboardService {
     try {
       
       // Fetch all data in parallel - use allSettled so one failure doesn't block the rest
-      const [orderResult, riderResult, productResult] = await Promise.allSettled([
+      const [orderResult, riderResult, productResult, customersResult] = await Promise.allSettled([
         this.getOrderStats(),
         this.getRiderStats(),
         this.getProductStats(),
+        this.getTotalCustomers(),
       ]);
 
       const dashboardData: DashboardData = {
@@ -179,6 +181,7 @@ class DashboardService {
         productStats: productResult.status === 'fulfilled' ? productResult.value : {
           totalProducts: 0, lowStockProducts: 0, outOfStockProducts: 0,
         },
+        totalCustomers: customersResult.status === 'fulfilled' ? customersResult.value : 0,
       };
 
       return dashboardData;
@@ -245,14 +248,20 @@ class DashboardService {
         }
       });
 
-      // Convert to array, sort by date, and take last N days
-      const trends = Array.from(dateMap.entries())
-        .map(([date, data]) => ({
-          date,
-          ...data,
-        }))
-        .sort((a, b) => a.date.localeCompare(b.date))
-        .slice(-days);
+      // Zero-fill every day in the trailing N-day window, not just days
+      // that happen to have an order — otherwise a quiet day silently
+      // disappears from the series instead of showing as zero, and the
+      // chart's x-axis (which assumes exactly `days` entries) mislabels
+      // every bar after the gap.
+      const trends: OrderTrend[] = [];
+      const today = new Date();
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const dateKey = d.toISOString().split('T')[0];
+        const data = dateMap.get(dateKey) || { orders: 0, revenue: 0 };
+        trends.push({ date: dateKey, ...data });
+      }
 
       return trends;
     } catch (error) {
