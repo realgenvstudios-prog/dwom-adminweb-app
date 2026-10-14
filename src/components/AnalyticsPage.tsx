@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import analyticsService from '../services/analyticsService';
 import type { EventCount } from '../services/analyticsService';
+import NotesTrackingTab from './analytics/NotesTrackingTab';
 import { logger } from '../utils/logger';
 
 type RangeOption = 7 | 30 | 90;
@@ -24,6 +25,7 @@ const RANGE_OPTIONS: { value: RangeOption; label: string }[] = [
 ];
 
 const AnalyticsPage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'overview' | 'notes'>('overview');
   const [events, setEvents] = useState<EventCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<RangeOption>(7);
@@ -58,28 +60,53 @@ const AnalyticsPage: React.FC = () => {
 
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold mb-2">Analytics</h1>
           <p className="text-gray-600">Product usage across the mobile app, from the event tracking pipeline</p>
         </div>
-        <div className="flex gap-2">
-          {RANGE_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setRange(opt.value)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                range === opt.value
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
+        {activeTab === 'overview' && (
+          <div className="flex gap-2">
+            {RANGE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setRange(opt.value)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  range === opt.value
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
+      <div className="mb-8 flex gap-2">
+        <button
+          onClick={() => setActiveTab('overview')}
+          className={`px-4 py-2 rounded-lg font-semibold transition ${
+            activeTab === 'overview' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          Overview
+        </button>
+        <button
+          onClick={() => setActiveTab('notes')}
+          className={`px-4 py-2 rounded-lg font-semibold transition ${
+            activeTab === 'notes' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          Notes & Search
+        </button>
+      </div>
+
+      {activeTab === 'notes' && <NotesTrackingTab />}
+
+      {activeTab === 'overview' && (
+      <>
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
@@ -156,6 +183,8 @@ const AnalyticsPage: React.FC = () => {
             </div>
           )}
         </>
+      )}
+      </>
       )}
     </div>
   );

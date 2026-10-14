@@ -16,7 +16,6 @@ import WorkforcePage from './components/WorkforcePage';
 import FinanceHubPage from './components/FinanceHubPage';
 import MarketingPage from './components/MarketingPage';
 import CustomersPage from './components/CustomersPage';
-import NotesTrackingPage from './components/NotesTrackingPage';
 import SettingsPage from './components/SettingsPage';
 import SupportPage from './components/SupportPage';
 import DataDeletionRequestsPage from './components/DataDeletionRequestsPage';
@@ -165,16 +164,7 @@ const App: React.FC = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/notes"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <NotesTrackingPage />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/notes" element={<Navigate to="/analytics" replace />} />
       <Route
         path="/settings"
         element={

@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import notesService from '../services/notesService';
-import type { NotesAnalytics } from '../services/notesService';
-import { logger } from '../utils/logger';
+import notesService from '../../services/notesService';
+import type { NotesAnalytics } from '../../services/notesService';
+import { logger } from '../../utils/logger';
 
-const NotesTrackingPage: React.FC = () => {
+// Split out of the former standalone NotesTrackingPage — now a tab on
+// Analytics, since it's the same "how are people using the app" domain,
+// just specifically about the Notes/search-parsing feature's quality
+// (success rate, parsing errors, low-confidence matches) rather than raw
+// event counts.
+const NotesTrackingTab: React.FC = () => {
   const [analytics, setAnalytics] = useState<NotesAnalytics | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedTab, setSelectedTab] = useState<'overview' | 'searches' | 'errors' | 'low-confidence'>('overview');
@@ -24,32 +29,25 @@ const NotesTrackingPage: React.FC = () => {
     }
   };
 
-  if (loading) {
+  if (loading && !analytics) {
     return (
-      <div className="p-8">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-        </div>
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   if (!analytics) {
     return (
-      <div className="p-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-          Failed to load notes analytics
-        </div>
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+        Failed to load notes analytics
       </div>
     );
   }
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Notes & Search Tracking</h1>
-        <p className="text-gray-600">Monitor how users search for products using the Notes feature</p>
-      </div>
+    <>
+      <p className="text-gray-600 mb-6">How users search for products using the Notes feature, and how well it parses them.</p>
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-5 gap-4 mb-8">
@@ -75,7 +73,7 @@ const NotesTrackingPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Sub-tabs */}
       <div className="bg-white rounded-lg shadow mb-6">
         <div className="flex border-b border-gray-200">
           <button
@@ -120,7 +118,6 @@ const NotesTrackingPage: React.FC = () => {
           </button>
         </div>
 
-        {/* Overview Tab */}
         {selectedTab === 'overview' && (
           <div className="p-6">
             <div className="grid grid-cols-2 gap-6">
@@ -175,7 +172,6 @@ const NotesTrackingPage: React.FC = () => {
           </div>
         )}
 
-        {/* Common Searches Tab */}
         {selectedTab === 'searches' && (
           <div className="p-6">
             <div className="overflow-x-auto">
@@ -217,7 +213,6 @@ const NotesTrackingPage: React.FC = () => {
           </div>
         )}
 
-        {/* Parsing Errors Tab */}
         {selectedTab === 'errors' && (
           <div className="p-6">
             <div className="space-y-4">
@@ -242,7 +237,6 @@ const NotesTrackingPage: React.FC = () => {
           </div>
         )}
 
-        {/* Low Confidence Matches Tab */}
         {selectedTab === 'low-confidence' && (
           <div className="p-6">
             <div className="overflow-x-auto">
@@ -296,7 +290,6 @@ const NotesTrackingPage: React.FC = () => {
         )}
       </div>
 
-      {/* Refresh Button */}
       <div className="flex justify-end">
         <button
           onClick={fetchAnalytics}
@@ -306,8 +299,8 @@ const NotesTrackingPage: React.FC = () => {
           {loading ? 'Refreshing...' : 'Refresh Data'}
         </button>
       </div>
-    </div>
+    </>
   );
 };
 
-export default NotesTrackingPage;
+export default NotesTrackingTab;
