@@ -46,7 +46,7 @@ export default function NeedsAttentionCard({ role, outOfStockProducts, ordersWit
       if (adm.status === 'rejected') logger.error('❌ [NeedsAttention] admin metrics:', adm.reason);
       setCounts({
         deletions: del.status === 'fulfilled' && Array.isArray(del.value) ? del.value.filter((r) => r.status === 'PENDING').length : 0,
-        support: sup.status === 'fulfilled' && sup.value ? sup.value.openTickets + sup.value.escalatedTickets : 0,
+        support: sup.status === 'fulfilled' && sup.value ? (sup.value.needsReply ?? 0) : 0,
         invites: adm.status === 'fulfilled' && adm.value ? adm.value.pendingAdmins : 0,
       });
     });
@@ -57,7 +57,7 @@ export default function NeedsAttentionCard({ role, outOfStockProducts, ordersWit
 
   const rows: Row[] = [
     { label: 'Orders without a rider', count: ordersWithoutRider ?? 0, path: '/orders', icon: Bike, tint: 'bg-violet-500/10 text-violet-600' },
-    { label: 'Open or escalated tickets', count: counts?.support ?? 0, path: '/support', icon: Headset, tint: 'bg-sky-500/10 text-sky-600' },
+    { label: 'Customers waiting for a reply', count: counts?.support ?? 0, path: '/support?view=needs_reply', icon: Headset, tint: 'bg-sky-500/10 text-sky-600' },
     { label: 'Products out of stock', count: outOfStockProducts ?? 0, path: '/catalog', icon: PackageX, tint: 'bg-red-500/10 text-red-600' },
     { label: 'Data deletion requests', count: counts?.deletions ?? 0, path: '/data-deletion-requests', icon: UserX, tint: 'bg-amber-500/10 text-amber-600' },
     { label: 'Pending admin invites', count: counts?.invites ?? 0, path: '/admins', icon: UserPlus, tint: 'bg-muted text-muted-foreground' },

@@ -1,359 +1,229 @@
-import React, { useState, useEffect } from "react";
-import supportService, { type SupportTicket, type SupportMetrics } from "../services/supportService";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { AlertCircle, CheckCircle2, Clock, Hourglass, Inbox, MessagesSquare, RotateCw, Search, Send } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { StatCard } from '@/components/stat-card';
+import { cn } from '@/lib/utils';
+import supportService, { type ConversationState, type SupportConversation, type SupportMetrics } from '../services/supportService';
 import { logger } from '../utils/logger';
+import { ago, displayName, initials, minutesLabel, stateMeta } from './support/support-meta';
+import ThreadPane from './support/ThreadPane';
 
-const channels = ["All", "In-app", "WhatsApp", "Phone", "Email"];
-const statuses = ["All", "Open", "In Progress", "Resolved", "Escalated"];
-const priorities = ["Low", "Medium", "High", "Urgent"];
-const quickReplies = ["Thank you for reaching out.", "We're looking into this for you.", "Your issue has been escalated.", "Please provide more details."];
-const assignees = ["Yaw Mensah", "Ama Serwaa", "Akosua Dede", "Efua Owusu", "Kofi Mensah"];
+type View = ConversationState | 'all';
+const VIEWS: { value: View; label: string }[] = [
+  { value: 'needs_reply', label: 'Needs reply' },
+  { value: 'waiting', label: 'Replied' },
+  { value: 'resolved', label: 'Resolved' },
+  { value: 'all', label: 'All' },
+];
+const POLL_MS = 30_000;
 
-const priorityColors = {
-  Low: "bg-gray-100 text-gray-700",
-  Medium: "bg-yellow-100 text-yellow-700",
-  High: "bg-orange-100 text-orange-700",
-  Urgent: "bg-red-100 text-red-700",
-};
+export default function SupportPage() {
+  const [params, setParams] = useSearchParams();
+  const view = (VIEWS.some((v) => v.value === params.get('view')) ? params.get('view') : 'needs_reply') as View;
+  const selected = Number(params.get('customer')) || null;
 
-const statusColors = {
-  "Open": "bg-blue-100 text-blue-700",
-  "In Progress": "bg-yellow-100 text-yellow-700",
-  "Resolved": "bg-green-100 text-green-700",
-  "Escalated": "bg-red-100 text-red-700",
-};
-
-const SupportPage: React.FC = () => {
-  const [tickets, setTickets] = useState<SupportTicket[]>([]);
+  const [conversations, setConversations] = useState<SupportConversation[] | null>(null);
   const [metrics, setMetrics] = useState<SupportMetrics | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
-  const [search, setSearch] = useState("");
-  const [channel, setChannel] = useState(channels[0]);
-  const [status, setStatus] = useState(statuses[0]);
-  const [reply, setReply] = useState("");
-  const [quickReply, setQuickReply] = useState("");
-  const [replyLoading, setReplyLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  const [tick, setTick] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
 
-  useEffect(() => {
-    fetchData();
+  const setParam = (patch: Record<string, string | null>) =>
+    setParams(
+      (p) => {
+        const next = new URLSearchParams(p);
+        Object.entries(patch).forEach(([k, v]) => (v === null ? next.delete(k) : next.set(k, v)));
+        return next;
+      },
+      { replace: true },
+    );
+
+  const load = useCallback(async () => {
+    try {
+      const [c, m] = await Promise.all([supportService.getConversations(), supportService.getSupportMetrics()]);
+      setConversations(c);
+      setMetrics(m);
+      setError(null);
+    } catch (err) {
+      logger.error('Failed to load support inbox:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load support');
+      setConversations((c) => c ?? []);
+    }
+    setNow(Date.now());
   }, []);
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const [ticketsData, metricsData] = await Promise.all([
-        supportService.getAllTickets(50),
-        supportService.getSupportMetrics(),
-      ]);
-      
-      setTickets(ticketsData);
-      setMetrics(metricsData);
-      
-      if (ticketsData.length > 0 && !selectedTicket) {
-        setSelectedTicket(ticketsData[0]);
+  // Poll so new customer messages show up without a manual refresh.
+  useEffect(() => {
+    const first = setTimeout(() => void load(), 0);
+    const id = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        void load();
+        setTick((t) => t + 1);
       }
-    } catch (error) {
-      logger.error("Failed to fetch support data:", error);
-    } finally {
-      setLoading(false);
+    }, POLL_MS);
+    return () => {
+      clearTimeout(first);
+      clearInterval(id);
+    };
+  }, [load]);
+
+  const counts = useMemo(() => {
+    const c: Record<View, number> = { needs_reply: 0, waiting: 0, resolved: 0, all: 0 };
+    for (const x of conversations ?? []) {
+      c[x.state]++;
+      c.all++;
     }
-  };
+    return c;
+  }, [conversations]);
 
-  const filtered = tickets.filter(t =>
-    (channel === "All" || t.channel === channel) &&
-    (status === "All" || t.status === status) &&
-    (t.customer.toLowerCase().includes(search.toLowerCase()) ||
-      t.id.toLowerCase().includes(search.toLowerCase()) ||
-      t.topic.toLowerCase().includes(search.toLowerCase()))
-  );
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return (conversations ?? [])
+      .filter((c) => view === 'all' || c.state === view)
+      .filter((c) => !q || [c.customer, c.phone, c.email, c.lastMessage].some((v) => v?.toLowerCase().includes(q)))
+      .sort((a, b) =>
+        // Longest-waiting first when triaging; otherwise most recent first.
+        view === 'needs_reply' ? new Date(a.waitingSince ?? a.lastMessageAt).getTime() - new Date(b.waitingSince ?? b.lastMessageAt).getTime() : b.lastMessageAt.localeCompare(a.lastMessageAt),
+      );
+  }, [conversations, view, query]);
 
-  const handleSendReply = async () => {
-    if (!reply.trim() || !selectedTicket) return;
-
-    try {
-      setReplyLoading(true);
-      await supportService.sendReply(selectedTicket.id, reply);
-      
-      // Add message to conversation
-      const updatedTicket = {
-        ...selectedTicket,
-        conversation: [
-          ...selectedTicket.conversation,
-          { sender: "Admin", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), text: reply }
-        ],
-        lastUpdate: `Today ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-      };
-      
-      setSelectedTicket(updatedTicket);
-      setReply("");
-      setQuickReply("");
-    } catch (error) {
-      logger.error("Failed to send reply:", error);
-    } finally {
-      setReplyLoading(false);
-    }
-  };
-
-  const handleStatusChange = async (newStatus: string) => {
-    if (!selectedTicket) return;
-    try {
-      await supportService.updateTicketStatus(selectedTicket.id, newStatus as any);
-      setSelectedTicket({ ...selectedTicket, status: newStatus as any });
-    } catch (error) {
-      logger.error("Failed to update status:", error);
-    }
-  };
-
-  const handlePriorityChange = async (newPriority: string) => {
-    if (!selectedTicket) return;
-    try {
-      await supportService.updateTicketPriority(selectedTicket.id, newPriority as any);
-      setSelectedTicket({ ...selectedTicket, priority: newPriority as any });
-    } catch (error) {
-      logger.error("Failed to update priority:", error);
-    }
-  };
-
-  const handleAssignChange = async (newAssignee: string) => {
-    if (!selectedTicket) return;
-    try {
-      await supportService.assignTicket(selectedTicket.id, newAssignee);
-      setSelectedTicket({ ...selectedTicket, assigned: newAssignee });
-    } catch (error) {
-      logger.error("Failed to assign ticket:", error);
-    }
-  };
-
-  const pageSize = 20;
-  const pageStart = 1;
-  const pageEnd = Math.min(pageSize, filtered.length);
+  const longestWait = (conversations ?? []).filter((c) => c.state === 'needs_reply' && c.waitingSince).map((c) => now - new Date(c.waitingSince!).getTime());
+  const longest = longestWait.length ? Math.round(Math.max(...longestWait) / 60000) : null;
+  const loading = conversations === null;
 
   return (
-    <div className="bg-gray-50 min-h-screen py-10 px-4">
-      <div className="max-w-(--breakpoint-2xl) mx-auto">
-        {/* KPI Cards */}
-        {metrics && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-            <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-6 flex flex-col items-center justify-center text-center">
-              <div className="text-gray-600 text-sm font-medium mb-2">Total Tickets</div>
-              <div className="text-3xl font-bold text-gray-900">{metrics.totalTickets}</div>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-6 flex flex-col items-center justify-center text-center">
-              <div className="text-gray-600 text-sm font-medium mb-2">Open</div>
-              <div className="text-3xl font-bold text-blue-600">{metrics.openTickets}</div>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-6 flex flex-col items-center justify-center text-center">
-              <div className="text-gray-600 text-sm font-medium mb-2">Avg Response</div>
-              <div className="text-3xl font-bold text-yellow-600">{metrics.avgResponseTime}m</div>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-6 flex flex-col items-center justify-center text-center">
-              <div className="text-gray-600 text-sm font-medium mb-2">Avg Resolution</div>
-              <div className="text-3xl font-bold text-green-600">{Math.floor(metrics.avgResolutionTime / 60)}h</div>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-6 flex flex-col items-center justify-center text-center">
-              <div className="text-gray-600 text-sm font-medium mb-2">FCR Rate</div>
-              <div className="text-3xl font-bold text-purple-600">{metrics.firstContactResolution}%</div>
-            </div>
-          </div>
-        )}
+    <div className="flex flex-col gap-6">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Support</h1>
+        <p className="text-sm text-muted-foreground">Chats from the app’s Support screen. Replies reach the customer’s app with a notification.</p>
+      </div>
 
-        {/* Top Bar */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-xs px-6 py-5 mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Support</h1>
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard
+          label="Waiting for a reply"
+          value={String(metrics?.needsReply ?? counts.needs_reply)}
+          hint={longest !== null ? `Longest: ${minutesLabel(longest)}` : 'Nobody is waiting'}
+          icon={Hourglass}
+          tint="bg-amber-500/10 text-amber-600"
+          loading={loading}
+          failed={!!error}
+        />
+        <StatCard
+          label="Typical first response"
+          value={metrics?.medianFirstResponseMinutes != null ? minutesLabel(metrics.medianFirstResponseMinutes) : '—'}
+          hint="Median over the last 30 days"
+          icon={Clock}
+          tint="bg-sky-500/10 text-sky-600"
+          loading={loading}
+          failed={!!error}
+        />
+        <StatCard label="Replies this week" value={String(metrics?.repliesLast7Days ?? 0)} hint="Messages sent by your team" icon={Send} tint="bg-violet-500/10 text-violet-600" loading={loading} failed={!!error} />
+        <StatCard label="Resolved" value={String(metrics?.resolved ?? counts.resolved)} hint={`of ${metrics?.conversations ?? counts.all} conversations`} icon={CheckCircle2} tint="bg-emerald-500/10 text-emerald-600" loading={loading} failed={!!error} />
+      </div>
+
+      {error && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
+          <div className="flex items-center gap-2 text-destructive">
+            <AlertCircle className="size-4" />
+            Couldn’t load support: {error}
           </div>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 w-full sm:w-auto">
-            <select className="border rounded-lg px-4 py-2 min-w-[120px] text-base" value={channel} onChange={e => { setChannel(e.target.value); setSelectedTicket(null); }}>
-              {channels.map(c => <option key={c}>{c}</option>)}
-            </select>
-            <select className="border rounded-lg px-4 py-2 min-w-[140px] text-base" value={status} onChange={e => { setStatus(e.target.value); setSelectedTicket(null); }}>
-              {statuses.map(s => <option key={s}>{s}</option>)}
-            </select>
-            <input
-              className="border rounded-lg px-4 py-2 min-w-[200px] flex-1 text-base"
-              placeholder="Search by customer, order, or ticket…"
-              value={search}
-              onChange={e => { setSearch(e.target.value); setSelectedTicket(null); }}
-            />
+          <Button variant="outline" size="sm" onClick={() => void load()}>
+            <RotateCw />
+            Retry
+          </Button>
+        </div>
+      )}
+
+      <Card className="flex h-[calc(100vh-15rem)] min-h-[520px] flex-row gap-0 overflow-hidden p-0">
+        <div className={cn('flex w-full flex-col border-r md:w-80 lg:w-96', selected && 'hidden md:flex')}>
+          <div className="flex flex-col gap-3 border-b p-3">
+            <div className="relative">
+              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search name, phone, message…" className="h-8 pl-8" />
+            </div>
+            <Tabs value={view} onValueChange={(v) => setParam({ view: v })}>
+              <TabsList className="w-full">
+                {VIEWS.map((v) => (
+                  <TabsTrigger key={v.value} value={v.value} className="gap-1 px-1.5 text-xs">
+                    {v.label}
+                    {counts[v.value] > 0 && v.value !== 'all' && <span className="text-muted-foreground tabular-nums">{counts[v.value]}</span>}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
+
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            {loading ? (
+              <div className="flex flex-col gap-1 p-2">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Skeleton key={i} className="h-16 w-full" />
+                ))}
+              </div>
+            ) : visible.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 px-6 py-12 text-center text-sm text-muted-foreground">
+                <Inbox className="size-8" />
+                {query ? 'No conversations match.' : view === 'needs_reply' ? 'All caught up — nobody is waiting.' : 'Nothing here.'}
+              </div>
+            ) : (
+              <ul className="flex flex-col p-1.5">
+                {visible.map((c) => {
+                  const name = displayName(c);
+                  const st = stateMeta(c.state);
+                  const active = c.userId === selected;
+                  return (
+                    <li key={c.userId}>
+                      <button
+                        type="button"
+                        onClick={() => setParam({ customer: String(c.userId) })}
+                        className={cn('flex w-full gap-3 rounded-lg p-2.5 text-left transition-colors', active ? 'bg-muted' : 'hover:bg-muted/60')}
+                      >
+                        <div className="relative shrink-0">
+                          <Avatar className="size-9">
+                            <AvatarFallback className="text-xs">{initials(name)}</AvatarFallback>
+                          </Avatar>
+                          <span className={cn('absolute -right-0.5 -bottom-0.5 size-3 rounded-full border-2 border-background', st.dot)} title={st.label} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-baseline justify-between gap-2">
+                            <p className={cn('truncate text-sm', c.state === 'needs_reply' ? 'font-semibold' : 'font-medium')}>{name}</p>
+                            <span className={cn('shrink-0 text-xs tabular-nums', c.state === 'needs_reply' ? 'font-medium text-amber-700' : 'text-muted-foreground')}>
+                              {ago(c.state === 'needs_reply' && c.waitingSince ? c.waitingSince : c.lastMessageAt, now)}
+                            </span>
+                          </div>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {c.lastSender === 'support' && <span className="text-foreground/70">You: </span>}
+                            {c.lastMessage}
+                          </p>
+                        </div>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
         </div>
 
-        {loading ? (
-          <div className="bg-white rounded-xl border border-gray-100 p-12 flex items-center justify-center">
-            <div className="text-center">
-              <svg className="animate-spin h-8 w-8 text-blue-600 mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <p className="text-gray-600">Loading tickets...</p>
+        <div className={cn('min-w-0 flex-1 flex-col', selected ? 'flex' : 'hidden md:flex')}>
+          {selected ? (
+            <ThreadPane key={selected} userId={selected} refreshKey={tick} onBack={() => setParam({ customer: null })} onChanged={() => void load()} />
+          ) : (
+            <div className="flex flex-1 flex-col items-center justify-center gap-2 p-8 text-center text-sm text-muted-foreground">
+              <MessagesSquare className="size-10" />
+              <p className="font-medium text-foreground">Pick a conversation</p>
+              <p>Customers waiting longest are at the top of “Needs reply”.</p>
             </div>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-8">
-            {/* Ticket List */}
-            <div className="bg-white rounded-xl shadow-xs border border-gray-100 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">Tickets ({filtered.length})</h2>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-left text-sm">
-                  <thead>
-                    <tr className="text-gray-500 border-b">
-                      <th className="py-2 pr-4 font-medium">Ticket ID</th>
-                      <th className="py-2 pr-4 font-medium">Customer</th>
-                      <th className="py-2 pr-4 font-medium">Topic</th>
-                      <th className="py-2 pr-4 font-medium">Priority</th>
-                      <th className="py-2 pr-4 font-medium">Channel</th>
-                      <th className="py-2 pr-4 font-medium">Last update</th>
-                      <th className="py-2 pr-4 font-medium">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map((t) => (
-                      <tr
-                        key={t.id}
-                        className={`border-b last:border-0 cursor-pointer hover:bg-blue-50 transition ${selectedTicket?.id === t.id ? 'bg-blue-100' : ''}`}
-                        onClick={() => setSelectedTicket(t)}
-                      >
-                        <td className="py-2 pr-4 font-medium">{t.id}</td>
-                        <td className="py-2 pr-4">{t.customer}</td>
-                        <td className="py-2 pr-4">{t.topic}</td>
-                        <td className="py-2 pr-4">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${priorityColors[t.priority as keyof typeof priorityColors]}`}>{t.priority}</span>
-                        </td>
-                        <td className="py-2 pr-4">{t.channel}</td>
-                        <td className="py-2 pr-4">{t.lastUpdate}</td>
-                        <td className="py-2 pr-4">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[t.status as keyof typeof statusColors]}`}>{t.status}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {/* Pagination */}
-              <div className="flex items-center justify-between mt-4 text-sm">
-                <div>
-                  {`${pageStart}–${pageEnd} of ${filtered.length}`}
-                </div>
-                <div className="flex gap-2 items-center">
-                  <button className="px-2 py-1 rounded-sm hover:bg-gray-100">Prev</button>
-                  <button className="px-2 py-1 rounded-sm hover:bg-gray-100">Next</button>
-                </div>
-              </div>
-            </div>
-
-            {/* Ticket Details */}
-            <div className="bg-white rounded-xl shadow-xs border border-gray-100 p-6">
-              {selectedTicket ? (
-                <div className="flex flex-col h-full">
-                  {/* Header */}
-                  <div className="flex flex-col gap-2 mb-4">
-                    <div className="flex items-center justify-between">
-                      <div className="font-bold text-lg">{selectedTicket.subject}</div>
-                      <div className="flex gap-2">
-                        <select 
-                          className="border rounded-sm px-2 py-1 text-xs" 
-                          value={selectedTicket.status} 
-                          onChange={(e) => handleStatusChange(e.target.value)}
-                        >
-                          {statuses.filter(s => s !== "All").map(s => <option key={s}>{s}</option>)}
-                        </select>
-                        <select 
-                          className="border rounded-sm px-2 py-1 text-xs" 
-                          value={selectedTicket.priority} 
-                          onChange={(e) => handlePriorityChange(e.target.value)}
-                        >
-                          {priorities.map(p => <option key={p}>{p}</option>)}
-                        </select>
-                        <select 
-                          className="border rounded-sm px-2 py-1 text-xs" 
-                          value={selectedTicket.assigned} 
-                          onChange={(e) => handleAssignChange(e.target.value)}
-                        >
-                          {assignees.map(a => <option key={a}>{a}</option>)}
-                        </select>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-4 text-xs text-gray-500">
-                      <span>{selectedTicket.customer} ({selectedTicket.phone})</span>
-                      {selectedTicket.orderId && <span>Order: {selectedTicket.orderId}</span>}
-                      <span>Channel: {selectedTicket.channel}</span>
-                      <span>Created: {selectedTicket.created}</span>
-                      <span className="font-semibold text-blue-600">SLA: {selectedTicket.sla}</span>
-                    </div>
-                  </div>
-
-                  {/* Conversation */}
-                  <div className="flex-1 overflow-y-auto mb-4 max-h-80">
-                    <div className="flex flex-col gap-3">
-                      {selectedTicket.conversation.map((msg, i) => (
-                        <div key={i} className={`flex ${msg.sender === "Admin" ? "justify-end" : "justify-start"}`}>
-                          <div className={`max-w-[70%] px-4 py-2 rounded-lg shadow-xs text-sm ${msg.sender === "Admin" ? "bg-blue-100 text-blue-900" : "bg-gray-100 text-gray-900"}`}>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-semibold">{msg.sender}</span>
-                              <span className="text-xs text-gray-400">{msg.time}</span>
-                            </div>
-                            <div>{msg.text}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Reply Box */}
-                  <div className="border-t pt-4 mt-auto">
-                    <div className="flex gap-2 mb-2">
-                      <select
-                        className="border rounded-sm px-2 py-1 text-xs"
-                        value={quickReply}
-                        onChange={e => setQuickReply(e.target.value)}
-                      >
-                        <option value="">Insert quick reply…</option>
-                        {quickReplies.map(q => <option key={q}>{q}</option>)}
-                      </select>
-                      <button
-                        className="px-3 py-1 rounded-sm bg-gray-100 text-gray-700 text-xs hover:bg-gray-200"
-                        onClick={() => setReply(reply + (quickReply ? (reply ? "\n" : "") + quickReply : ""))}
-                      >
-                        Insert
-                      </button>
-                    </div>
-                    <textarea
-                      className="border rounded-lg px-4 py-2 w-full mb-2 text-sm"
-                      rows={3}
-                      placeholder="Type your reply…"
-                      value={reply}
-                      onChange={e => setReply(e.target.value)}
-                    />
-                    <div className="flex gap-2 justify-end">
-                      <button
-                        className="px-5 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-xs disabled:opacity-50"
-                        onClick={handleSendReply}
-                        disabled={!reply.trim() || replyLoading}
-                      >
-                        {replyLoading ? "Sending..." : "Send reply"}
-                      </button>
-                      <button
-                        className="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 bg-white hover:bg-gray-50"
-                        onClick={() => setReply("")}
-                      >
-                        Clear
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-gray-400 text-sm flex items-center justify-center h-full min-h-[300px]">
-                  Select a ticket to view details.
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </Card>
     </div>
   );
-};
-
-export default SupportPage;
+}
