@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronsUpDown, LogOut, Settings, ShieldCheck } from 'lucide-react';
+import { ChevronsUpDown, LogOut, Settings, UserRound } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -11,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
+import AccountDialog from '../account/AccountDialog';
 
 interface NavUserProps {
   user: { name: string; email: string; role: string };
@@ -27,6 +29,7 @@ function initialsOf(name: string): string {
 export default function NavUser({ user, canOpenSettings, onLogout }: NavUserProps) {
   const { isMobile } = useSidebar();
   const navigate = useNavigate();
+  const [accountOpen, setAccountOpen] = useState(false);
 
   return (
     <SidebarMenu>
@@ -65,28 +68,27 @@ export default function NavUser({ user, canOpenSettings, onLogout }: NavUserProp
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {canOpenSettings && (
-              <>
-                <DropdownMenuGroup>
-                  {/* Password & account security live on the Admins page. */}
-                  <DropdownMenuItem onSelect={() => navigate('/admins')}>
-                    <ShieldCheck />
-                    Account security
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => navigate('/settings')}>
-                    <Settings />
-                    Settings
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-              </>
-            )}
+            <DropdownMenuGroup>
+              {/* Every admin can change their own password and alerts. */}
+              <DropdownMenuItem onSelect={() => setAccountOpen(true)}>
+                <UserRound />
+                Your account
+              </DropdownMenuItem>
+              {canOpenSettings && (
+                <DropdownMenuItem onSelect={() => navigate('/settings')}>
+                  <Settings />
+                  Settings
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onSelect={onLogout}>
               <LogOut />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <AccountDialog open={accountOpen} onOpenChange={setAccountOpen} name={user.name} email={user.email} />
       </SidebarMenuItem>
     </SidebarMenu>
   );

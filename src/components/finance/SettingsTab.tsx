@@ -12,6 +12,8 @@ import { logger } from '../../utils/logger';
 import { formatGhs } from '../orders/order-status';
 
 type Key =
+  | 'defaultServiceFee'
+  | 'defaultDeliveryFee'
   | 'minimumOrderValue'
   | 'maxSmallOrderFee'
   | 'paystackFeePercent'
@@ -31,6 +33,20 @@ interface Field {
 
 // Grouped by what each number actually changes in the backend.
 const SECTIONS: { title: string; description: string; affectsCustomers?: boolean; fields: Field[] }[] = [
+  {
+    title: 'Checkout fees',
+    description: 'Added to every order the customer places. ₵0 waives a fee.',
+    affectsCustomers: true,
+    fields: [
+      { key: 'defaultServiceFee', label: 'Service fee', hint: 'Every order and every subscription delivery.', unit: '₵' },
+      {
+        key: 'defaultDeliveryFee',
+        label: 'Standard delivery fee',
+        hint: 'Subscription deliveries, and addresses outside your zones. Zone orders use the zone’s fee.',
+        unit: '₵',
+      },
+    ],
+  },
   {
     title: 'Small-order fee',
     description: 'Charged at checkout: a basket below the minimum pays the difference, up to the cap.',
@@ -135,7 +151,7 @@ const SettingsTab: React.FC = () => {
       setSaving(true);
       await settingsService.updateSettings(payload);
       setSaved(form);
-      toast.success(changed.some((k) => k === 'minimumOrderValue' || k === 'maxSmallOrderFee') ? 'Saved — checkout uses the new small-order fee now' : 'Settings saved');
+      toast.success(changed.some((k) => ['minimumOrderValue', 'maxSmallOrderFee', 'defaultServiceFee', 'defaultDeliveryFee'].includes(k)) ? 'Saved — checkout uses the new fees now' : 'Settings saved');
     } catch (err) {
       logger.error('Failed to save finance settings:', err);
       toast.error('Couldn’t save the settings.');

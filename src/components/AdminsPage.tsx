@@ -24,7 +24,6 @@ import adminsService, { type Admin, type AdminRole } from '../services/adminsSer
 import adminAuthService from '../services/authService';
 import { ALL_ROLES } from '../config/permissions';
 import { logger } from '../utils/logger';
-import AdminSecuritySection from './admins/AdminSecuritySection';
 import InviteAdminDialog from './admins/InviteAdminDialog';
 import RoleSelect from './admins/RoleSelect';
 import { ROLE_BLURB, ROLE_PAGES, ROLE_TINT, STATUS_TINT, initials } from './admins/role-meta';
@@ -320,7 +319,6 @@ export default function AdminsPage() {
               ))}
             </CardContent>
           </Card>
-          <AdminSecuritySection />
         </div>
       </div>
 

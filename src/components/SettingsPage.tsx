@@ -1,104 +1,203 @@
-import React from "react";
-import { useSettingsData } from "./settings/useSettingsData";
-import BusinessInfoSection from "./settings/BusinessInfoSection";
-import OperatingPreferencesSection from "./settings/OperatingPreferencesSection";
-import UserRolesSection from "./settings/UserRolesSection";
-import PaymentBillingSection from "./settings/PaymentBillingSection";
-import EmailNotificationSection from "./settings/EmailNotificationSection";
+import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { AlertCircle, ArrowRight, Loader2, MapPinned, Percent, RotateCw, Store, Undo2, Users } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
+import { settingsService } from '../services/settingsService';
+import { logger } from '../utils/logger';
 
-const SettingsPage: React.FC = () => {
-  const s = useSettingsData();
+// Only settings the backend actually uses live here; fees moved to
+// Finance → Settings, next to the small-order fee. The old page also
+// showed ~20 controls nothing reads (auto-assign, timezone, retry logic,
+// notification toggles, Paystack/SMTP key boxes filled with fake values,
+// 2FA / IP access), so changing them did nothing.
+interface Form {
+  isServiceClosed: boolean;
+  serviceClosedMessage: string;
+}
+
+const toForm = (s: Record<string, unknown>): Form => ({
+  isServiceClosed: !!s.isServiceClosed,
+  serviceClosedMessage: String(s.serviceClosedMessage ?? ''),
+});
+
+export default function SettingsPage() {
+  const [saved, setSaved] = useState<Form | null>(null);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState<'status' | 'message' | null>(null);
+  const [confirmClose, setConfirmClose] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      setError(null);
+      const f = toForm((await settingsService.getSettings()) as unknown as Record<string, unknown>);
+      setSaved(f);
+      setMessage(f.serviceClosedMessage);
+    } catch (err) {
+      logger.error('Failed to load settings:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load settings');
+    }
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => void load(), 0);
+    return () => clearTimeout(t);
+  }, [load]);
+
+  const save = async (key: 'status' | 'message', patch: Record<string, unknown>, success: string) => {
+    try {
+      setBusy(key);
+      await settingsService.updateSettings(patch);
+      toast.success(success);
+      await load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Couldn’t save.');
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const setOpen = (open: boolean) => {
+    if (!open && !message.trim()) return toast.error('Write the message customers will see first.');
+    void save('status', { isServiceClosed: !open, ...(open ? {} : { serviceClosedMessage: message.trim() }) }, open ? 'Open — customers can order again' : 'Closed — new orders are paused');
+  };
+
+  if (error) {
+    return (
+      <div className="flex flex-col gap-6">
+        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
+          <div className="flex items-center gap-2 text-destructive">
+            <AlertCircle className="size-4" />
+            Couldn’t load settings: {error}
+          </div>
+          <Button variant="outline" size="sm" onClick={() => void load()}>
+            <RotateCw />
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const closed = saved?.isServiceClosed ?? false;
+  const messageChanged = !!saved && message !== saved.serviceClosedMessage;
 
   return (
-    <div className="bg-gray-50 min-h-screen py-10 px-4">
-      {s.loading ? (
-        <div className="flex items-center justify-center py-20">
-          <svg
-            className="animate-spin h-8 w-8 text-blue-600"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-          <p className="ml-3 text-gray-600">Loading settings...</p>
-        </div>
+    <div className="flex flex-col gap-6">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+        <p className="text-sm text-muted-foreground">Store-wide controls. Changes apply to new orders immediately.</p>
+      </div>
+
+      {!saved ? (
+        <Skeleton className="h-64 max-w-2xl rounded-xl" />
       ) : (
-        <div className="max-w-(--breakpoint-2xl) mx-auto flex flex-col gap-10">
-          {/* Error Message */}
-          {s.error && (
-            <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
-              {s.error}
-            </div>
-          )}
+        <div className="grid max-w-2xl gap-6">
+          <Card className={cn(closed && 'border-red-500/40')}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Store className="size-4" />
+                Store status
+                <Badge variant="outline" className={closed ? 'border-red-500/20 bg-red-500/10 text-red-700' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-700'}>
+                  {closed ? 'Closed' : 'Open'}
+                </Badge>
+              </CardTitle>
+              <CardDescription>While closed, the app refuses new orders and shows customers your message. Orders already placed aren’t affected.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
+                <div>
+                  <Label htmlFor="st-open" className="text-sm">
+                    Accepting orders
+                  </Label>
+                  <p className="text-xs text-muted-foreground">{closed ? 'Turn on to reopen.' : 'Turn off to pause new orders (e.g. overnight).'}</p>
+                </div>
+                {busy === 'status' ? (
+                  <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                ) : (
+                  <Switch id="st-open" checked={!closed} onCheckedChange={(on) => (on ? setOpen(true) : setConfirmClose(true))} />
+                )}
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="st-msg">Message customers see while closed</Label>
+                <Textarea id="st-msg" rows={2} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="e.g. We’re closed for the night. See you at 7am!" />
+                {messageChanged && (
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" disabled={busy === 'message' || !message.trim()} onClick={() => void save('message', { serviceClosedMessage: message.trim() }, 'Message saved')}>
+                      {busy === 'message' && <Loader2 className="animate-spin" />}
+                      Save message
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setMessage(saved.serviceClosedMessage)}>
+                      <Undo2 />
+                      Undo
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Success Message */}
-          {s.success && (
-            <div className="p-4 rounded-lg bg-green-50 border border-green-200 text-green-700">
-              ✅ Settings saved successfully!
-            </div>
-          )}
-
-          <BusinessInfoSection
-            businessName={s.businessName} setBusinessName={s.setBusinessName}
-            supportEmail={s.supportEmail} setSupportEmail={s.setSupportEmail}
-            supportPhone={s.supportPhone} setSupportPhone={s.setSupportPhone}
-            warehouseAddress={s.warehouseAddress} setWarehouseAddress={s.setWarehouseAddress}
-            logo={s.logo} handleLogoUpload={s.handleLogoUpload}
-            saving={s.saving} settingsLoaded={s.settingsLoaded} onSave={s.handleSave}
-          />
-
-          <OperatingPreferencesSection
-            autoAssignOrders={s.autoAssignOrders} setAutoAssignOrders={s.setAutoAssignOrders}
-            autoActivateRiders={s.autoActivateRiders} setAutoActivateRiders={s.setAutoActivateRiders}
-            enableSubscriptionBilling={s.enableSubscriptionBilling} setEnableSubscriptionBilling={s.setEnableSubscriptionBilling}
-            defaultServiceFee={s.defaultServiceFee} setDefaultServiceFee={s.setDefaultServiceFee}
-            timezone={s.timezone} setTimezone={s.setTimezone}
-            dateFormat={s.dateFormat} setDateFormat={s.setDateFormat}
-            isServiceClosed={s.isServiceClosed} setIsServiceClosed={s.setIsServiceClosed}
-            serviceClosedMessage={s.serviceClosedMessage} setServiceClosedMessage={s.setServiceClosedMessage}
-            saving={s.saving} settingsLoaded={s.settingsLoaded} onSave={s.handleSave}
-          />
-
-          <UserRolesSection />
-
-          <PaymentBillingSection
-            paystackPub={s.paystackPub} setPaystackPub={s.setPaystackPub}
-            paystackSec={s.paystackSec} setPaystackSec={s.setPaystackSec}
-            webhookUrl={s.webhookUrl}
-            testMode={s.testMode} setTestMode={s.setTestMode}
-            retryLogic={s.retryLogic} setRetryLogic={s.setRetryLogic}
-            maxRetryAttempts={s.maxRetryAttempts} setMaxRetryAttempts={s.setMaxRetryAttempts}
-            retryInterval={s.retryInterval} setRetryInterval={s.setRetryInterval}
-            billingCycle={s.billingCycle}
-            saving={s.saving} settingsLoaded={s.settingsLoaded} onSave={s.handleSave}
-          />
-
-          <EmailNotificationSection
-            smtpKey={s.smtpKey} setSmtpKey={s.setSmtpKey}
-            sendGridKey={s.sendGridKey} setSendGridKey={s.setSendGridKey}
-            notifyOrderUpdates={s.notifyOrderUpdates} setNotifyOrderUpdates={s.setNotifyOrderUpdates}
-            notifyFailedSubscriptions={s.notifyFailedSubscriptions} setNotifyFailedSubscriptions={s.setNotifyFailedSubscriptions}
-            notifyLowInventory={s.notifyLowInventory} setNotifyLowInventory={s.setNotifyLowInventory}
-            notifyNewRiders={s.notifyNewRiders} setNotifyNewRiders={s.setNotifyNewRiders}
-            saving={s.saving} settingsLoaded={s.settingsLoaded} onSave={s.handleSave}
-          />
         </div>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Elsewhere</CardTitle>
+          <CardDescription>Settings that live next to what they affect.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-2 sm:grid-cols-3">
+          {[
+            { to: '/finance?tab=settings', icon: Percent, title: 'Fees & costs', desc: 'Service, delivery and small-order fees; cost assumptions; picker pay' },
+            { to: '/field-operations?tab=zones', icon: MapPinned, title: 'Delivery zones & fees', desc: 'Where you deliver and what each area costs' },
+            { to: '/admins', icon: Users, title: 'Admins & roles', desc: 'Who can sign in and what they can see' },
+          ].map((l) => (
+            <Link key={l.to} to={l.to} className="group flex items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50">
+              <l.icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium">{l.title}</p>
+                <p className="text-xs text-muted-foreground">{l.desc}</p>
+              </div>
+              <ArrowRight className="mt-0.5 size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          ))}
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={confirmClose} onOpenChange={setConfirmClose}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Pause new orders?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Customers can’t check out until you reopen. They’ll see: “{message.trim() || '…'}”
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep open</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={() => setOpen(false)}>
+              Close the store
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
-};
-
-export default SettingsPage;
+}

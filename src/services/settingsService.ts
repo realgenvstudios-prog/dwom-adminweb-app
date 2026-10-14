@@ -1,4 +1,4 @@
-import adminApiClient from './apiClient';
+import adminApiClient, { ApiError } from './apiClient';
 import { logger } from '../utils/logger';
 
 export interface Settings {
@@ -31,10 +31,6 @@ export interface Settings {
   notifyLowInventory: boolean;
   notifyNewRiders: boolean;
 
-  // Security
-  enable2FA: boolean;
-  ipAccessControlList: string[];
-
   // Service Availability
   isServiceClosed: boolean;
   serviceClosedMessage: string;
@@ -59,8 +55,15 @@ export const settingsService = {
    */
   async getSettings(): Promise<Settings> {
     try {
-      const settings = await adminApiClient.get<Settings>('/settings');
-      return settings;
+      // Full settings are admin-only (GET /settings is the public subset the
+      // app reads). Fall back to it while a backend without /settings/admin
+      // is still deployed.
+      try {
+        return await adminApiClient.get<Settings>('/settings/admin');
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 404) return await adminApiClient.get<Settings>('/settings');
+        throw err;
+      }
     } catch (error) {
       logger.error('❌ [SettingsService] Failed to fetch settings:', error);
       throw error;
@@ -76,19 +79,6 @@ export const settingsService = {
       return response;
     } catch (error) {
       logger.error('❌ [SettingsService] Failed to update settings:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Get a specific setting — currently unused by any screen.
-   */
-  async getSetting(key: string): Promise<unknown> {
-    try {
-      const value = await adminApiClient.get(`/settings/${key}`);
-      return value;
-    } catch (error) {
-      logger.error(`❌ [SettingsService] Failed to fetch setting ${key}:`, error);
       throw error;
     }
   },
