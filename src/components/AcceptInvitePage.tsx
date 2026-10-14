@@ -1,145 +1,94 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { AlertCircle, Check, Loader2, MailWarning } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 import adminAuthService from '../services/authService';
+import AuthLayout from './auth/AuthLayout';
+import PasswordInput from './auth/PasswordInput';
 
-const AcceptInvitePage: React.FC = () => {
+export default function AcceptInvitePage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get('token') || '';
-
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [params] = useSearchParams();
+  const token = params.get('token') || '';
+  const [form, setForm] = useState({ phone: '', password: '', confirm: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const set = (patch: Partial<typeof form>) => setForm((f) => ({ ...f, ...patch }));
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const digits = form.phone.replace(/\D/g, '');
+  const checks = [
+    { ok: form.password.length >= 8, label: 'At least 8 characters' },
+    { ok: !!form.password && form.password === form.confirm, label: 'Both passwords match' },
+  ];
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (digits.length < 9) return setError('Enter your phone number.');
+    if (!checks.every((c) => c.ok)) return setError('Check your password meets both rules.');
     try {
       setLoading(true);
       setError(null);
-
-      if (!token) {
-        setError('This invite link is missing its token — check the link you were sent.');
-        return;
-      }
-      if (!phone || !password) {
-        setError('Phone number and password are required');
-        return;
-      }
-      if (password.length < 8) {
-        setError('Password must be at least 8 characters');
-        return;
-      }
-      if (password !== confirmPassword) {
-        setError('Passwords do not match');
-        return;
-      }
-
-      await adminAuthService.acceptInvite(token, password, phone);
+      await adminAuthService.acceptInvite(token, form.password, form.phone.trim());
       navigate('/dashboard', { replace: true });
-    } catch (err: any) {
-      setError(err.message || 'Failed to accept invite. The link may be invalid or expired.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Couldn’t set up your account.');
     } finally {
       setLoading(false);
     }
   };
 
+  if (!token) {
+    return (
+      <AuthLayout title="Invite link incomplete" description="This page needs the full link from your invite email.">
+        <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-sm text-amber-800">
+          <MailWarning className="mt-0.5 size-4 shrink-0" />
+          Open the link straight from the email (some email apps cut long links). If it still doesn’t work, ask a Super Admin to resend your invite.
+        </div>
+        <Button variant="outline" className="w-full" onClick={() => navigate('/login')}>
+          Go to sign in
+        </Button>
+      </AuthLayout>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-linear-to-br from-red-600 to-red-800 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">DWOM</h1>
-          <p className="text-gray-600 text-sm mt-2">Set up your admin account</p>
+    <AuthLayout title="Set up your account" description="You’ve been invited to the DWOM admin dashboard. Add your phone number and choose a password.">
+      {error && (
+        <div role="alert" className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive">
+          <AlertCircle className="mt-0.5 size-4 shrink-0" />
+          {error}
         </div>
-
-        {!token && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-600 text-sm font-medium">
-              No invite token found in this link. Make sure you opened the full link from your email.
-            </p>
-          </div>
-        )}
-
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-600 text-sm font-medium">{error}</p>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number
-            </label>
-            <input
-              id="phone"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="0244000000"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-red-600 focus:border-transparent"
-              disabled={loading}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="At least 8 characters"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-red-600 focus:border-transparent"
-              disabled={loading}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-              Confirm Password
-            </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-red-600 focus:border-transparent"
-              disabled={loading}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading || !token}
-            className="w-full mt-6 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
-          >
-            {loading ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Setting up account...
-              </span>
-            ) : (
-              'Set Password & Sign In'
-            )}
-          </button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <p className="text-xs text-gray-600">
-            Secure Admin Access • DWOM © 2026
-          </p>
+      )}
+      <form className="grid gap-4" onSubmit={(e) => void submit(e)} noValidate>
+        <div className="grid gap-1.5">
+          <Label htmlFor="phone">Phone number</Label>
+          <Input id="phone" type="tel" autoComplete="tel" autoFocus value={form.phone} onChange={(e) => set({ phone: e.target.value })} placeholder="024 400 0000" disabled={loading} />
         </div>
-      </div>
-    </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor="new-password">Password</Label>
+          <PasswordInput id="new-password" autoComplete="new-password" value={form.password} onChange={(e) => set({ password: e.target.value })} disabled={loading} />
+        </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor="confirm-password">Confirm password</Label>
+          <PasswordInput id="confirm-password" autoComplete="new-password" value={form.confirm} onChange={(e) => set({ confirm: e.target.value })} disabled={loading} />
+        </div>
+        <ul className="grid gap-1 text-xs">
+          {checks.map((c) => (
+            <li key={c.label} className={cn('flex items-center gap-1.5', c.ok ? 'text-emerald-700' : 'text-muted-foreground')}>
+              <Check className={cn('size-3.5', !c.ok && 'opacity-30')} />
+              {c.label}
+            </li>
+          ))}
+        </ul>
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading && <Loader2 className="animate-spin" />}
+          {loading ? 'Setting up…' : 'Create account and sign in'}
+        </Button>
+      </form>
+      <p className="text-xs text-muted-foreground">The link works once and expires 7 days after it was sent.</p>
+    </AuthLayout>
   );
-};
-
-export default AcceptInvitePage;
+}

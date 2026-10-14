@@ -38,9 +38,14 @@ export const adminAuthService = {
     });
 
     if (!response.ok) {
-      const message = response.status === 401
-        ? 'Invalid email or password'
-        : `Login failed (server returned ${response.status})`;
+      // Show the server's reason (e.g. "This admin account is suspended…");
+      // the rate limit is 5 attempts per 15 minutes.
+      const body = await response.json().catch(() => ({}));
+      const serverMessage = typeof body?.message === 'string' ? body.message : '';
+      const message =
+        response.status === 429
+          ? 'Too many sign-in attempts. Wait 15 minutes and try again.'
+          : serverMessage || (response.status === 401 ? 'Invalid email or password' : `Sign-in failed (server returned ${response.status})`);
       logger.error('❌ [AuthService] Login failed:', message);
       throw new Error(message);
     }
@@ -74,7 +79,9 @@ export const adminAuthService = {
 
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
-      throw new Error(body.message || `This invite link is invalid or has expired (server returned ${response.status})`);
+      if (response.status === 429) throw new Error('Too many attempts. Wait 15 minutes and try again.');
+      const m = Array.isArray(body.message) ? body.message.join('. ') : body.message;
+      throw new Error(m || `This invite link is invalid or has expired (server returned ${response.status})`);
     }
 
     const data = await response.json();

@@ -1,155 +1,75 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { AlertCircle, Clock, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import adminAuthService from '../services/authService';
-import { logger } from '../utils/logger';
+import AuthLayout from './auth/AuthLayout';
+import PasswordInput from './auth/PasswordInput';
 
-const LoginPage: React.FC = () => {
+export default function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sessionExpired, setSessionExpired] = useState(false);
+  // Set by the API client when a request comes back 401 mid-session.
+  const [expired] = useState(() => !!sessionStorage.getItem('session_expired'));
 
   useEffect(() => {
-    if (sessionStorage.getItem('session_expired')) {
-      setSessionExpired(true);
-      sessionStorage.removeItem('session_expired');
-    }
+    sessionStorage.removeItem('session_expired');
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  if (adminAuthService.isAuthenticated() && adminAuthService.getCurrentAdmin()) return <Navigate to="/dashboard" replace />;
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email.trim() || !password) return setError('Enter your email and password.');
     try {
       setLoading(true);
       setError(null);
-
-      if (!email || !password) {
-        setError('Email and password are required');
-        return;
-      }
-
-      logger.log('🔐 [LoginPage] Attempting login with email:', email);
-      const authResponse = await adminAuthService.login(email, password);
-      
-      // Verify token and user data were saved
-      const savedToken = sessionStorage.getItem('admin_token');
-      const savedUser = sessionStorage.getItem('admin_user');
-      logger.log('✅ [LoginPage] Login successful:', { 
-        tokenExists: !!savedToken, 
-        tokenLength: savedToken?.length || 0,
-        userExists: !!savedUser,
-        userName: authResponse.admin?.name 
-      });
-      
-      // Small delay to ensure data is persisted before redirecting
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      // Redirect to dashboard
-      logger.log('🔀 [LoginPage] Redirecting to dashboard...');
+      await adminAuthService.login(email.trim(), password);
       navigate('/dashboard', { replace: true });
-    } catch (err: any) {
-      logger.error('❌ [LoginPage] Login failed:', err);
-      const errorMessage = err.message || 'Login failed. Please check your credentials.';
-      setError(errorMessage);
-      logger.error('📋 [LoginPage] Error message:', errorMessage);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Couldn’t sign in.');
+      setPassword('');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-red-600 to-red-800 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
-        {/* Logo/Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">DWOM</h1>
-          <p className="text-gray-600 text-sm mt-2">Admin Dashboard</p>
+    <AuthLayout title="Sign in" description="Use the email and password for your DWOM admin account.">
+      {expired && !error && (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-sm text-amber-800">
+          <Clock className="mt-0.5 size-4 shrink-0" />
+          Your session ended. Sign in again to continue.
         </div>
-
-        {/* Session Expired Warning */}
-        {sessionExpired && (
-          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-yellow-700 text-sm font-medium">Your session has expired. Please sign in again.</p>
-          </div>
-        )}
-
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-600 text-sm font-medium">{error}</p>
-          </div>
-        )}
-
-        {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email Field */}
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@example.com"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-red-600 focus:border-transparent"
-              disabled={loading}
-            />
-          </div>
-
-          {/* Password Field */}
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-red-600 focus:border-transparent"
-              disabled={loading}
-            />
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full mt-6 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
-          >
-            {loading ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Logging in...
-              </span>
-            ) : (
-              'Login'
-            )}
-          </button>
-        </form>
-
-        {/* Auth Note */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-600 font-medium">Sign in with your admin email/password.</p>
-          <p className="text-xs text-gray-500 mt-1">If you can’t log in, your email may not be added as an admin in the backend database.</p>
+      )}
+      {error && (
+        <div role="alert" className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive">
+          <AlertCircle className="mt-0.5 size-4 shrink-0" />
+          {error}
         </div>
-
-        {/* Footer */}
-        <div className="mt-6 text-center">
-          <p className="text-xs text-gray-600">
-            Secure Admin Access • DWOM © 2026
-          </p>
+      )}
+      <form className="grid gap-4" onSubmit={(e) => void submit(e)} noValidate>
+        <div className="grid gap-1.5">
+          <Label htmlFor="email">Email</Label>
+          <Input id="email" type="email" autoComplete="username" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@dwom.org" disabled={loading} />
         </div>
-      </div>
-    </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor="password">Password</Label>
+          <PasswordInput id="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} />
+        </div>
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading && <Loader2 className="animate-spin" />}
+          {loading ? 'Signing in…' : 'Sign in'}
+        </Button>
+      </form>
+      <p className="text-xs text-muted-foreground">
+        New here? Use the invite link from your email to set up your account. Forgot your password? Contact a Super Admin.
+      </p>
+    </AuthLayout>
   );
-};
-
-export default LoginPage;
+}
