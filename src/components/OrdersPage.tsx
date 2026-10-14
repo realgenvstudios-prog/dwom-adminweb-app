@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { AlertCircle, CalendarDays, Download, Plus, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -37,7 +38,22 @@ const OrdersPage: React.FC = () => {
   const { orders, loading, error, refresh, patchOrder } = useOrders();
   const [riders, setRiders] = useState<{ id: string; name: string }[]>([]);
   const [dateRange, setDateRange] = useState<DateRange>('all');
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // ?order=<id> deep-links straight into an order's details (e.g. from the Dashboard).
+  const [params, setParams] = useSearchParams();
+  const selectedId = params.get('order');
+  const setSelectedId = useCallback(
+    (id: string | null) =>
+      setParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (id) next.set('order', id);
+          else next.delete('order');
+          return next;
+        },
+        { replace: true },
+      ),
+    [setParams],
+  );
   const [assign, setAssign] = useState<{ kind: 'rider' | 'picker'; orderId: string } | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [statsKey, setStatsKey] = useState(0);
@@ -66,7 +82,7 @@ const OrdersPage: React.FC = () => {
         onAssignRider: (o) => setAssign({ kind: 'rider', orderId: o.id }),
         onAssignPicker: (o) => setAssign({ kind: 'picker', orderId: o.id }),
       }),
-    [],
+    [setSelectedId],
   );
 
   const filters: FilterConfig[] = useMemo(
