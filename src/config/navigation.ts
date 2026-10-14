@@ -73,7 +73,8 @@ const SHORT_LABELS: Record<string, string> = {
 // superAdminOnly mirrors a tab the page itself only renders for Super Admin.
 const SUB_PAGES: Record<string, { label: string; tab: string; superAdminOnly?: boolean }[]> = {
   '/analytics': [
-    { label: 'Overview', tab: 'overview' },
+    { label: 'Orders', tab: 'orders' },
+    { label: 'App usage', tab: 'overview' },
     { label: 'Shopping notes', tab: 'notes' },
   ],
   '/catalog': [

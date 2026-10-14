@@ -2,7 +2,7 @@
 // (it turns on by itself when there's no real data yet), always under a
 // banner saying so. Same shapes as the real endpoints, so the page renders
 // identically either way. Delete this file once real events are flowing.
-import type { AnalyticsInsights } from '../../services/analyticsService';
+import type { AnalyticsInsights, OrderInsights } from '../../services/analyticsService';
 import type { NotesAnalytics } from '../../services/notesService';
 
 // Deterministic, so the sample doesn't jump around between renders.
@@ -107,3 +107,63 @@ export const SAMPLE_NOTES: NotesAnalytics = {
     { originalText: 'agushi', searchedAs: 'agushi 1 cup', matchedProduct: 'Egusi Seeds', confidence: 0.55, matchRatio: 0.6 },
   ],
 };
+
+export function sampleOrderInsights(days: number): OrderInsights {
+  const rand = rng(days * 131);
+  const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const dayWeight = [1.3, 0.7, 0.8, 0.9, 0.9, 1.4, 1.6];
+  const hourWeight = Array.from({ length: 24 }, (_, h) => (h < 6 ? 0.05 : h < 9 ? 0.4 : h < 12 ? 0.9 : h < 15 ? 1.3 : h < 17 ? 0.8 : h < 21 ? 1.5 : 0.4));
+  const perDay = 9;
+  const heatmap = DAYS.map((_, d) => hourWeight.map((w) => Math.round(((perDay * days) / 7) * dayWeight[d] * (w / 18) * (0.7 + rand() * 0.6))));
+  const byWeekday = DAYS.map((day, d) => {
+    const orders = heatmap[d].reduce((t, v) => t + v, 0);
+    const avgBasket = Math.round((d === 6 || d === 0 ? 96 : 74) * (0.9 + rand() * 0.2) * 100) / 100;
+    return { day, orders, revenue: Math.round(orders * (avgBasket + 18)), avgBasket };
+  });
+  const byHour = Array.from({ length: 24 }, (_, h) => ({ hour: h, orders: heatmap.reduce((t, row) => t + row[h], 0) }));
+  const customerPlaced = byWeekday.reduce((t, w) => t + w.orders, 0);
+  const subscriptionOrders = Math.round(customerPlaced * 0.06);
+  const orders = customerPlaced + subscriptionOrders;
+  const cancelled = Math.round(orders * 0.04);
+  const revenue = byWeekday.reduce((t, w) => t + w.revenue, 0);
+  const avgBasket = Math.round((revenue / Math.max(1, customerPlaced) - 18) * 100) / 100;
+  const share = [0.22, 0.38, 0.27, 0.11, 0.02];
+  return {
+    from: new Date(Date.now() - days * 86400000).toISOString(),
+    to: new Date().toISOString(),
+    totals: {
+      orders,
+      customerPlaced,
+      subscriptionOrders,
+      cancelled,
+      cancellationRate: Math.round((cancelled / (orders + cancelled)) * 1000) / 10,
+      revenue,
+      avgOrderValue: Math.round((revenue / Math.max(1, orders)) * 100) / 100,
+      avgBasket,
+      medianBasket: Math.round(avgBasket * 0.82),
+      avgItems: 5.4,
+      ordersPerDay: Math.round((orders / days) * 10) / 10,
+      customers: Math.round(orders * 0.45),
+      newCustomers: Math.round(orders * 0.12),
+      newOrders: Math.round(orders * 0.14),
+      returningOrders: Math.round(orders * 0.86),
+    },
+    byWeekday,
+    byHour,
+    heatmap,
+    basketBuckets: ['Under ₵50', '₵50–100', '₵100–200', '₵200–500', '₵500+'].map((label, i) => ({ label, orders: Math.round(orders * share[i]) })),
+    topProducts: [
+      ['Fresh tomatoes', 410, 1890],
+      ['Eggs (half crate)', 160, 1720],
+      ['Onions', 380, 1140],
+      ['Plantain', 300, 1050],
+      ['Rice 5kg', 70, 980],
+      ['Palm oil 1L', 120, 840],
+    ].map(([name, quantity, revenue]) => ({ name: String(name), quantity: Math.round(Number(quantity) * (days / 30)), revenue: Math.round(Number(revenue) * (days / 30)), orders: Math.round(Number(quantity) * 0.6 * (days / 30)) })),
+    paymentMethods: [
+      { method: 'cash', orders: Math.round(orders * 0.55), revenue: Math.round(revenue * 0.52) },
+      { method: 'momo', orders: Math.round(orders * 0.3), revenue: Math.round(revenue * 0.31) },
+      { method: 'card', orders: Math.round(orders * 0.15), revenue: Math.round(revenue * 0.17) },
+    ],
+  };
+}
