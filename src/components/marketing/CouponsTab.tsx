@@ -1,18 +1,19 @@
-import React, { useState } from 'react';
-import { useCouponsData } from '../coupons/useCouponsData';
-import { useCouponForm } from '../coupons/useCouponForm';
-import CouponsStatsCards from '../coupons/CouponsStatsCards';
-import CouponsFilterBar from '../coupons/CouponsFilterBar';
-import CouponsTable from '../coupons/CouponsTable';
-import CouponFormModal from '../coupons/CouponFormModal';
-import DeleteCouponModal from '../coupons/DeleteCouponModal';
+import React, { useState } from "react";
+import { useCouponsData } from "../coupons/useCouponsData";
+import { useCouponForm } from "../coupons/useCouponForm";
+import CouponsStatsCards from "../coupons/CouponsStatsCards";
+import CouponsFilterBar from "../coupons/CouponsFilterBar";
+import CouponsTable from "../coupons/CouponsTable";
+import CouponFormModal from "../coupons/CouponFormModal";
+import DeleteCouponModal from "../coupons/DeleteCouponModal";
 
 // Split out of the former standalone CouponsPage — now a tab on
 // Marketing, since a coupon's whole lifecycle (create it, see how the
 // campaign it's attached to performs) belongs next to the campaign that
 // owns it, not on a separate page.
 const CouponsTab: React.FC = () => {
-  const { coupons, setCoupons, loading, handleToggle, handleDelete } = useCouponsData();
+  const { coupons, setCoupons, loading, handleToggle, handleDelete } =
+    useCouponsData();
   const {
     showModal,
     setShowModal,
@@ -26,22 +27,24 @@ const CouponsTab: React.FC = () => {
     handleSave,
   } = useCouponForm(setCoupons);
 
-  const [search, setSearch] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState<
+    "all" | "active" | "inactive"
+  >("all");
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const filtered = coupons.filter(c => {
+  const filtered = coupons.filter((c) => {
     const matchSearch =
       c.code.toLowerCase().includes(search.toLowerCase()) ||
       c.description.toLowerCase().includes(search.toLowerCase());
     const matchStatus =
-      filterStatus === 'all' ||
-      (filterStatus === 'active' && c.active) ||
-      (filterStatus === 'inactive' && !c.active);
+      filterStatus === "all" ||
+      (filterStatus === "active" && c.active) ||
+      (filterStatus === "inactive" && !c.active);
     return matchSearch && matchStatus;
   });
 
-  const activeCoupons = coupons.filter(c => c.active).length;
+  const activeCoupons = coupons.filter((c) => c.active).length;
   const totalUses = coupons.reduce((sum, c) => sum + (c.usageCount || 0), 0);
 
   return (
@@ -49,7 +52,9 @@ const CouponsTab: React.FC = () => {
       <div className="bg-white rounded-xl border border-gray-100 shadow-xs px-6 py-5 mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Discount Codes</h2>
-          <p className="text-sm text-gray-500 mt-1">Create and manage coupon codes that users apply at checkout</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Create and manage coupon codes that users apply at checkout
+          </p>
         </div>
         <button
           onClick={openCreate}
@@ -59,9 +64,18 @@ const CouponsTab: React.FC = () => {
         </button>
       </div>
 
-      <CouponsStatsCards totalCoupons={coupons.length} activeCoupons={activeCoupons} totalUses={totalUses} />
+      <CouponsStatsCards
+        totalCoupons={coupons.length}
+        activeCoupons={activeCoupons}
+        totalUses={totalUses}
+      />
 
-      <CouponsFilterBar search={search} setSearch={setSearch} filterStatus={filterStatus} setFilterStatus={setFilterStatus} />
+      <CouponsFilterBar
+        search={search}
+        setSearch={setSearch}
+        filterStatus={filterStatus}
+        setFilterStatus={setFilterStatus}
+      />
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
         <CouponsTable

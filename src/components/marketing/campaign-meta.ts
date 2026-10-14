@@ -1,12 +1,45 @@
 import { Bell, Mail, Megaphone, MessageSquare, Smartphone, type LucideIcon } from 'lucide-react';
 import type { Campaign } from '../../services/marketingService';
 
-export const CHANNELS: { value: Campaign['channel']; label: string; icon: LucideIcon; hint: string }[] = [
-  { value: 'push', label: 'Push', icon: Bell, hint: 'Phone notification to app users' },
-  { value: 'in_app', label: 'In-app', icon: Smartphone, hint: 'Shows in the app’s notification inbox' },
-  { value: 'sms', label: 'SMS', icon: MessageSquare, hint: 'Text message to each customer’s phone' },
-  { value: 'email', label: 'Email', icon: Mail, hint: 'To customers who have an email address' },
-  { value: 'social', label: 'Social', icon: Megaphone, hint: 'You post it yourself — results are entered by hand' },
+// `credit` says how orders get attributed — verified against the app:
+// a push tap is captured (72h window); an inbox item tap isn't; dwom://
+// links aren't tappable in SMS/most email apps, so those rely on a code.
+export const CHANNELS: { value: Campaign['channel']; label: string; icon: LucideIcon; hint: string; credit: string }[] = [
+  {
+    value: 'push',
+    label: 'Push',
+    icon: Bell,
+    hint: 'A phone notification to customers with the app. Free.',
+    credit: 'Orders placed within 3 days of tapping it are credited automatically.',
+  },
+  {
+    value: 'in_app',
+    label: 'In-app',
+    icon: Smartphone,
+    hint: 'Appears in the app’s notification inbox only — no phone alert. Free.',
+    credit: 'Taps in the inbox aren’t tracked, so orders are only credited through a linked discount code.',
+  },
+  {
+    value: 'sms',
+    label: 'SMS',
+    icon: MessageSquare,
+    hint: 'A text to every matching customer’s phone. Uses SMS credit.',
+    credit: 'Put a discount code linked to this campaign in the message — orders using it are credited.',
+  },
+  {
+    value: 'email',
+    label: 'Email',
+    icon: Mail,
+    hint: 'To matching customers who added an email address.',
+    credit: 'Put a discount code linked to this campaign in the message — orders using it are credited.',
+  },
+  {
+    value: 'social',
+    label: 'Social',
+    icon: Megaphone,
+    hint: 'You post it yourself. Nothing is sent from here — use it to track spend and results.',
+    credit: 'Link a discount code to credit orders automatically; anything else you enter by hand.',
+  },
 ];
 
 export const OBJECTIVES: { value: Campaign['objective']; label: string }[] = [
