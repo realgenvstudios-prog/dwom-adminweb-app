@@ -6,12 +6,12 @@ import { normalizeOrderStatus, normalizePaymentStatus } from './order-status';
 
 // The list endpoint selects TripOrder (for the picker) and paymentReference,
 // which AdminOrderSummary doesn't model.
-type ListOrder = AdminOrderSummary & {
+export type ListOrder = AdminOrderSummary & {
   paymentReference?: string | null;
   TripOrder?: Array<{ Trip?: { Worker?: { id: number; name: string } | null } | null }>;
 };
 
-function toOrder(o: ListOrder): Order {
+export function toOrder(o: ListOrder): Order {
   const worker = o.TripOrder?.[0]?.Trip?.Worker;
   return {
     id: String(o.id),

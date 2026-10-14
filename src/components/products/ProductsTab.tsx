@@ -1,15 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { AlertCircle, Archive, ChevronDown, CircleAlert, CircleX, Leaf, Package, RotateCw, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DataTable, type FilterConfig } from '@/components/data-table';
 import { StatCard } from '@/components/stat-card';
 import productsService from '../../services/productsService';
@@ -39,7 +33,29 @@ export default function ProductsTab({ products, categories, loading, error, refr
   const [sheetOpen, setSheetOpen] = useState(false);
   const [seasonalOpen, setSeasonalOpen] = useState(false);
 
-  const sheetProduct = sheet ? products.find((p) => String(p.id) === sheet.id) ?? null : null;
+  // ?product=<id> (from search) opens that product once the list has loaded.
+  const [params, setParams] = useSearchParams();
+  const linked = params.get('product');
+  useEffect(() => {
+    if (!linked || loading) return;
+    const t = setTimeout(() => {
+      if (products.some((p) => String(p.id) === linked)) {
+        setSheet({ id: linked, intent: 'view', token: Date.now() });
+        setSheetOpen(true);
+      }
+      setParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.delete('product');
+          return next;
+        },
+        { replace: true },
+      );
+    }, 0);
+    return () => clearTimeout(t);
+  }, [linked, loading, products, setParams]);
+
+  const sheetProduct = sheet ? (products.find((p) => String(p.id) === sheet.id) ?? null) : null;
 
   const columns = useMemo(() => {
     const open = (intent: ProductSheetIntent) => (p: Product) => {
@@ -135,10 +151,34 @@ export default function ProductsTab({ products, categories, loading, error, refr
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Live products" value={String(products.length)} hint="Visible in the app" icon={Package} tint="bg-sky-500/10 text-sky-600" loading={loading} failed={!!error} />
-        <StatCard label="Out of stock" value={String(counts.out)} hint="Customers can’t order these" icon={CircleX} tint="bg-red-500/10 text-red-600" loading={loading} failed={!!error} />
+        <StatCard
+          label="Live products"
+          value={String(products.length)}
+          hint="Visible in the app"
+          icon={Package}
+          tint="bg-sky-500/10 text-sky-600"
+          loading={loading}
+          failed={!!error}
+        />
+        <StatCard
+          label="Out of stock"
+          value={String(counts.out)}
+          hint="Customers can’t order these"
+          icon={CircleX}
+          tint="bg-red-500/10 text-red-600"
+          loading={loading}
+          failed={!!error}
+        />
         <StatCard label="Low stock" value={String(counts.low)} hint="Still orderable" icon={CircleAlert} tint="bg-amber-500/10 text-amber-600" loading={loading} failed={!!error} />
-        <StatCard label="On discount" value={String(counts.discounted)} hint={`${counts.seasonal} seasonal`} icon={Sparkles} tint="bg-emerald-500/10 text-emerald-600" loading={loading} failed={!!error} />
+        <StatCard
+          label="On discount"
+          value={String(counts.discounted)}
+          hint={`${counts.seasonal} seasonal`}
+          icon={Sparkles}
+          tint="bg-emerald-500/10 text-emerald-600"
+          loading={loading}
+          failed={!!error}
+        />
       </div>
 
       {error && (

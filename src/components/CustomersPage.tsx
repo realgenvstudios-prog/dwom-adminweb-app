@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { AlertCircle, AlertTriangle, RotateCw, UserCheck, Users, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/data-table';
@@ -15,6 +16,28 @@ const CustomersPage: React.FC = () => {
   const { customers, loading, error, refresh } = useCustomersData();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  // ?customer=<id> (from search) opens that customer once the list has loaded.
+  const [params, setParams] = useSearchParams();
+  const linked = params.get('customer');
+  useEffect(() => {
+    if (!linked || loading) return;
+    const t = setTimeout(() => {
+      const id = Number(linked);
+      if (customers.some((c) => c.id === id)) {
+        setSelectedId(id);
+        setSheetOpen(true);
+      }
+      setParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.delete('customer');
+          return next;
+        },
+        { replace: true },
+      );
+    }, 0);
+    return () => clearTimeout(t);
+  }, [linked, loading, customers, setParams]);
   const [monthAgo] = useState(() => Date.now() - 30 * 86_400_000);
   const canOpenOrders = canAccessRoute(resolveUiRole(adminAuthService.getCurrentAdmin()), '/orders');
 
@@ -32,9 +55,33 @@ const CustomersPage: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Customers" value={customers.length.toLocaleString()} hint={`${joinedThisMonth} joined in the last 30 days`} icon={Users} tint="bg-sky-500/10 text-sky-600" loading={loading} failed={!!error} />
-        <StatCard label="Active" value={count('Active').toLocaleString()} hint="Ordered in the last 30 days" icon={UserCheck} tint="bg-emerald-500/10 text-emerald-600" loading={loading} failed={!!error} />
-        <StatCard label="At risk" value={count('At Risk').toLocaleString()} hint="Last order 31–90 days ago" icon={AlertTriangle} tint="bg-amber-500/10 text-amber-600" loading={loading} failed={!!error} />
+        <StatCard
+          label="Customers"
+          value={customers.length.toLocaleString()}
+          hint={`${joinedThisMonth} joined in the last 30 days`}
+          icon={Users}
+          tint="bg-sky-500/10 text-sky-600"
+          loading={loading}
+          failed={!!error}
+        />
+        <StatCard
+          label="Active"
+          value={count('Active').toLocaleString()}
+          hint="Ordered in the last 30 days"
+          icon={UserCheck}
+          tint="bg-emerald-500/10 text-emerald-600"
+          loading={loading}
+          failed={!!error}
+        />
+        <StatCard
+          label="At risk"
+          value={count('At Risk').toLocaleString()}
+          hint="Last order 31–90 days ago"
+          icon={AlertTriangle}
+          tint="bg-amber-500/10 text-amber-600"
+          loading={loading}
+          failed={!!error}
+        />
         <StatCard
           label="Lifetime paid spend"
           value={formatGhs(totalSpend)}
@@ -84,9 +131,7 @@ const CustomersPage: React.FC = () => {
         emptyMessage={customers.length === 0 ? 'No customers yet. They’ll appear here as people sign up.' : 'No customers match these filters.'}
       />
 
-      {selected && (
-        <CustomerSheet key={selected.id} customer={selected} open={sheetOpen} onOpenChange={setSheetOpen} canOpenOrders={canOpenOrders} />
-      )}
+      {selected && <CustomerSheet key={selected.id} customer={selected} open={sheetOpen} onOpenChange={setSheetOpen} canOpenOrders={canOpenOrders} />}
     </div>
   );
 };
