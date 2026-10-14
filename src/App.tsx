@@ -8,9 +8,7 @@ import DashboardPage from './components/DashboardPage';
 import AdminsPage from './components/AdminsPage';
 import OrdersPage from './components/OrdersPage';
 import WarehouseOperationsPage from './components/WarehouseOperationsPage';
-import ProductsPage from './components/ProductsPage';
-import BundlesPage from './components/BundlesPage';
-import SeasonalProductsPage from './components/SeasonalProductsPage';
+import CatalogPage from './components/CatalogPage';
 import SubscriptionsPage from './components/SubscriptionsPage';
 import WorkforcePage from './components/WorkforcePage';
 import FinanceHubPage from './components/FinanceHubPage';
@@ -83,36 +81,19 @@ const App: React.FC = () => {
       />
       <Route path="/founder-ledger" element={<Navigate to="/finance" replace />} />
       <Route
-        path="/products"
+        path="/catalog"
         element={
           <ProtectedRoute>
             <Layout>
-              <ProductsPage />
+              <CatalogPage />
             </Layout>
           </ProtectedRoute>
         }
       />
-      <Route path="/categories" element={<Navigate to="/products" replace />} />
-      <Route
-        path="/bundles"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <BundlesPage />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/seasonal"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <SeasonalProductsPage />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/products" element={<Navigate to="/catalog" replace />} />
+      <Route path="/categories" element={<Navigate to="/catalog" replace />} />
+      <Route path="/bundles" element={<Navigate to="/catalog" replace />} />
+      <Route path="/seasonal" element={<Navigate to="/catalog" replace />} />
       <Route
         path="/subscriptions"
         element={

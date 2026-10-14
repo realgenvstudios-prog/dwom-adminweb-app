@@ -33,6 +33,7 @@ export interface Product {
   description: string;
   discount?: number;  // Optional discount percentage (0-100)
   stockStatus?: string;  // Manual admin flag: 'in_stock' | 'low_stock' | 'out_of_stock'
+  seasonal?: boolean;
   inventoryQuantity?: number;
   reorderLevel?: number;
   bundles?: ProductBundle[];

@@ -4,8 +4,11 @@ import ProductsTable from "./products/ProductsTable";
 import ProductDetailsPanel from "./products/ProductDetailsPanel";
 import CreateProductModal from "./products/CreateProductModal";
 import CategoriesTab from "./products/CategoriesTab";
+import BundlesTab from "./products/BundlesTab";
+import SeasonalRotationPanel from "./products/SeasonalRotationPanel";
 import productsService from "../services/productsService";
 import categoriesService from "../services/categoriesService";
+import seasonalService from "../services/seasonalService";
 import type { Product, ProductCategory, InventoryStatus } from "./products/ProductTypes";
 import { logger } from '../utils/logger';
 
@@ -17,8 +20,8 @@ const mockCategories: ProductCategory[] = [
   { id: "cat4", name: "Bundles" },
 ];
 
-const ProductsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<"products" | "categories">("products");
+const CatalogPage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<"products" | "categories" | "bundles">("products");
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<ProductCategory[]>(mockCategories);
   const [filters, setFilters] = useState({ category: "All", status: "All", stock: "All", search: "" });
@@ -181,14 +184,24 @@ const ProductsPage: React.FC = () => {
     }
   };
 
+  const handleSeasonalToggle = async (productId: number, seasonal: boolean) => {
+    try {
+      await seasonalService.toggleSeasonalStatus(productId, seasonal);
+      setProducts(products.map(p => p.id === productId ? { ...p, seasonal } : p));
+    } catch (err: any) {
+      logger.error('❌ Failed to toggle seasonal status:', err);
+      setError('Failed to update seasonal status');
+    }
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
       <div className="max-w-screen-2xl mx-auto">
         {/* Header Row */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-            <div className="text-sm text-gray-500">Manage all DWOM grocery products</div>
+            <h1 className="text-2xl font-bold text-gray-900">Catalog</h1>
+            <div className="text-sm text-gray-500">Products, bundles, and categories — everything DWOM sells</div>
           </div>
           {activeTab === "products" && (
             <div className="flex gap-2 mt-3 sm:mt-0">
@@ -220,9 +233,18 @@ const ProductsPage: React.FC = () => {
           >
             Categories
           </button>
+          <button
+            onClick={() => setActiveTab("bundles")}
+            className={`px-4 py-2 rounded-lg font-semibold transition ${
+              activeTab === "bundles" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            Bundles
+          </button>
         </div>
 
         {activeTab === "categories" && <CategoriesTab onCategoriesChanged={refreshCategories} />}
+        {activeTab === "bundles" && <BundlesTab />}
 
         {activeTab === "products" && (
           <>
@@ -247,6 +269,8 @@ const ProductsPage: React.FC = () => {
         {/* Content */}
         {!loading && (
           <>
+            <SeasonalRotationPanel seasonalProducts={products.filter(p => p.seasonal)} />
+
             {/* Filter Bar */}
             <ProductsFilterBar
               categories={categories}
@@ -274,6 +298,7 @@ const ProductsPage: React.FC = () => {
               onDiscountChange={handleDiscountChange}
               discountUpdating={discountUpdating}
               onStockStatusChange={handleStockStatusChange}
+              onSeasonalToggle={handleSeasonalToggle}
             />
           </>
         )}
@@ -313,5 +338,5 @@ const ProductsPage: React.FC = () => {
   );
 };
 
-export default ProductsPage;
+export default CatalogPage;
 

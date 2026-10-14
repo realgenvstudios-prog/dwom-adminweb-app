@@ -16,6 +16,7 @@ interface ProductsTableProps {
   onDiscountChange?: (productId: number, discount: number) => void;
   discountUpdating?: boolean;
   onStockStatusChange?: (productId: number, stockStatus: string) => void;
+  onSeasonalToggle?: (productId: number, seasonal: boolean) => void;
 }
 
 const ProductsTable: React.FC<ProductsTableProps> = ({ 
@@ -33,6 +34,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
   onDiscountChange,
   discountUpdating,
   onStockStatusChange,
+  onSeasonalToggle,
 }) => {
   const handleProductCheck = (productId: string) => {
     if (!onSelectionChange) return;
@@ -78,6 +80,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
             <th className="px-4 py-3 text-left cursor-pointer" onClick={() => onSort("pricePerUnit")}>Price (GHS) {sortBy === "pricePerUnit" && (sortDir === "asc" ? "▲" : "▼")}</th>
             <th className="px-4 py-3 text-left">Discount %</th>
             <th className="px-4 py-3 text-left">Stock Status</th>
+            <th className="px-4 py-3 text-left">Seasonal</th>
             <th className="px-4 py-3 text-left">Active</th>
             <th className="px-4 py-3 text-left">Actions</th>
           </tr>
@@ -136,6 +139,14 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
                   <option value="low_stock">Low Stock</option>
                   <option value="out_of_stock">Out of Stock</option>
                 </select>
+              </td>
+              <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                <input
+                  type="checkbox"
+                  checked={!!product.seasonal}
+                  onChange={() => onSeasonalToggle?.(product.id as number, !product.seasonal)}
+                  className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer"
+                />
               </td>
               <td className="px-4 py-3 cursor-pointer" onClick={() => onRowClick(product)}>
                 {product.active ? <span className="px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs font-semibold">Active</span> : <span className="px-2 py-1 rounded bg-gray-200 text-gray-600 text-xs font-semibold">Inactive</span>}
