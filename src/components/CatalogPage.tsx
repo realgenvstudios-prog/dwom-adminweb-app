@@ -6,7 +6,7 @@ import { useTabParam } from '@/hooks/use-tab-param';
 import ProductsTab from './products/ProductsTab';
 import CreateProductDialog from './products/CreateProductDialog';
 import CategoriesTab from './categories/CategoriesTab';
-import BundlesTab from './products/BundlesTab';
+import BundlesTab from './bundles/BundlesTab';
 import { useCatalogData } from './products/useCatalogData';
 
 const TABS = ['products', 'categories', 'bundles'] as const;
@@ -73,7 +73,7 @@ const CatalogPage: React.FC = () => {
           <CategoriesTab categories={categoryRecords} loading={categoriesLoading} error={categoriesError} refresh={refreshCategories} />
         </TabsContent>
         <TabsContent value="bundles">
-          <BundlesTab />
+          <BundlesTab products={products} categories={categories} />
         </TabsContent>
       </Tabs>
 
