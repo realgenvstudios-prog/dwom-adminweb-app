@@ -245,7 +245,7 @@ export default function ProductSheet({ product, intent, open, onOpenChange, cate
             <AlertDialogTitle>Archive {product.nameEnglish}?</AlertDialogTitle>
             <AlertDialogDescription>
               Customers will no longer see it in the app, and it will disappear from this list. Past orders keep it.
-              The dashboard can’t show archived products yet, so it can’t be restored from here.
+              You can restore it later from Products → Archived.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

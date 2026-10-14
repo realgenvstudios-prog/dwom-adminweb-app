@@ -11,7 +11,7 @@ function cell(value: string | number): string {
 /** Download the given orders as a CSV file, built entirely from data already loaded on the page. */
 export function downloadOrdersCsv(orders: Order[]): void {
   const header = [
-    'Order ID', 'Placed', 'Customer', 'Phone', 'Delivery address', 'Rider', 'Picker', 'Items',
+    'Order ID', 'Placed', 'Customer', 'Phone', 'Delivery address', 'Zone', 'Rider', 'Picker', 'Items',
     'Subtotal', 'Delivery fee', 'Service fee', 'Discount', 'Total', 'Payment status', 'Payment method', 'Status',
   ];
   const rows = orders.map((o) => [
@@ -20,6 +20,7 @@ export function downloadOrdersCsv(orders: Order[]): void {
     o.customer,
     o.phone,
     o.address,
+    o.zone ?? '',
     o.rider?.name ?? '',
     o.picker?.name ?? '',
     o.itemsCount,

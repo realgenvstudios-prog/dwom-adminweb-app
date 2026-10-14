@@ -23,6 +23,7 @@ export interface OrderRowActions {
 }
 
 export const UNASSIGNED = 'unassigned';
+export const NO_ZONE = '__none__';
 
 export function buildOrderColumns({ onView, onAssignRider, onAssignPicker }: OrderRowActions): ColumnDef<Order>[] {
   return [
@@ -74,6 +75,16 @@ export function buildOrderColumns({ onView, onAssignRider, onAssignPicker }: Ord
           <span className="text-muted-foreground">—</span>
         ),
       meta: { title: 'Delivery address' },
+    },
+    {
+      id: 'zone',
+      accessorFn: (o) => o.zone ?? NO_ZONE,
+      header: 'Zone',
+      filterFn: facetedFilterFn,
+      enableSorting: false,
+      enableGlobalFilter: false,
+      cell: ({ row }) => (row.original.zone ? <span className="whitespace-nowrap">{row.original.zone}</span> : <span className="text-muted-foreground">Not recorded</span>),
+      meta: { title: 'Zone' },
     },
     {
       id: 'rider',

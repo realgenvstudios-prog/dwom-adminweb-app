@@ -23,6 +23,8 @@ export interface Order {
   customer: string;
   phone: string;
   address: string;
+  /** Delivery zone name, when the order recorded one. */
+  zone: string | null;
   rider: PersonSummary | null;
   picker: PersonSummary | null;
   itemsCount: number;

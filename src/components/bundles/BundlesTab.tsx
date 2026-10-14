@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { AlertCircle, AlertTriangle, ImageOff, MoreHorizontal, Pencil, Plus, RotateCw, Search, Trash2 } from 'lucide-react';
+import { AlertCircle, AlertTriangle, ImageOff, Loader2, MoreHorizontal, Pencil, Plus, Power, RotateCw, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -76,6 +76,20 @@ export default function BundlesTab({ products, categories }: BundlesTabProps) {
   const openEditor = (bundle: Bundle | null) => {
     setEditor({ bundle, token: Date.now() });
     setEditorOpen(true);
+  };
+
+  const [reactivating, setReactivating] = useState<number | null>(null);
+  const reactivate = async (b: Bundle) => {
+    try {
+      setReactivating(b.id);
+      await bundlesService.setActive(b.id, true);
+      toast.success(`${b.name} is back on in the app`);
+      await load();
+    } catch (err) {
+      toast.error(`Couldn't turn ${b.name} back on. ${err instanceof Error ? err.message : ''}`.trim());
+    } finally {
+      setReactivating(null);
+    }
   };
 
   const confirmDelete = async () => {
@@ -216,6 +230,12 @@ export default function BundlesTab({ products, categories }: BundlesTabProps) {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
+                  {isOff && (
+                    <Button variant="outline" size="sm" disabled={reactivating === b.id} onClick={() => void reactivate(b)}>
+                      {reactivating === b.id ? <Loader2 className="animate-spin" /> : <Power />}
+                      Turn on
+                    </Button>
+                  )}
                 </div>
               </Card>
             );
@@ -256,7 +276,7 @@ export default function BundlesTab({ products, categories }: BundlesTabProps) {
             <AlertDialogTitle>Delete {toDelete?.name}?</AlertDialogTitle>
             <AlertDialogDescription>
               It disappears from the app. If customers have ordered it before, it’s deactivated instead of deleted so their
-              order history stays intact — deactivated bundles can’t be turned back on from the dashboard yet.
+              order history stays intact. You can turn a deactivated bundle back on later.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

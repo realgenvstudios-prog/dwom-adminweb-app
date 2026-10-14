@@ -19,6 +19,7 @@ function toOrder(o: ListOrder): Order {
     customer: o.User?.name || `User ${o.userId}`,
     phone: o.User?.phoneNumber || '',
     address: o.Address?.addressText || '',
+    zone: o.Zone?.name ?? null,
     rider: o.Rider ? { id: String(o.Rider.id), name: o.Rider.User?.name || `Rider ${o.Rider.id}` } : null,
     picker: worker ? { id: String(worker.id), name: worker.name } : null,
     itemsCount: (o._count?.OrderItem ?? 0) + (o._count?.BundleOrderItem ?? 0),

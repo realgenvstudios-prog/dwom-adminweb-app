@@ -124,6 +124,11 @@ class BundlesService {
   /**
    * Delete bundle
    */
+  /** Turns a deactivated bundle back on (or off) — PATCH /bundles/:id/toggle-status. */
+  async setActive(id: number, active: boolean): Promise<Bundle> {
+    return adminApiClient.patch<Bundle>(`/bundles/${id}/toggle-status`, { active });
+  }
+
   async delete(id: number): Promise<{ message: string }> {
     try {
       return await adminApiClient.delete<{ message: string }>(`/bundles/${id}`);

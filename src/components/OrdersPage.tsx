@@ -10,7 +10,7 @@ import OrdersKpiCards from './orders/OrdersKpiCards';
 import CreateOrderDialog from './orders/CreateOrderDialog';
 import AssignPersonDialog from './orders/AssignPersonDialog';
 import OrderDetailsSheet from './orders/details/OrderDetailsSheet';
-import { buildOrderColumns, UNASSIGNED } from './orders/columns';
+import { buildOrderColumns, NO_ZONE, UNASSIGNED } from './orders/columns';
 import { useOrders } from './orders/useOrders';
 import type { Order } from './orders/OrderTypes';
 import { ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES } from './orders/order-status';
@@ -95,8 +95,13 @@ const OrdersPage: React.FC = () => {
         title: 'Rider',
         options: [{ value: UNASSIGNED, label: 'Unassigned' }, ...riders.map((r) => ({ value: r.id, label: r.name }))],
       },
+      {
+        columnId: 'zone',
+        title: 'Zone',
+        options: [...[...new Set(orders.map((o) => o.zone).filter((z): z is string => !!z))].sort().map((z) => ({ value: z, label: z })), { value: NO_ZONE, label: 'Not recorded' }],
+      },
     ],
-    [riders],
+    [riders, orders],
   );
 
   const handleOrderChange = (id: string, patch: Partial<Order>) => {

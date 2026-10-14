@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { AlertCircle, ChevronDown, CircleAlert, CircleX, Leaf, Package, RotateCw, Sparkles } from 'lucide-react';
+import { AlertCircle, Archive, ChevronDown, CircleAlert, CircleX, Leaf, Package, RotateCw, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,6 +13,7 @@ import {
 import { DataTable, type FilterConfig } from '@/components/data-table';
 import { StatCard } from '@/components/stat-card';
 import productsService from '../../services/productsService';
+import ArchivedProductsDialog from './ArchivedProductsDialog';
 import seasonalService from '../../services/seasonalService';
 import { logger } from '../../utils/logger';
 import { buildProductColumns } from './columns';
@@ -33,6 +34,7 @@ interface ProductsTabProps {
 const idNum = (p: Product) => Number.parseInt(String(p.id), 10);
 
 export default function ProductsTab({ products, categories, loading, error, refresh, patchProduct }: ProductsTabProps) {
+  const [archivedKey, setArchivedKey] = useState<number | null>(null);
   const [sheet, setSheet] = useState<{ id: string; intent: ProductSheetIntent; token: number } | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [seasonalOpen, setSeasonalOpen] = useState(false);
@@ -166,10 +168,16 @@ export default function ProductsTab({ products, categories, loading, error, refr
         }}
         emptyMessage={products.length === 0 ? 'No products yet — add your first one.' : 'No products match these filters.'}
         toolbarActions={
-          <Button variant="outline" size="sm" className="h-8" onClick={() => setSeasonalOpen(true)}>
-            <Leaf />
-            Seasonal
-          </Button>
+          <>
+            <Button variant="outline" size="sm" className="h-8" onClick={() => setArchivedKey(Date.now())}>
+              <Archive />
+              Archived
+            </Button>
+            <Button variant="outline" size="sm" className="h-8" onClick={() => setSeasonalOpen(true)}>
+              <Leaf />
+              Seasonal
+            </Button>
+          </>
         }
         bulkActions={(rows, clear) => (
           <DropdownMenu>
@@ -210,6 +218,7 @@ export default function ProductsTab({ products, categories, loading, error, refr
       )}
 
       <SeasonalRotationDialog open={seasonalOpen} onOpenChange={setSeasonalOpen} seasonalProducts={products.filter((p) => p.seasonal)} />
+      {archivedKey && <ArchivedProductsDialog key={archivedKey} open={!!archivedKey} onOpenChange={(o) => !o && setArchivedKey(null)} onRestored={() => void refresh()} />}
     </div>
   );
 }

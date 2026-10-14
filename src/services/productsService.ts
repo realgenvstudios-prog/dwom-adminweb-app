@@ -86,6 +86,17 @@ export const productsService = {
     }
   },
 
+  /** Archived (soft-deleted) products — admin only; the public list hides them. */
+  async getArchived(): Promise<Product[]> {
+    const all = await adminApiClient.get<Product[]>('/products/admin/all');
+    return (Array.isArray(all) ? all : []).filter((p) => (p as unknown as { active?: boolean }).active === false);
+  },
+
+  /** Brings an archived product back into the app. */
+  async restore(id: number): Promise<Product> {
+    return adminApiClient.post<Product>(`/products/${id}/restore`);
+  },
+
   /**
    * Get single product by ID
    */

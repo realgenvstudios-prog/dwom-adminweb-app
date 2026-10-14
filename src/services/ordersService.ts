@@ -32,6 +32,8 @@ export interface AdminOrderSummary {
   updatedAt: string;
   User?: { id: number; name: string; phoneNumber: string };
   Address?: { id: number; addressText: string; label: string };
+  /** Delivery zone resolved at checkout (null for orders placed before zones were saved). */
+  Zone?: { id: number; name: string } | null;
   Rider?: { id: number; rating: number | null; User?: { name: string } };
   RiderRating?: Array<{ id: number; rating: number; comment: string | null }>;
   ProductReview?: Array<{
@@ -77,14 +79,19 @@ export const ordersService = {
    * Get all orders (admin endpoint)
    */
   async getAll(): Promise<AdminOrderSummary[]> {
+    // The server pages this list; fetch every page (it used to load only
+    // page 1, i.e. the newest 50 orders, so older ones never appeared).
     try {
-      const response = await adminApiClient.get<{ data: AdminOrderSummary[] } | AdminOrderSummary[]>(
-        `/orders/admin/all`
-      );
-      // Backend returns { data: orders, pagination: {...} }
-      // Extract the data array directly
-      const orders = Array.isArray(response) ? response : response?.data || [];
-      return orders;
+      const all: AdminOrderSummary[] = [];
+      for (let page = 1; page <= 50; page++) {
+        const response = await adminApiClient.get<{ data: AdminOrderSummary[]; pagination?: { totalPages: number } } | AdminOrderSummary[]>(
+          `/orders/admin/all?page=${page}&pageSize=500`,
+        );
+        if (Array.isArray(response)) return response;
+        all.push(...(response?.data || []));
+        if (!response?.pagination || page >= response.pagination.totalPages) break;
+      }
+      return all;
     } catch (error) {
       logger.error('❌ [OrdersService] Failed to fetch orders:', error);
       throw error;
