@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
+import { useTabParam } from "@/hooks/use-tab-param";
 import RidersTab from "./riders/RidersTab";
 import PickersTab from "./workers/PickersTab";
 import ZonesTab from "./workforce/ZonesTab";
@@ -12,7 +13,7 @@ import ZonesTab from "./workforce/ZonesTab";
 // navigation only — Rider/Worker/Zone stay separate, differently-shaped
 // data models.
 const FieldOperationsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<"riders" | "pickers" | "zones">("riders");
+  const [activeTab, setActiveTab] = useTabParam(["riders", "pickers", "zones"] as const, "riders");
 
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">

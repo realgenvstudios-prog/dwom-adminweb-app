@@ -17,10 +17,17 @@ import {
 } from 'lucide-react';
 import { ALL_PAGES, canAccessRoute, type UiRole } from './permissions';
 
+export interface NavSubItem {
+  label: string;
+  tab: string;
+  href: string;
+}
+
 export interface NavItem {
   path: string;
   label: string;
   icon: LucideIcon;
+  children?: NavSubItem[];
 }
 
 export interface NavGroup {
@@ -61,12 +68,57 @@ const SHORT_LABELS: Record<string, string> = {
   '/data-deletion-requests': 'Data Deletion',
 };
 
-function toNavItem(page: { path: string; label: string }): NavItem {
+// Tabs inside a page, surfaced as expandable sub-items. `tab` must match the
+// page's useTabParam keys; the first entry is the page's default tab.
+// superAdminOnly mirrors a tab the page itself only renders for Super Admin.
+const SUB_PAGES: Record<string, { label: string; tab: string; superAdminOnly?: boolean }[]> = {
+  '/analytics': [
+    { label: 'Overview', tab: 'overview' },
+    { label: 'Notes & Search', tab: 'notes' },
+  ],
+  '/catalog': [
+    { label: 'Products', tab: 'products' },
+    { label: 'Categories', tab: 'categories' },
+    { label: 'Bundles', tab: 'bundles' },
+  ],
+  '/warehouse': [
+    { label: 'Inventory', tab: 'operations' },
+    { label: 'Suppliers', tab: 'suppliers' },
+  ],
+  '/field-operations': [
+    { label: 'Riders', tab: 'riders' },
+    { label: 'Pickers', tab: 'pickers' },
+    { label: 'Delivery Zones', tab: 'zones' },
+  ],
+  '/marketing': [
+    { label: 'Campaigns', tab: 'campaigns' },
+    { label: 'Discount Codes', tab: 'coupons' },
+  ],
+  '/finance': [
+    { label: 'Overview & P&L', tab: 'overview' },
+    { label: 'Product Costs', tab: 'productCosts' },
+    { label: 'Expenses', tab: 'expenses' },
+    { label: 'Founder Ledger', tab: 'founderLedger', superAdminOnly: true },
+    { label: 'Settings', tab: 'settings' },
+  ],
+};
+
+function toNavItem(page: { path: string; label: string }, role: UiRole): NavItem {
+  const subs = SUB_PAGES[page.path]
+    ?.filter((s) => !s.superAdminOnly || role === 'Super Admin')
+    .map((s, i) => ({ label: s.label, tab: s.tab, href: i === 0 ? page.path : `${page.path}?tab=${s.tab}` }));
   return {
     path: page.path,
     label: SHORT_LABELS[page.path] ?? page.label,
     icon: ICONS[page.path] ?? LayoutDashboard,
+    children: subs && subs.length > 0 ? subs : undefined,
   };
+}
+
+/** Which sub-item is active for this page, given the current ?tab= value. */
+export function activeSubTab(item: NavItem, tabParam: string | null): string | undefined {
+  if (!item.children) return undefined;
+  return item.children.find((c) => c.tab === tabParam)?.tab ?? item.children[0].tab;
 }
 
 export function getNavGroups(role: UiRole): NavGroup[] {
@@ -78,22 +130,22 @@ export function getNavGroups(role: UiRole): NavGroup[] {
     items: g.paths
       .map((path) => accessible.find((p) => p.path === path))
       .filter((p): p is { path: string; label: string } => !!p)
-      .map(toNavItem),
+      .map((p) => toNavItem(p, role)),
   })).filter((g) => g.items.length > 0);
 
   // A page added to ALL_PAGES but not to GROUPS still shows up rather than vanishing.
-  const ungrouped = accessible.filter((p) => !grouped.has(p.path)).map(toNavItem);
+  const ungrouped = accessible.filter((p) => !grouped.has(p.path)).map((p) => toNavItem(p, role));
   if (ungrouped.length > 0) groups.push({ label: 'Other', items: ungrouped });
 
   return groups;
 }
 
-export function findNavItem(pathname: string): { group: string; item: NavItem } | null {
+export function findNavItem(pathname: string, role: UiRole): { group: string; item: NavItem } | null {
   for (const g of GROUPS) {
     const path = g.paths.find((p) => pathname === p || pathname.startsWith(`${p}/`));
     if (path) {
       const page = ALL_PAGES.find((p) => p.path === path);
-      if (page) return { group: g.label, item: toNavItem(page) };
+      if (page) return { group: g.label, item: toNavItem(page, role) };
     }
   }
   return null;

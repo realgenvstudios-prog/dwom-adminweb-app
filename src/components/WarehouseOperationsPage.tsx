@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTabParam } from "@/hooks/use-tab-param";
 import UpdateStockModal from "./warehouse/UpdateStockModal";
 import StockMovementModal from "./warehouse/StockMovementModal";
 import MovementHistoryModal from "./warehouse/MovementHistoryModal";
@@ -15,7 +16,7 @@ import type { Product, ProductCategory } from "./products/ProductTypes";
 import { logger } from '../utils/logger';
 
 const WarehouseOperationsPage: React.FC = () => {
-  const [activeTopTab, setActiveTopTab] = useState<"operations" | "suppliers">("operations");
+  const [activeTopTab, setActiveTopTab] = useTabParam(["operations", "suppliers"] as const, "operations");
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [stats, setStats] = useState<InventoryStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -171,7 +172,7 @@ const WarehouseOperationsPage: React.FC = () => {
               activeTopTab === "operations" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >
-            Operations
+            Inventory
           </button>
           <button
             onClick={() => setActiveTopTab("suppliers")}

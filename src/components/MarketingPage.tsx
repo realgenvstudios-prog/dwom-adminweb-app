@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTabParam } from "@/hooks/use-tab-param";
 import marketingService, { type Campaign, type CartCodeAnalytics, type CampaignMetrics, type NotificationSend, type NotificationTemplate } from "../services/marketingService";
 import CreateCampaignModal from "./marketing/CreateCampaignModal";
 import SendNotificationModal from "./marketing/SendNotificationModal";
@@ -7,7 +8,7 @@ import CouponsTab from "./marketing/CouponsTab";
 import { logger } from '../utils/logger';
 
 const MarketingPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<"campaigns" | "coupons">("campaigns");
+  const [activeTab, setActiveTab] = useTabParam(["campaigns", "coupons"] as const, "campaigns");
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [metrics, setMetrics] = useState<CampaignMetrics | null>(null);
   const [cartCodes, setCartCodes] = useState<CartCodeAnalytics[]>([]);

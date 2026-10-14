@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import {
   Breadcrumb,
   BreadcrumbItem,
+  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
@@ -12,15 +13,20 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
-import { findNavItem } from '@/config/navigation';
+import { activeSubTab, findNavItem } from '@/config/navigation';
+import type { UiRole } from '@/config/permissions';
 
 interface SiteHeaderProps {
+  role: UiRole;
   onOpenSearch: () => void;
 }
 
-export default function SiteHeader({ onOpenSearch }: SiteHeaderProps) {
+export default function SiteHeader({ role, onOpenSearch }: SiteHeaderProps) {
   const { pathname } = useLocation();
-  const current = findNavItem(pathname);
+  const [params] = useSearchParams();
+  const current = findNavItem(pathname, role);
+  const tab = current ? activeSubTab(current.item, params.get('tab')) : undefined;
+  const sub = current?.item.children?.find((c) => c.tab === tab);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -44,9 +50,23 @@ export default function SiteHeader({ onOpenSearch }: SiteHeaderProps) {
           <BreadcrumbList>
             <BreadcrumbItem className="hidden md:block">{current.group}</BreadcrumbItem>
             <BreadcrumbSeparator className="hidden md:block" />
-            <BreadcrumbItem>
-              <BreadcrumbPage>{current.item.label}</BreadcrumbPage>
-            </BreadcrumbItem>
+            {sub ? (
+              <>
+                <BreadcrumbItem className="hidden sm:block">
+                  <BreadcrumbLink asChild>
+                    <Link to={current.item.path}>{current.item.label}</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="hidden sm:block" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{sub.label}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </>
+            ) : (
+              <BreadcrumbItem>
+                <BreadcrumbPage>{current.item.label}</BreadcrumbPage>
+              </BreadcrumbItem>
+            )}
           </BreadcrumbList>
         </Breadcrumb>
       )}

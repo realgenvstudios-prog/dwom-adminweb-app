@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut } from 'lucide-react';
+import { ChevronRight, LogOut } from 'lucide-react';
 import {
   Command,
   CommandDialog,
@@ -47,16 +47,31 @@ export default function CommandMenu({ open, onOpenChange, groups, onLogout }: Co
           <CommandEmpty>No results found.</CommandEmpty>
           {groups.map((group) => (
             <CommandGroup key={group.label} heading={group.label}>
-              {group.items.map((item) => (
-                <CommandItem
-                  key={item.path}
-                  value={`${group.label} ${item.label}`}
-                  onSelect={() => run(() => navigate(item.path))}
-                >
-                  <item.icon />
-                  <span>{item.label}</span>
-                </CommandItem>
-              ))}
+              {group.items.flatMap((item) =>
+                item.children
+                  ? item.children.map((sub) => (
+                      <CommandItem
+                        key={sub.href}
+                        value={`${group.label} ${item.label} ${sub.label}`}
+                        onSelect={() => run(() => navigate(sub.href))}
+                      >
+                        <item.icon />
+                        <span className="text-muted-foreground">{item.label}</span>
+                        <ChevronRight className="size-3 text-muted-foreground" />
+                        <span>{sub.label}</span>
+                      </CommandItem>
+                    ))
+                  : [
+                      <CommandItem
+                        key={item.path}
+                        value={`${group.label} ${item.label}`}
+                        onSelect={() => run(() => navigate(item.path))}
+                      >
+                        <item.icon />
+                        <span>{item.label}</span>
+                      </CommandItem>,
+                    ],
+              )}
             </CommandGroup>
           ))}
           <CommandSeparator />

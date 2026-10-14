@@ -65,12 +65,12 @@ const App: React.FC = () => {
           </ProtectedRoute>
         }
       />
-      <Route path="/suppliers" element={<Navigate to="/warehouse" replace />} />
-      <Route path="/expenses" element={<Navigate to="/finance" replace />} />
-      <Route path="/workers" element={<Navigate to="/field-operations" replace />} />
+      <Route path="/suppliers" element={<Navigate to="/warehouse?tab=suppliers" replace />} />
+      <Route path="/expenses" element={<Navigate to="/finance?tab=expenses" replace />} />
+      <Route path="/workers" element={<Navigate to="/field-operations?tab=pickers" replace />} />
       <Route path="/workforce" element={<Navigate to="/field-operations" replace />} />
       <Route path="/riders" element={<Navigate to="/field-operations" replace />} />
-      <Route path="/delivery-zones" element={<Navigate to="/field-operations" replace />} />
+      <Route path="/delivery-zones" element={<Navigate to="/field-operations?tab=zones" replace />} />
       <Route
         path="/field-operations"
         element={
@@ -81,7 +81,7 @@ const App: React.FC = () => {
           </ProtectedRoute>
         }
       />
-      <Route path="/founder-ledger" element={<Navigate to="/finance" replace />} />
+      <Route path="/founder-ledger" element={<Navigate to="/finance?tab=founderLedger" replace />} />
       <Route
         path="/catalog"
         element={
@@ -93,8 +93,8 @@ const App: React.FC = () => {
         }
       />
       <Route path="/products" element={<Navigate to="/catalog" replace />} />
-      <Route path="/categories" element={<Navigate to="/catalog" replace />} />
-      <Route path="/bundles" element={<Navigate to="/catalog" replace />} />
+      <Route path="/categories" element={<Navigate to="/catalog?tab=categories" replace />} />
+      <Route path="/bundles" element={<Navigate to="/catalog?tab=bundles" replace />} />
       <Route path="/seasonal" element={<Navigate to="/catalog" replace />} />
       <Route
         path="/subscriptions"
@@ -146,7 +146,7 @@ const App: React.FC = () => {
           </ProtectedRoute>
         }
       />
-      <Route path="/notes" element={<Navigate to="/analytics" replace />} />
+      <Route path="/notes" element={<Navigate to="/analytics?tab=notes" replace />} />
       <Route
         path="/settings"
         element={
@@ -177,7 +177,7 @@ const App: React.FC = () => {
           </ProtectedRoute>
         }
       />
-      <Route path="/coupons" element={<Navigate to="/marketing" replace />} />
+      <Route path="/coupons" element={<Navigate to="/marketing?tab=coupons" replace />} />
       <Route path="/" element={<Navigate to="/login" replace />} />
     </Routes>
   );

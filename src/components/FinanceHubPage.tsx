@@ -1,16 +1,18 @@
-import React, { useState } from "react";
+import React from "react";
 import adminAuthService from "../services/authService";
 import { resolveUiRole } from "../config/permissions";
+import { useTabParam } from "@/hooks/use-tab-param";
 import OverviewTab from "./finance/OverviewTab";
 import ProductCostsTab from "./finance/ProductCostsTab";
 import ExpensesTab from "./finance/ExpensesTab";
 import FounderLedgerTab from "./finance/FounderLedgerTab";
 import SettingsTab from "./finance/SettingsTab";
 
-type TabKey = "overview" | "productCosts" | "expenses" | "founderLedger" | "settings";
+const TAB_KEYS = ["overview", "productCosts", "expenses", "founderLedger", "settings"] as const;
+type TabKey = (typeof TAB_KEYS)[number];
 
 const FinanceHubPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabKey>("overview");
+  const [activeTab, setActiveTab] = useTabParam(TAB_KEYS, "overview");
 
   const currentAdmin = adminAuthService.getCurrentAdmin();
   const role = resolveUiRole(currentAdmin);

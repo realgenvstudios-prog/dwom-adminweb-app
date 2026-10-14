@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTabParam } from "@/hooks/use-tab-param";
 import ProductsFilterBar from "./products/ProductsFilterBar";
 import ProductsTable from "./products/ProductsTable";
 import ProductDetailsPanel from "./products/ProductDetailsPanel";
@@ -21,7 +22,7 @@ const mockCategories: ProductCategory[] = [
 ];
 
 const CatalogPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<"products" | "categories" | "bundles">("products");
+  const [activeTab, setActiveTab] = useTabParam(["products", "categories", "bundles"] as const, "products");
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<ProductCategory[]>(mockCategories);
   const [filters, setFilters] = useState({ category: "All", status: "All", stock: "All", search: "" });

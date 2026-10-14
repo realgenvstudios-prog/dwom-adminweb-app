@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTabParam } from '@/hooks/use-tab-param';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import analyticsService from '../services/analyticsService';
 import type { EventCount } from '../services/analyticsService';
@@ -25,7 +26,7 @@ const RANGE_OPTIONS: { value: RangeOption; label: string }[] = [
 ];
 
 const AnalyticsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'notes'>('overview');
+  const [activeTab, setActiveTab] = useTabParam(['overview', 'notes'] as const, 'overview');
   const [events, setEvents] = useState<EventCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<RangeOption>(7);

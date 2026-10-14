@@ -45,7 +45,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         onLogout={handleLogout}
       />
       <SidebarInset>
-        <SiteHeader onOpenSearch={() => setSearchOpen(true)} />
+        <SiteHeader role={role} onOpenSearch={() => setSearchOpen(true)} />
         <main className="flex-1 p-4 md:p-6">{children}</main>
       </SidebarInset>
       <CommandMenu open={searchOpen} onOpenChange={setSearchOpen} groups={groups} onLogout={handleLogout} />
