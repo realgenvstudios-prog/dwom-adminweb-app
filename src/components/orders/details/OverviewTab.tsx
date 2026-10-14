@@ -32,15 +32,15 @@ function Person({
       <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted">
         <Icon className="size-4 text-muted-foreground" />
       </div>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <p className="text-xs text-muted-foreground">{label}</p>
         {name ? (
           <>
-            <p className="truncate text-sm font-medium">{name}</p>
-            {sub && <p className="truncate text-xs text-muted-foreground tabular-nums">{sub}</p>}
+            <p className="text-sm font-medium break-words">{name}</p>
+            {sub && <p className="text-xs whitespace-nowrap text-muted-foreground tabular-nums">{sub}</p>}
           </>
         ) : (
-          <p className="text-sm text-muted-foreground italic">{empty}</p>
+          <p className="text-sm text-muted-foreground">{empty}</p>
         )}
       </div>
     </div>

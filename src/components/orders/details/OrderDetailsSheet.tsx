@@ -117,7 +117,7 @@ export default function OrderDetailsSheet({
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="flex w-full flex-col gap-0 p-0 sm:max-w-2xl">
+        <SheetContent className="flex flex-col gap-0 p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-2xl data-[side=right]:xl:max-w-3xl">
           <SheetHeader className="gap-3 border-b p-6 pb-4">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pr-8">
               <SheetTitle className="text-xl tabular-nums">Order #{order.id}</SheetTitle>
