@@ -1,121 +1,251 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { settingsService, type Settings } from "../../services/settingsService";
-import { logger } from "../../utils/logger";
+import React, { useCallback, useEffect, useState } from 'react';
+import { AlertCircle, Loader2, RotateCw, Undo2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+import { settingsService, type Settings } from '../../services/settingsService';
+import { logger } from '../../utils/logger';
+import { formatGhs } from '../orders/order-status';
 
-type FinanceSettingsKey =
-  | "minimumOrderValue"
-  | "maxSmallOrderFee"
-  | "paystackFeePercent"
-  | "packagingCostPerOrder"
-  | "subscriptionPriceGHS"
-  | "grossProfitMarginPercent"
-  | "pickerRatePerOrder"
-  | "pickerDailyMinimumPay"
-  | "pickerDailyThreshold";
+type Key =
+  | 'minimumOrderValue'
+  | 'maxSmallOrderFee'
+  | 'paystackFeePercent'
+  | 'packagingCostPerOrder'
+  | 'grossProfitMarginPercent'
+  | 'subscriptionPriceGHS'
+  | 'pickerRatePerOrder'
+  | 'pickerDailyMinimumPay'
+  | 'pickerDailyThreshold';
 
-const FIELDS: { key: FinanceSettingsKey; label: string; hint: string; step?: string }[] = [
-  { key: "minimumOrderValue", label: "Minimum order value (GHS)", hint: "Basket value at/above which no small-order fee applies." },
-  { key: "maxSmallOrderFee", label: "Max small-order fee (GHS)", hint: "Cap on the gap-fill fee for baskets below the minimum." },
-  { key: "paystackFeePercent", label: "Paystack fee estimate (%)", hint: "Used to estimate card/momo processing cost per order." },
-  { key: "packagingCostPerOrder", label: "Packaging cost per order (GHS)", hint: "Flat assumed packaging cost added to every order's cost." },
-  { key: "subscriptionPriceGHS", label: "Subscription price (GHS/month)", hint: "Used for MRR calculation." },
-  { key: "grossProfitMarginPercent", label: "Fallback gross margin (%)", hint: "Only used when no real cost data exists yet for a period." },
-  { key: "pickerRatePerOrder", label: "Picker pay per order (GHS)", hint: "Paid once a worker hits the daily threshold." },
-  { key: "pickerDailyMinimumPay", label: "Picker daily minimum (GHS)", hint: "Flat pay for a worker's day when under the threshold." },
-  { key: "pickerDailyThreshold", label: "Picker daily threshold (orders)", hint: "Orders/day at or above which per-order pay applies instead of the flat minimum.", step: "1" },
+interface Field {
+  key: Key;
+  label: string;
+  hint: string;
+  unit: '₵' | '%' | 'orders';
+  integer?: boolean;
+}
+
+// Grouped by what each number actually changes in the backend.
+const SECTIONS: { title: string; description: string; affectsCustomers?: boolean; fields: Field[] }[] = [
+  {
+    title: 'Small-order fee',
+    description: 'Charged at checkout: a basket below the minimum pays the difference, up to the cap.',
+    affectsCustomers: true,
+    fields: [
+      { key: 'minimumOrderValue', label: 'Minimum basket', hint: 'At or above this, no small-order fee.', unit: '₵' },
+      { key: 'maxSmallOrderFee', label: 'Fee cap', hint: 'The most a small basket is ever charged.', unit: '₵' },
+    ],
+  },
+  {
+    title: 'Cost assumptions',
+    description: 'Used to work out profit. Changing these doesn’t change what anyone pays.',
+    fields: [
+      { key: 'paystackFeePercent', label: 'Paystack fee', hint: 'Estimated card / mobile money processing cost.', unit: '%' },
+      { key: 'packagingCostPerOrder', label: 'Packaging per order', hint: 'Added to every order’s cost.', unit: '₵' },
+      { key: 'grossProfitMarginPercent', label: 'Fallback margin', hint: 'Used to estimate profit when no product costs are recorded.', unit: '%' },
+    ],
+  },
+  {
+    title: 'Subscriptions',
+    description: 'Used for MRR (active subscriptions × this price).',
+    fields: [{ key: 'subscriptionPriceGHS', label: 'Price per month', hint: 'What one subscription is counted as.', unit: '₵' }],
+  },
+  {
+    title: 'Picker pay',
+    description: 'Each picker’s day is paid per order once they reach the threshold, otherwise a flat minimum. Applies to trips recalculated after saving.',
+    fields: [
+      { key: 'pickerDailyThreshold', label: 'Threshold', hint: 'Orders in a day to switch to per-order pay.', unit: 'orders', integer: true },
+      { key: 'pickerRatePerOrder', label: 'Pay per order', hint: 'At or above the threshold.', unit: '₵' },
+      { key: 'pickerDailyMinimumPay', label: 'Daily minimum', hint: 'Below the threshold, for the whole day.', unit: '₵' },
+    ],
+  },
 ];
 
+const KEYS = SECTIONS.flatMap((s) => s.fields.map((f) => f.key));
+
+function UnitInput({ field, value, disabled, onChange }: { field: Field; value: string; disabled: boolean; onChange: (v: string) => void }) {
+  return (
+    <div className="relative">
+      {field.unit === '₵' && <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">₵</span>}
+      <Input
+        id={`fs-${field.key}`}
+        type="number"
+        min={0}
+        step={field.integer ? 1 : 0.01}
+        inputMode={field.integer ? 'numeric' : 'decimal'}
+        value={value}
+        disabled={disabled}
+        placeholder={disabled ? 'Not available' : undefined}
+        onChange={(e) => onChange(e.target.value)}
+        className={`tabular-nums ${field.unit === '₵' ? 'pl-7' : ''} ${field.unit !== '₵' ? 'pr-16' : ''}`}
+      />
+      {field.unit !== '₵' && (
+        <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-muted-foreground">{field.unit}</span>
+      )}
+    </div>
+  );
+}
+
 const SettingsTab: React.FC = () => {
-  const [settings, setSettings] = useState<Settings | null>(null);
-  const [form, setForm] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState<Record<Key, string> | null>(null);
+  const [form, setForm] = useState<Record<Key, string> | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      setLoading(true);
       setError(null);
       const data = await settingsService.getSettings();
-      setSettings(data);
-      const next: Record<string, string> = {};
-      for (const f of FIELDS) next[f.key] = String(data[f.key] ?? "");
+      const next = Object.fromEntries(
+        KEYS.map((k) => {
+          const v = (data as unknown as Record<string, unknown>)[k];
+          return [k, v === undefined || v === null ? '' : String(v)];
+        }),
+      ) as Record<Key, string>;
+      setSaved(next);
       setForm(next);
     } catch (err) {
-      logger.error("Failed to load finance settings:", err);
-      setError("Failed to load settings");
-    } finally {
-      setLoading(false);
+      logger.error('Failed to load finance settings:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load settings');
     }
   }, []);
 
   useEffect(() => {
-    load();
+    const t = setTimeout(() => void load(), 0);
+    return () => clearTimeout(t);
   }, [load]);
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const changed = form && saved ? KEYS.filter((k) => form[k] !== saved[k]) : [];
+  // A field the server never returned isn't supported by the connected backend yet.
+  const unavailable = (k: Key) => saved?.[k] === '';
+  const n = (k: Key) => Number.parseFloat(form?.[k] ?? '') || 0;
+
+  const save = async () => {
+    if (!form) return;
+    const payload: Partial<Settings> = {};
+    for (const k of changed) {
+      const field = SECTIONS.flatMap((s) => s.fields).find((f) => f.key === k)!;
+      const v = field.integer ? Number.parseInt(form[k], 10) : Number.parseFloat(form[k]);
+      if (!Number.isFinite(v) || v < 0) {
+        toast.error(`${field.label} must be 0 or more.`);
+        return;
+      }
+      (payload as Record<string, number>)[k] = v;
+    }
     try {
       setSaving(true);
-      setError(null);
-      setSaved(false);
-      const payload: Partial<Settings> = {};
-      for (const f of FIELDS) {
-        const raw = form[f.key];
-        if (raw !== undefined && raw !== "") {
-          (payload as any)[f.key] = f.key === "pickerDailyThreshold" ? parseInt(raw, 10) : parseFloat(raw);
-        }
-      }
-      const updated = await settingsService.updateSettings(payload);
-      setSettings(updated);
-      setSaved(true);
+      await settingsService.updateSettings(payload);
+      setSaved(form);
+      toast.success(changed.some((k) => k === 'minimumOrderValue' || k === 'maxSmallOrderFee') ? 'Saved — checkout uses the new small-order fee now' : 'Settings saved');
     } catch (err) {
-      logger.error("Failed to save finance settings:", err);
-      setError("Failed to save settings");
+      logger.error('Failed to save finance settings:', err);
+      toast.error('Couldn’t save the settings.');
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading && !settings) {
-    return <p className="text-gray-500 text-sm py-8 text-center">Loading...</p>;
+  if (error) {
+    return (
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
+        <div className="flex items-center gap-2 text-destructive">
+          <AlertCircle className="size-4" />
+          Couldn’t load settings: {error}
+        </div>
+        <Button variant="outline" size="sm" onClick={() => void load()}>
+          <RotateCw />
+          Retry
+        </Button>
+      </div>
+    );
   }
 
-  return (
-    <>
-      <p className="text-gray-600 mb-6">
-        These numbers drive every cost/margin calculation across Overview, Product Costs, Expenses, and Workers & Trips.
-      </p>
+  if (!form) {
+    return (
+      <div className="grid gap-6 lg:grid-cols-2">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-48 w-full rounded-xl" />
+        ))}
+      </div>
+    );
+  }
 
-      <form onSubmit={handleSave} className="bg-white shadow-xs rounded-xl border border-gray-100 p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {FIELDS.map((f) => (
-            <div key={f.key}>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{f.label}</label>
-              <input
-                type="number"
-                min="0"
-                step={f.step ?? "0.01"}
-                value={form[f.key] ?? ""}
-                onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2"
-              />
-              <p className="text-xs text-gray-400 mt-1">{f.hint}</p>
-            </div>
-          ))}
+  // Worked examples, using the numbers as currently typed.
+  const sampleBasket = Math.max(0, Math.round(n('minimumOrderValue') * 0.6));
+  const sampleFee = Math.min(Math.max(0, n('minimumOrderValue') - sampleBasket), n('maxSmallOrderFee'));
+  const busyDay = Math.max(1, Math.round(n('pickerDailyThreshold')));
+
+  return (
+    <div className="flex flex-col gap-6 pb-20">
+      <div className="grid gap-6 lg:grid-cols-2">
+        {SECTIONS.map((section) => (
+          <Card key={section.title}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                {section.title}
+                {section.affectsCustomers && (
+                  <Badge variant="outline" className="border-amber-500/30 bg-amber-500/10 font-normal text-amber-700">
+                    Changes what customers pay
+                  </Badge>
+                )}
+              </CardTitle>
+              <CardDescription>{section.description}</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                {section.fields.map((f) => (
+                  <div key={f.key} className="grid gap-1.5">
+                    <Label htmlFor={`fs-${f.key}`}>{f.label}</Label>
+                    <UnitInput field={f} value={form[f.key]} disabled={unavailable(f.key)} onChange={(v) => setForm({ ...form, [f.key]: v })} />
+                    <p className="text-xs text-muted-foreground">{unavailable(f.key) ? 'Not supported by the connected server yet.' : f.hint}</p>
+                  </div>
+                ))}
+              </div>
+              {section.title === 'Small-order fee' && !unavailable('minimumOrderValue') && n('minimumOrderValue') > 0 && (
+                <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
+                  Example: a {formatGhs(sampleBasket)} basket is charged a{' '}
+                  <span className="font-medium text-foreground">{formatGhs(sampleFee)}</span> small-order fee.
+                </p>
+              )}
+              {section.title === 'Picker pay' && !unavailable('pickerDailyThreshold') && (
+                <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
+                  Example: {busyDay} orders in a day pays <span className="font-medium text-foreground">{formatGhs(busyDay * n('pickerRatePerOrder'))}</span>
+                  {busyDay > 1 && (
+                    <>
+                      ; {busyDay - 1} pays <span className="font-medium text-foreground">{formatGhs(n('pickerDailyMinimumPay'))}</span>
+                    </>
+                  )}
+                  .
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {changed.length > 0 && (
+        <div className="fixed inset-x-0 bottom-6 z-30 flex justify-center px-4 animate-in fade-in slide-in-from-bottom-4">
+          <div className="flex items-center gap-3 rounded-xl border bg-background/95 py-2 pr-2 pl-4 shadow-lg backdrop-blur">
+            <span className="text-sm">
+              {changed.length} unsaved change{changed.length === 1 ? '' : 's'}
+            </span>
+            <Button variant="ghost" size="sm" onClick={() => setForm(saved)} disabled={saving}>
+              <Undo2 />
+              Discard
+            </Button>
+            <Button size="sm" onClick={() => void save()} disabled={saving}>
+              {saving && <Loader2 className="animate-spin" />}
+              Save
+            </Button>
+          </div>
         </div>
-        {error && <p className="text-red-600 text-sm mt-4">⚠️ {error}</p>}
-        {saved && !error && <p className="text-green-700 text-sm mt-4">✅ Settings saved.</p>}
-        <button
-          type="submit"
-          disabled={saving}
-          className="mt-6 bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold disabled:opacity-50"
-        >
-          {saving ? "Saving..." : "Save Settings"}
-        </button>
-      </form>
-    </>
+      )}
+    </div>
   );
 };
 
