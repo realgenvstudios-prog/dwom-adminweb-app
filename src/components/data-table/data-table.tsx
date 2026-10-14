@@ -10,9 +10,11 @@ import {
   useReactTable,
   type ColumnDef,
   type ColumnFiltersState,
+  type PaginationState,
   type FilterFn,
   type RowData,
   type SortingState,
+  type Table as TanstackTable,
   type VisibilityState,
 } from '@tanstack/react-table';
 import { X } from 'lucide-react';
@@ -45,8 +47,10 @@ interface DataTableProps<TData> {
   isLoading?: boolean;
   searchPlaceholder?: string;
   filters?: FilterConfig[];
-  /** Extra controls on the right of the toolbar (e.g. an "Add" button). */
-  toolbarActions?: React.ReactNode;
+  /** Extra controls on the left of the toolbar, after search (e.g. a date range picker). */
+  toolbarStart?: React.ReactNode;
+  /** Extra controls on the right of the toolbar; the function form gets the table (e.g. to export filtered rows). */
+  toolbarActions?: React.ReactNode | ((table: TanstackTable<TData>) => React.ReactNode);
   /** Shown in a floating bar while rows are selected. Requires a selectColumn(). */
   bulkActions?: (rows: TData[], clear: () => void) => React.ReactNode;
   onRowClick?: (row: TData) => void;
@@ -63,6 +67,7 @@ export function DataTable<TData>({
   isLoading = false,
   searchPlaceholder,
   filters,
+  toolbarStart,
   toolbarActions,
   bulkActions,
   onRowClick,
@@ -77,21 +82,29 @@ export function DataTable<TData>({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(initialHidden);
   const [rowSelection, setRowSelection] = useState({});
   const [globalFilter, setGlobalFilter] = useState('');
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize });
+  const toFirstPage = () => setPagination((p) => ({ ...p, pageIndex: 0 }));
 
   const enableRowSelection = columns.some((c) => c.id === 'select');
 
   const table = useReactTable({
     data,
     columns,
-    state: { sorting, columnFilters, columnVisibility, rowSelection, globalFilter },
-    initialState: { pagination: { pageSize } },
+    state: { sorting, columnFilters, columnVisibility, rowSelection, globalFilter, pagination },
     enableRowSelection,
     getRowId,
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
+    onColumnFiltersChange: (updater) => {
+      setColumnFilters(updater);
+      toFirstPage();
+    },
+    onPaginationChange: setPagination,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    onGlobalFilterChange: setGlobalFilter,
+    onGlobalFilterChange: (updater) => {
+      setGlobalFilter(updater);
+      toFirstPage();
+    },
     globalFilterFn: searchFilterFn as FilterFn<TData>,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -101,6 +114,10 @@ export function DataTable<TData>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
     autoResetPageIndex: false,
   });
+
+  // Data shrank under us (e.g. a page-level date filter): don't strand the user on an empty page.
+  const lastPage = Math.max(table.getPageCount() - 1, 0);
+  if (pagination.pageIndex > lastPage) setPagination((p) => ({ ...p, pageIndex: lastPage }));
 
   const selectedRows = table.getFilteredSelectedRowModel().rows.map((r) => r.original);
   const visibleColumnCount = table.getVisibleLeafColumns().length;
@@ -113,7 +130,13 @@ export function DataTable<TData>({
 
   return (
     <div className="flex flex-col gap-4">
-      <DataTableToolbar table={table} searchPlaceholder={searchPlaceholder} filters={filters} actions={toolbarActions} />
+      <DataTableToolbar
+        table={table}
+        searchPlaceholder={searchPlaceholder}
+        filters={filters}
+        start={toolbarStart}
+        actions={typeof toolbarActions === 'function' ? toolbarActions(table) : toolbarActions}
+      />
 
       <div className="overflow-hidden rounded-md border">
         <Table>

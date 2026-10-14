@@ -1,9 +1,10 @@
-import type { ColumnDef, FilterFn } from '@tanstack/react-table';
+import type { ColumnDef, Row } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
 
 /** For columns driven by a faceted filter: keep rows whose value is one of the selected options. */
-export const facetedFilterFn: FilterFn<unknown> = (row, columnId, value: string[]) =>
-  value.includes(String(row.getValue(columnId)));
+export function facetedFilterFn<TData>(row: Row<TData>, columnId: string, value: string[]): boolean {
+  return value.includes(String(row.getValue(columnId)));
+}
 
 /** Checkbox column for row selection. */
 export function selectColumn<TData>(): ColumnDef<TData> {
@@ -30,4 +31,3 @@ export function selectColumn<TData>(): ColumnDef<TData> {
     meta: { className: 'w-10' },
   };
 }
-

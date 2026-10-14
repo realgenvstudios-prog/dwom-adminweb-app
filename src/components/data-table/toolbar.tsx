@@ -15,10 +15,11 @@ interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   searchPlaceholder?: string;
   filters?: FilterConfig[];
+  start?: React.ReactNode;
   actions?: React.ReactNode;
 }
 
-export function DataTableToolbar<TData>({ table, searchPlaceholder, filters = [], actions }: DataTableToolbarProps<TData>) {
+export function DataTableToolbar<TData>({ table, searchPlaceholder, filters = [], start, actions }: DataTableToolbarProps<TData>) {
   const globalFilter = (table.getState().globalFilter as string) ?? '';
   const isFiltered = table.getState().columnFilters.length > 0 || globalFilter.length > 0;
 
@@ -36,6 +37,7 @@ export function DataTableToolbar<TData>({ table, searchPlaceholder, filters = []
             />
           </div>
         )}
+        {start}
         {filters.map((f) =>
           table.getColumn(f.columnId) ? (
             <DataTableFacetedFilter key={f.columnId} column={table.getColumn(f.columnId)} title={f.title} options={f.options} />
