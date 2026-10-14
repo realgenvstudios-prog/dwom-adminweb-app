@@ -1,61 +1,64 @@
-import React from "react";
-import adminAuthService from "../services/authService";
-import { resolveUiRole } from "../config/permissions";
-import { useTabParam } from "@/hooks/use-tab-param";
-import OverviewTab from "./finance/OverviewTab";
-import ProductCostsTab from "./finance/ProductCostsTab";
-import ExpensesTab from "./finance/ExpensesTab";
-import FounderLedgerTab from "./finance/FounderLedgerTab";
-import SettingsTab from "./finance/SettingsTab";
+import React from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTabParam } from '@/hooks/use-tab-param';
+import adminAuthService from '../services/authService';
+import { resolveUiRole } from '../config/permissions';
+import OverviewTab from './finance/OverviewTab';
+import ProductCostsTab from './finance/ProductCostsTab';
+import ExpensesTab from './finance/ExpensesTab';
+import FounderLedgerTab from './finance/FounderLedgerTab';
+import SettingsTab from './finance/SettingsTab';
 
-const TAB_KEYS = ["overview", "productCosts", "expenses", "founderLedger", "settings"] as const;
+const TAB_KEYS = ['overview', 'productCosts', 'expenses', 'founderLedger', 'settings'] as const;
 type TabKey = (typeof TAB_KEYS)[number];
 
 const FinanceHubPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useTabParam(TAB_KEYS, "overview");
-
-  const currentAdmin = adminAuthService.getCurrentAdmin();
-  const role = resolveUiRole(currentAdmin);
-  const isSuperAdmin = role === "Super Admin";
+  const [activeTab, setActiveTab] = useTabParam(TAB_KEYS, 'overview');
+  const isSuperAdmin = resolveUiRole(adminAuthService.getCurrentAdmin()) === 'Super Admin';
 
   const tabs: { key: TabKey; label: string }[] = [
-    { key: "overview", label: "Overview & P&L" },
-    { key: "productCosts", label: "Product Costs" },
-    { key: "expenses", label: "Expenses" },
-    ...(isSuperAdmin ? [{ key: "founderLedger" as TabKey, label: "Founder Ledger" }] : []),
-    { key: "settings", label: "Settings" },
+    { key: 'overview', label: 'Overview & P&L' },
+    { key: 'productCosts', label: 'Product Costs' },
+    { key: 'expenses', label: 'Expenses' },
+    ...(isSuperAdmin ? [{ key: 'founderLedger' as TabKey, label: 'Founder Ledger' }] : []),
+    { key: 'settings', label: 'Settings' },
   ];
 
   return (
-    <div className="bg-gray-50 min-h-screen py-10 px-4">
-      <div className="max-w-(--breakpoint-2xl) mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Finance</h1>
-          <p className="text-gray-600 mt-1">Revenue, real cost, profitability, and the config that drives all of it — in one place.</p>
-        </div>
-
-        <div className="mb-8 flex gap-2 border-b border-gray-200 overflow-x-auto">
-          {tabs.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setActiveTab(t.key)}
-              className={`px-4 py-2 text-sm font-semibold whitespace-nowrap border-b-2 -mb-px transition ${
-                activeTab === t.key
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        {activeTab === "overview" && <OverviewTab />}
-        {activeTab === "productCosts" && <ProductCostsTab />}
-        {activeTab === "expenses" && <ExpensesTab />}
-        {activeTab === "founderLedger" && isSuperAdmin && <FounderLedgerTab />}
-        {activeTab === "settings" && <SettingsTab />}
+    <div className="flex flex-col gap-6">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Finance</h1>
+        <p className="text-sm text-muted-foreground">Revenue, real costs, and profitability — and the settings that drive them.</p>
       </div>
+
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabKey)} className="gap-6">
+        <div className="overflow-x-auto">
+          <TabsList>
+            {tabs.map((t) => (
+              <TabsTrigger key={t.key} value={t.key}>
+                {t.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
+        <TabsContent value="overview">
+          <OverviewTab />
+        </TabsContent>
+        <TabsContent value="productCosts">
+          <ProductCostsTab />
+        </TabsContent>
+        <TabsContent value="expenses">
+          <ExpensesTab />
+        </TabsContent>
+        {isSuperAdmin && (
+          <TabsContent value="founderLedger">
+            <FounderLedgerTab />
+          </TabsContent>
+        )}
+        <TabsContent value="settings">
+          <SettingsTab />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
