@@ -20,3 +20,10 @@ export function amountOf(e: { amount: number | string }): number {
 export function monthKey(d: Date | string): string {
   return new Date(d).toISOString().slice(0, 7);
 }
+
+// The values FounderLedgerEntry.method documents.
+export const FOUNDER_METHODS = [
+  { value: 'cash', label: 'Cash' },
+  { value: 'momo', label: 'Mobile Money' },
+  { value: 'bank_transfer', label: 'Bank transfer' },
+];

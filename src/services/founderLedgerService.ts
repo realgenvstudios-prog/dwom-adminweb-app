@@ -29,6 +29,7 @@ export interface CreateFounderLedgerEntryInput {
   method?: string;
   notes?: string;
   approvedBy?: string;
+  receiptUrl?: string;
 }
 
 class FounderLedgerService {
@@ -46,6 +47,10 @@ class FounderLedgerService {
 
   async create(input: CreateFounderLedgerEntryInput): Promise<FounderLedgerEntry> {
     return adminApiClient.post<FounderLedgerEntry>('/founder-ledger', input);
+  }
+
+  async update(id: number, input: Partial<CreateFounderLedgerEntryInput>): Promise<FounderLedgerEntry> {
+    return adminApiClient.patch<FounderLedgerEntry>(`/founder-ledger/${id}`, input);
   }
 
   async remove(id: number): Promise<void> {
