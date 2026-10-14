@@ -1,4 +1,6 @@
 import type { FormEvent } from "react";
+import type { Product } from "../../services/productsService";
+import type { SupplierProductLink } from "../../services/suppliersService";
 
 interface SupplierFormProps {
   editingSupplierId: number | null;
@@ -7,10 +9,15 @@ interface SupplierFormProps {
   savingSupplier: boolean;
   onSubmit: (e: FormEvent) => void;
   onCancel: () => void;
+  allProducts: Product[];
+  linkedProducts: SupplierProductLink[];
+  linkingProductId: number | null;
+  onToggleProductLink: (productId: number) => void;
 }
 
-// The add/edit supplier form. Split out of the former monolithic
-// SuppliersPage.
+// The add/edit supplier form, plus which products this supplier provides
+// — a direct link, not dependent on ever logging a purchase. Split out
+// of the former monolithic SuppliersPage.
 export default function SupplierForm({
   editingSupplierId,
   supplierForm,
@@ -18,7 +25,12 @@ export default function SupplierForm({
   savingSupplier,
   onSubmit,
   onCancel,
+  allProducts,
+  linkedProducts,
+  linkingProductId,
+  onToggleProductLink,
 }: SupplierFormProps) {
+  const linkedProductIds = new Set(linkedProducts.map((l) => l.productId));
   return (
     <section className="bg-white rounded-xl shadow p-6 mb-8">
       <h2 className="text-xl font-bold mb-4">{editingSupplierId ? "Edit Supplier" : "Add Supplier"}</h2>
@@ -89,6 +101,36 @@ export default function SupplierForm({
           )}
         </div>
       </form>
+
+      {editingSupplierId && (
+        <div className="mt-6 pt-6 border-t border-gray-100">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">
+            Products this supplier provides ({linkedProductIds.size})
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+            {allProducts.map((p) => {
+              const isLinked = linkedProductIds.has(p.id);
+              return (
+                <label
+                  key={p.id}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm cursor-pointer ${
+                    isLinked ? "bg-blue-50 border-blue-200" : "border-gray-200"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isLinked}
+                    disabled={linkingProductId === p.id}
+                    onChange={() => onToggleProductLink(p.id)}
+                    className="rounded border-gray-300"
+                  />
+                  {p.nameEnglish}
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

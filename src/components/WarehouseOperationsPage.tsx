@@ -161,7 +161,7 @@ const WarehouseOperationsPage: React.FC = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Warehouse Operations</h1>
-          <p className="text-gray-600 mt-1">Manage inventory, stock movements, and what you actually pay suppliers</p>
+          <p className="text-gray-600 mt-1">Manage inventory, stock movements, and who you source from</p>
         </div>
 
         <div className="mb-6 flex gap-2">
@@ -179,7 +179,7 @@ const WarehouseOperationsPage: React.FC = () => {
               activeTopTab === "suppliers" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >
-            Suppliers & Purchases
+            Suppliers
           </button>
         </div>
 

@@ -1,18 +1,33 @@
 import { useState, type FormEvent } from "react";
 import suppliersService from "../../services/suppliersService";
-import type { Supplier } from "../../services/suppliersService";
+import type { Supplier, SupplierProductLink } from "../../services/suppliersService";
+import productsService from "../../services/productsService";
+import type { Product } from "../../services/productsService";
 import { logger } from '../../utils/logger';
 
 export const emptySupplierForm = { name: "", contactName: "", phone: "", location: "", notes: "" };
 
-// Supplier list + the add/edit form. Split out of the former monolithic
-// SuppliersPage.
+// Supplier list + the add/edit form, plus which products each supplier
+// provides (ProductSupplier links) — independent of logging a purchase.
+// Split out of the former monolithic SuppliersPage.
 export function useSuppliersData() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loadingSuppliers, setLoadingSuppliers] = useState(true);
   const [supplierForm, setSupplierForm] = useState(emptySupplierForm);
   const [editingSupplierId, setEditingSupplierId] = useState<number | null>(null);
   const [savingSupplier, setSavingSupplier] = useState(false);
+
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [linkedProducts, setLinkedProducts] = useState<SupplierProductLink[]>([]);
+  const [linkingProductId, setLinkingProductId] = useState<number | null>(null);
+
+  const loadAllProducts = async () => {
+    try {
+      setAllProducts(await productsService.getAll());
+    } catch (err) {
+      logger.error("❌ [SuppliersPage] Failed to load products:", err);
+    }
+  };
 
   const loadSuppliers = async () => {
     try {
@@ -29,6 +44,7 @@ export function useSuppliersData() {
   const resetSupplierForm = () => {
     setSupplierForm(emptySupplierForm);
     setEditingSupplierId(null);
+    setLinkedProducts([]);
   };
 
   const handleSaveSupplier = async (e: FormEvent) => {
@@ -50,7 +66,7 @@ export function useSuppliersData() {
     }
   };
 
-  const handleEditSupplier = (s: Supplier) => {
+  const handleEditSupplier = async (s: Supplier) => {
     setEditingSupplierId(s.id);
     setSupplierForm({
       name: s.name,
@@ -59,6 +75,32 @@ export function useSuppliersData() {
       location: s.location || "",
       notes: s.notes || "",
     });
+    try {
+      const detail = await suppliersService.getById(s.id);
+      setLinkedProducts(detail.ProductSupplier);
+    } catch (err) {
+      logger.error("❌ [SuppliersPage] Failed to load supplier's products:", err);
+      setLinkedProducts([]);
+    }
+  };
+
+  const handleToggleProductLink = async (productId: number) => {
+    if (!editingSupplierId) return;
+    const isLinked = linkedProducts.some((l) => l.productId === productId);
+    try {
+      setLinkingProductId(productId);
+      if (isLinked) {
+        await suppliersService.unlinkProduct(editingSupplierId, productId);
+      } else {
+        await suppliersService.linkProduct(editingSupplierId, productId);
+      }
+      const detail = await suppliersService.getById(editingSupplierId);
+      setLinkedProducts(detail.ProductSupplier);
+    } catch (err: any) {
+      alert(err.message || "Failed to update product link");
+    } finally {
+      setLinkingProductId(null);
+    }
   };
 
   const handleDeactivateSupplier = async (s: Supplier) => {
@@ -83,5 +125,10 @@ export function useSuppliersData() {
     handleSaveSupplier,
     handleEditSupplier,
     handleDeactivateSupplier,
+    allProducts,
+    loadAllProducts,
+    linkedProducts,
+    linkingProductId,
+    handleToggleProductLink,
   };
 }
