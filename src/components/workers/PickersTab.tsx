@@ -62,7 +62,11 @@ export default function PickersTab() {
       void load();
       settingsService
         .getSettings()
-        .then((s) => setRule({ rate: Number(s.pickerRatePerOrder), minimum: Number(s.pickerDailyMinimumPay), threshold: Number(s.pickerDailyThreshold) }))
+        .then((s) => {
+          const r = { rate: Number(s.pickerRatePerOrder), minimum: Number(s.pickerDailyMinimumPay), threshold: Number(s.pickerDailyThreshold) };
+          // Older backends don't return these fields; show nothing rather than "NaN".
+          if ([r.rate, r.minimum, r.threshold].every(Number.isFinite)) setRule(r);
+        })
         .catch((err) => logger.error('Failed to load picker pay settings:', err));
     }, 0);
     return () => clearTimeout(t);
