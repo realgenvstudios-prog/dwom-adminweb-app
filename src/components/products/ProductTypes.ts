@@ -1,5 +1,3 @@
-export type InventoryStatus = "In stock" | "Low" | "Out of stock";
-
 export interface ProductCategory {
   id: string;
   name: string;
@@ -28,7 +26,6 @@ export interface Product {
   unitType: string;
   pricePerUnit: number | string;  // Can come as string from API
   imageUrl?: string;  // Added image URL
-  inventoryStatus: InventoryStatus;
   active: boolean;
   description: string;
   discount?: number;  // Optional discount percentage (0-100)

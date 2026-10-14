@@ -16,7 +16,6 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import productsService from '../../services/productsService';
-import inventoryService from '../../services/inventoryService';
 import { logger } from '../../utils/logger';
 import { formatGhs } from '../orders/order-status';
 import ProductFormFields from './ProductFormFields';
@@ -85,14 +84,6 @@ export default function ProductSheet({ product, intent, open, onOpenChange, cate
         variationGroups: form.variationGroups,
       });
 
-      // Warehouse count is a separate ledger: record the difference as a movement.
-      const before = product.inventory?.quantity ?? 0;
-      const after = Math.max(0, Number.parseInt(form.warehouseQty, 10) || 0);
-      if (after > before) await inventoryService.restock(id, { quantity: after - before });
-      else if (after < before) {
-        await inventoryService.recordMovement(id, { type: 'OUT', quantity: before - after, reason: 'Inventory adjustment', reference: 'Manual edit' });
-      }
-
       toast.success(`${form.nameEnglish.trim()} saved`);
       setEditing(false);
       onSaved();
@@ -159,7 +150,8 @@ export default function ProductSheet({ product, intent, open, onOpenChange, cate
                 onChange={(patch) => setForm((f) => (f ? { ...f, ...patch } : f))}
                 errors={errors}
                 categories={categories}
-                warehouseHint="Separate from stock status; only for warehouse tracking."
+                warehouseHint=""
+                showWarehouseCount={false}
               />
             ) : (
               <div className="grid gap-6">

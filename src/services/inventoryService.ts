@@ -24,14 +24,14 @@ export interface InventoryStats {
   totalInventoryCostBasis: number;
 }
 
+// Matches InventoryMovement as the API returns it.
 export interface MovementRecord {
   id: number;
-  productId: number;
-  type: 'IN' | 'OUT' | 'ADJUSTMENT';
+  inventoryId: number;
+  movementType: string; // incoming, orders, wastage, damaged, adjustment, return
   quantity: number;
-  reason: string;
-  reference?: string;
-  recordedBy?: string;
+  reference?: string | null;
+  notes?: string | null;
   createdAt: string;
 }
 
@@ -43,17 +43,18 @@ export interface CreateInventoryDto {
   warehouseZone?: string;
 }
 
+// The restock endpoint only accepts a quantity (it records an 'incoming' movement).
 export interface RestockInventoryDto {
   quantity: number;
-  reason?: string;
-  reference?: string;
 }
 
+// Matches the API's RecordMovementDto. incoming/return/adjustment add stock;
+// orders/wastage/damaged remove it (and fail if there isn't enough).
 export interface RecordMovementDto {
-  type: 'IN' | 'OUT' | 'ADJUSTMENT';
+  movementType: 'incoming' | 'return' | 'adjustment' | 'orders' | 'wastage' | 'damaged';
   quantity: number;
-  reason: string;
   reference?: string;
+  notes?: string;
 }
 
 class InventoryService {
@@ -134,7 +135,9 @@ class InventoryService {
    */
   async getMovementHistory(productId: number, limit: number = 20): Promise<MovementRecord[]> {
     try {
-      return await adminApiClient.get<MovementRecord[]>(`/inventory/product/${productId}/history?limit=${limit}`);
+      // The API wraps the list: { productId, movements }.
+      const res = await adminApiClient.get<{ movements?: MovementRecord[] }>(`/inventory/product/${productId}/history?limit=${limit}`);
+      return res?.movements ?? [];
     } catch (error) {
       logger.error(`❌ [InventoryService] Failed to fetch movement history for product ${productId}:`, error);
       throw error;

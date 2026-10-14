@@ -26,9 +26,11 @@ interface ProductFormFieldsProps {
   errors: ProductFormErrors;
   categories: ProductCategory[];
   warehouseHint: string;
+  /** Edits go through Warehouse movements instead, so this is create-only. */
+  showWarehouseCount?: boolean;
 }
 
-export default function ProductFormFields({ value, onChange, errors, categories, warehouseHint }: ProductFormFieldsProps) {
+export default function ProductFormFields({ value, onChange, errors, categories, warehouseHint, showWarehouseCount = true }: ProductFormFieldsProps) {
   const units = UNIT_TYPES.includes(value.unitType) || !value.unitType ? UNIT_TYPES : [value.unitType, ...UNIT_TYPES];
   const invalid = (k: keyof ProductFormValues) => (errors[k] ? true : undefined);
 
@@ -67,7 +69,7 @@ export default function ProductFormFields({ value, onChange, errors, categories,
 
       <section className="grid gap-4">
         <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Pricing</h3>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className={cn('grid gap-4', showWarehouseCount ? 'sm:grid-cols-3' : 'sm:grid-cols-2')}>
           <Field id="pf-price" label="Price per unit (GH₵)" error={errors.price}>
             <Input
               id="pf-price"
@@ -95,6 +97,7 @@ export default function ProductFormFields({ value, onChange, errors, categories,
               </SelectContent>
             </Select>
           </Field>
+          {showWarehouseCount && (
           <Field id="pf-qty" label="Warehouse count" hint={warehouseHint}>
             <Input
               id="pf-qty"
@@ -107,6 +110,7 @@ export default function ProductFormFields({ value, onChange, errors, categories,
               placeholder="0"
             />
           </Field>
+          )}
         </div>
       </section>
 
