@@ -9,7 +9,13 @@ export class NotificationSendsService {
    * Send bulk notification
    */
   async sendNotification(data: {
-    templateId: number;
+    /** A saved template, or a title + body written for this send. */
+    templateId?: number;
+    title?: string;
+    body?: string;
+    /** Chosen customers, or a saved group. Either replaces the zone/subscription filters. */
+    targetUserIds?: number[];
+    groupId?: number;
     targetZones?: number[];
     targetSubscriptionStatus?: string;
     scheduledFor?: string;
@@ -74,12 +80,7 @@ export class NotificationSendsService {
   /**
    * Send promotion notification to specific users
    */
-  async sendPromotionNotification(data: {
-    title: string;
-    body: string;
-    promotionId?: string;
-    userIds?: string[];
-  }): Promise<{ successCount: number; failureCount: number }> {
+  async sendPromotionNotification(data: { title: string; body: string; promotionId?: string; userIds?: string[] }): Promise<{ successCount: number; failureCount: number }> {
     try {
       const result = await adminApiClient.post<{ successCount: number; failureCount: number }>('/notifications/promotion', data);
       return result;
@@ -92,11 +93,7 @@ export class NotificationSendsService {
   /**
    * Send product update notification
    */
-  async sendProductUpdateNotification(data: {
-    title: string;
-    body: string;
-    productId: string;
-  }): Promise<{ successCount: number; failureCount: number }> {
+  async sendProductUpdateNotification(data: { title: string; body: string; productId: string }): Promise<{ successCount: number; failureCount: number }> {
     try {
       const result = await adminApiClient.post<{ successCount: number; failureCount: number }>('/notifications/product-update', data);
       return result;

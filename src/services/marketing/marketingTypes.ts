@@ -52,7 +52,13 @@ export interface NotificationTemplate {
 
 export interface NotificationSend {
   id: number;
-  templateId: number;
+  /** Null when the message was written for this send only (see title/body). */
+  templateId: number | null;
+  title?: string | null;
+  body?: string | null;
+  /** Non-empty when sent to chosen customers or a saved group. */
+  targetUserIds?: number[];
+  audienceLabel?: string | null;
   status: 'scheduled' | 'sending' | 'sent' | 'failed';
   scheduledFor?: string;
   sentAt?: string;
@@ -96,4 +102,20 @@ export interface CampaignMetrics {
   conversionRate: number;
   avgRoas: number;
   activeCampaigns: number;
+}
+
+export interface CustomerGroupMember {
+  id: number;
+  name: string | null;
+  phoneNumber: string | null;
+}
+
+export interface CustomerGroup {
+  id: number;
+  name: string;
+  description: string | null;
+  userIds: number[];
+  members: CustomerGroupMember[];
+  createdAt: string;
+  updatedAt: string;
 }

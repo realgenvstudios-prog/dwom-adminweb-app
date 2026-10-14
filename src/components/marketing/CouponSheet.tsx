@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Copy, Loader2, Pause, Pencil, Play, Trash2 } from 'lucide-react';
+import { Copy, Loader2, Pause, Pencil, Play, Send, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -23,6 +23,7 @@ import { formatDate } from '../customers/CustomerTypes';
 import { formatGhs } from '../orders/order-status';
 import { num } from './campaign-meta';
 import { couponState, discountLabel, stateOf } from './coupon-meta';
+import SendNotificationDialog from './SendNotificationDialog';
 
 interface CouponSheetProps {
   coupon: Coupon;
@@ -38,6 +39,8 @@ export default function CouponSheet({ coupon: c, campaign, open, onOpenChange, o
   const [statsFailed, setStatsFailed] = useState(false);
   const [busy, setBusy] = useState<'toggle' | 'delete' | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [message, setMessage] = useState<{ token: number } | null>(null);
+  const [messageOpen, setMessageOpen] = useState(false);
   const state = stateOf(couponState(c));
 
   useEffect(() => {
@@ -56,6 +59,11 @@ export default function CouponSheet({ coupon: c, campaign, open, onOpenChange, o
 
   const usages = [...(stats?.usages ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const given = usages.reduce((s, u) => s + num(u.discount), 0);
+  const customers = stats?.customers ?? [];
+  const messageCustomers = () => {
+    setMessage({ token: Date.now() });
+    setMessageOpen(true);
+  };
 
   const toggle = async () => {
     try {
@@ -161,6 +169,37 @@ export default function CouponSheet({ coupon: c, campaign, open, onOpenChange, o
             </p>
           </section>
 
+          {customers.length > 0 && (
+            <section className="grid gap-2">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Customers ({customers.length})</h3>
+                <Button size="sm" variant="outline" onClick={messageCustomers}>
+                  <Send />
+                  Message {customers.length === 1 ? 'them' : `these ${customers.length}`}
+                </Button>
+              </div>
+              <ul className="divide-y rounded-lg border text-sm">
+                {customers.map((cu) => (
+                  <li key={cu.userId} className="flex items-center gap-3 px-3 py-2">
+                    <div className="min-w-0 flex-1">
+                      <Link to={`/customers?customer=${cu.userId}`} className="block truncate font-medium hover:underline">
+                        {cu.name || 'Unnamed customer'}
+                      </Link>
+                      <p className="truncate text-xs text-muted-foreground tabular-nums">
+                        {cu.phone ? `${cu.phone} · ` : ''}
+                        {cu.uses} use{cu.uses === 1 ? '' : 's'} · last {formatDate(cu.lastUsedAt)}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right tabular-nums">
+                      <p>−{formatGhs(cu.totalDiscount)}</p>
+                      <p className="text-xs text-muted-foreground">{cu.paidOrderValue > 0 ? `${formatGhs(cu.paidOrderValue)} paid` : 'Not paid yet'}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           <section className="grid gap-2">
             <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Recent uses</h3>
             {!stats && !statsFailed ? (
@@ -171,7 +210,10 @@ export default function CouponSheet({ coupon: c, campaign, open, onOpenChange, o
               <ul className="divide-y rounded-lg border text-sm">
                 {usages.slice(0, 20).map((u) => (
                   <li key={u.id} className="flex items-center justify-between gap-3 px-3 py-2">
-                    <span className="text-muted-foreground">{formatDate(u.createdAt)}</span>
+                    <div className="min-w-0">
+                      <p className="truncate">{u.User?.name || `Customer #${u.userId}`}</p>
+                      <p className="text-xs text-muted-foreground">{formatDate(u.createdAt)}</p>
+                    </div>
                     {u.orderId ? (
                       <Link to={`/orders?order=${u.orderId}`} className="font-medium hover:underline">
                         Order #{u.orderId}
@@ -206,6 +248,8 @@ export default function CouponSheet({ coupon: c, campaign, open, onOpenChange, o
           </div>
         </SheetFooter>
       </SheetContent>
+
+      {message && <SendNotificationDialog key={message.token} initialUserIds={customers.map((cu) => cu.userId)} open={messageOpen} onOpenChange={setMessageOpen} />}
 
       <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
         <AlertDialogContent>

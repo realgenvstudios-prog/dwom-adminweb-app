@@ -96,7 +96,7 @@ export class CampaignsService {
       conversions?: number;
       cac?: number;
       roas?: number;
-    }
+    },
   ): Promise<Campaign> {
     try {
       const campaign = await adminApiClient.patch<Campaign>(`/marketing/campaigns/${id}`, data);

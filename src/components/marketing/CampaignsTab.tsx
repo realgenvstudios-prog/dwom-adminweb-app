@@ -174,7 +174,9 @@ export default function CampaignsTab() {
         accessorFn: (c) => (c.metricsAreEstimate ? 0 : c.revenue),
         header: ({ column }) => <DataTableColumnHeader column={column} title="Revenue" className="justify-end" />,
         enableGlobalFilter: false,
-        cell: ({ row }) => <div className="text-right font-medium whitespace-nowrap tabular-nums">{row.original.metricsAreEstimate ? 'Not tracked' : formatGhs(row.original.revenue)}</div>,
+        cell: ({ row }) => (
+          <div className="text-right font-medium whitespace-nowrap tabular-nums">{row.original.metricsAreEstimate ? 'Not tracked' : formatGhs(row.original.revenue)}</div>
+        ),
         meta: { title: 'Revenue', className: 'text-right' },
       },
       {

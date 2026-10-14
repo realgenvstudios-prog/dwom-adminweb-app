@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
-import { AlertCircle, Archive, FileText, Link2, MoreHorizontal, Pencil, Plus, RotateCw, Send } from 'lucide-react';
+import { AlertCircle, Archive, FileText, Link2, MoreHorizontal, Pencil, Plus, RotateCw, Send, Trash2, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -18,7 +18,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DataTable, DataTableColumnHeader, facetedFilterFn } from '@/components/data-table';
-import marketingService, { type NotificationSend, type NotificationTemplate } from '../../services/marketingService';
+import marketingService, { type CustomerGroup, type NotificationSend, type NotificationTemplate } from '../../services/marketingService';
+import customerGroupsService from '../../services/marketing/customerGroupsService';
+import CustomerGroupDialog from './CustomerGroupDialog';
 import { logger } from '../../utils/logger';
 import SendNotificationDialog from './SendNotificationDialog';
 import TemplateDialog from './TemplateDialog';
@@ -68,8 +70,13 @@ export default function NotificationsTab() {
   const [error, setError] = useState<string | null>(null);
   const [send, setSend] = useState<{
     templateId?: number;
+    groupId?: number;
     token: number;
   } | null>(null);
+  const [groups, setGroups] = useState<CustomerGroup[] | null>(null);
+  const [groupEdit, setGroupEdit] = useState<{ group: CustomerGroup | null; token: number } | null>(null);
+  const [groupEditOpen, setGroupEditOpen] = useState(false);
+  const [toDeleteGroup, setToDeleteGroup] = useState<CustomerGroup | null>(null);
   const [sendOpen, setSendOpen] = useState(false);
   const [edit, setEdit] = useState<{
     template: NotificationTemplate | null;
@@ -81,13 +88,22 @@ export default function NotificationsTab() {
   const load = useCallback(async () => {
     try {
       setError(null);
-      const [s, t] = await Promise.all([marketingService.getNotificationSends(), marketingService.getTemplates()]);
+      const [s, t, g] = await Promise.all([
+        marketingService.getNotificationSends(),
+        marketingService.getTemplates(),
+        customerGroupsService.list().catch((err) => {
+          logger.error('Failed to load customer groups:', err);
+          return [] as CustomerGroup[];
+        }),
+      ]);
       setSends(s);
       setTemplates(t);
+      setGroups(g);
     } catch (err) {
       logger.error('Failed to load notifications:', err);
       setError(err instanceof Error ? err.message : 'Failed to load notifications');
       setTemplates((t) => t ?? []);
+      setGroups((g) => g ?? []);
     } finally {
       setLoading(false);
     }
@@ -98,9 +114,28 @@ export default function NotificationsTab() {
     return () => clearTimeout(t);
   }, [load]);
 
-  const openSend = (templateId?: number) => {
-    setSend({ templateId, token: Date.now() });
+  const openSend = (templateId?: number, groupId?: number) => {
+    setSend({ templateId, groupId, token: Date.now() });
     setSendOpen(true);
+  };
+  const openGroup = (group: CustomerGroup | null) => {
+    setGroupEdit({ group, token: Date.now() });
+    setGroupEditOpen(true);
+  };
+  const groupSaved = (g: CustomerGroup) => setGroups((prev) => [...(prev ?? []).filter((x) => x.id !== g.id), g].sort((a, b) => a.name.localeCompare(b.name)));
+
+  const deleteGroup = async () => {
+    const g = toDeleteGroup;
+    setToDeleteGroup(null);
+    if (!g) return;
+    try {
+      await customerGroupsService.remove(g.id);
+      setGroups((prev) => prev?.filter((x) => x.id !== g.id) ?? null);
+      toast.success(`“${g.name}” deleted`);
+    } catch (err) {
+      logger.error('Failed to delete group:', err);
+      toast.error('Couldn’t delete the group.');
+    }
   };
   const openEdit = (template: NotificationTemplate | null) => {
     setEdit({ template, token: Date.now() });
@@ -127,16 +162,39 @@ export default function NotificationsTab() {
     () => [
       {
         id: 'template',
-        accessorFn: (s) => `${s.template?.name ?? ''} ${s.template?.title ?? ''}`,
+        accessorFn: (s) => `${s.template?.name ?? ''} ${s.template?.title ?? s.title ?? ''} ${s.audienceLabel ?? ''}`,
         header: 'Message',
         enableSorting: false,
-        cell: ({ row }) => (
-          <div className="max-w-[300px] min-w-[160px]">
-            <p className="truncate font-medium">{row.original.template?.name ?? `Template #${row.original.templateId}`}</p>
-            <p className="truncate text-xs text-muted-foreground">{row.original.template?.title}</p>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const s = row.original;
+          return (
+            <div className="max-w-[300px] min-w-[160px]">
+              <p className="truncate font-medium">{s.template?.name ?? s.title ?? `Template #${s.templateId}`}</p>
+              <p className="truncate text-xs text-muted-foreground">{s.template ? s.template.title : s.body}</p>
+            </div>
+          );
+        },
         meta: { title: 'Message' },
+      },
+      {
+        id: 'to',
+        header: 'To',
+        enableSorting: false,
+        enableGlobalFilter: false,
+        cell: ({ row }) => {
+          const s = row.original;
+          const zones = Array.isArray(s.targetZones) ? s.targetZones.length : 0;
+          const label =
+            s.audienceLabel ??
+            [
+              s.targetSubscriptionStatus && s.targetSubscriptionStatus !== 'all' ? `${s.targetSubscriptionStatus} subscribers` : 'Everyone',
+              zones ? `${zones} zone${zones === 1 ? '' : 's'}` : null,
+            ]
+              .filter(Boolean)
+              .join(' · ');
+          return <span className="block max-w-[180px] truncate text-muted-foreground">{label}</span>;
+        },
+        meta: { title: 'To' },
       },
       {
         id: 'sent',
@@ -218,7 +276,7 @@ export default function NotificationsTab() {
         <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
           <div className="space-y-1.5">
             <CardTitle>Templates</CardTitle>
-            <CardDescription>Reusable messages. Send one to all customers, or narrow by zone and subscription.</CardDescription>
+            <CardDescription>Reusable messages. Send to everyone, a zone, chosen customers or a saved group.</CardDescription>
           </div>
           <Button size="sm" variant="outline" onClick={() => openEdit(null)}>
             <Plus />
@@ -295,6 +353,70 @@ export default function NotificationsTab() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
+          <div className="space-y-1.5">
+            <CardTitle>Customer groups</CardTitle>
+            <CardDescription>Saved sets of customers to message together, like VIPs or a street’s regulars.</CardDescription>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => openGroup(null)}>
+            <Plus />
+            New group
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {groups === null ? (
+            <Skeleton className="h-16 w-full rounded-lg" />
+          ) : groups.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-8 text-center">
+              <Users className="size-7 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">No groups yet. Create one, or save customers as a group while sending.</p>
+            </div>
+          ) : (
+            <ul className="divide-y rounded-lg border">
+              {groups.map((g) => (
+                <li key={g.id} className="flex items-center gap-3 px-3 py-2.5">
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-xs font-semibold tabular-nums">{g.members.length}</div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{g.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {g.description ||
+                        g.members
+                          .slice(0, 4)
+                          .map((m) => m.name || m.phoneNumber)
+                          .join(', ') + (g.members.length > 4 ? ` and ${g.members.length - 4} more` : '')}
+                    </p>
+                  </div>
+                  <Button size="sm" variant="secondary" onClick={() => openSend(undefined, g.id)} disabled={!g.members.length}>
+                    <Send />
+                    Send
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon-sm" className="data-[state=open]:bg-muted">
+                        <MoreHorizontal />
+                        <span className="sr-only">Group options</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-36">
+                      <DropdownMenuItem onSelect={() => openGroup(g)}>
+                        <Pencil />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem variant="destructive" onSelect={() => setToDeleteGroup(g)}>
+                        <Trash2 />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
       <div className="flex flex-col gap-3">
         <h2 className="text-base font-semibold">History</h2>
         <DataTable
@@ -315,7 +437,7 @@ export default function NotificationsTab() {
             },
           ]}
           toolbarActions={
-            <Button size="sm" className="h-8" onClick={() => openSend()} disabled={!templates?.length}>
+            <Button size="sm" className="h-8" onClick={() => openSend()} disabled={!templates}>
               <Send />
               Send notification
             </Button>
@@ -325,9 +447,33 @@ export default function NotificationsTab() {
       </div>
 
       {send && templates && (
-        <SendNotificationDialog key={send.token} templates={templates} templateId={send.templateId} open={sendOpen} onOpenChange={setSendOpen} onSent={() => void load()} />
+        <SendNotificationDialog
+          key={send.token}
+          templates={templates}
+          templateId={send.templateId}
+          initialGroupId={send.groupId}
+          open={sendOpen}
+          onOpenChange={setSendOpen}
+          onSent={() => void load()}
+        />
       )}
+      {groupEdit && <CustomerGroupDialog key={groupEdit.token} group={groupEdit.group} open={groupEditOpen} onOpenChange={setGroupEditOpen} onSaved={groupSaved} />}
       {edit && <TemplateDialog key={edit.token} template={edit.template} open={editOpen} onOpenChange={setEditOpen} onSaved={() => void load()} />}
+
+      <AlertDialog open={!!toDeleteGroup} onOpenChange={(o) => !o && setToDeleteGroup(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete “{toDeleteGroup?.name}”?</AlertDialogTitle>
+            <AlertDialogDescription>Only the saved group goes. The customers aren’t affected, and past messages stay in the history.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={() => void deleteGroup()}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={!!toArchive} onOpenChange={(o) => !o && setToArchive(null)}>
         <AlertDialogContent>

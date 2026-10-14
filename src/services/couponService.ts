@@ -37,7 +37,31 @@ export interface CouponStats {
   totalUsages: number;
   uniqueUsers: number;
   totalDiscountGiven: number | string;
-  usages: { id: number; userId: number; orderId: number | null; discount: number | string; createdAt: string }[];
+  usages: {
+    id: number;
+    userId: number;
+    orderId: number | null;
+    discount: number | string;
+    createdAt: string;
+    User?: { id: number; name: string | null; phoneNumber: string | null } | null;
+  }[];
+  /** One row per customer who used the code. Missing on older servers. */
+  customers?: DiscountCustomer[];
+}
+
+/** A customer's use of discount codes (one code, or all codes together). */
+export interface DiscountCustomer {
+  userId: number;
+  name: string | null;
+  phone: string | null;
+  uses: number;
+  totalDiscount: number;
+  /** Total of their paid orders that used a code. */
+  paidOrderValue: number;
+  lastUsedAt: string;
+  /** Codes used (only on the all-codes list). */
+  codes: string[];
+  orderIds: number[];
 }
 
 class CouponService {
@@ -89,6 +113,12 @@ class CouponService {
       logger.error('❌ [CouponService] delete failed:', (error as Error).message);
       throw error;
     }
+  }
+
+  /** Every customer who has used any discount code, most discount first. */
+  async getDiscountCustomers(): Promise<DiscountCustomer[]> {
+    const data = await adminApiClient.get<DiscountCustomer[]>('/coupons/usage/customers');
+    return Array.isArray(data) ? data : [];
   }
 
   async getStats(id: number): Promise<CouponStats> {

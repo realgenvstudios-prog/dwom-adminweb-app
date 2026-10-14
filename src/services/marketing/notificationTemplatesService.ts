@@ -74,7 +74,7 @@ export class NotificationTemplatesService {
       inAppCtaText?: string;
       inAppCtaLink?: string;
       isActive?: boolean;
-    }
+    },
   ): Promise<NotificationTemplate> {
     try {
       const template = await adminApiClient.patch<NotificationTemplate>(`/marketing/templates/${id}`, data);

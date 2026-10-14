@@ -14,6 +14,7 @@ import { num } from './campaign-meta';
 import { COUPON_STATES, couponState, discountLabel, stateOf } from './coupon-meta';
 import CouponDialog from './CouponDialog';
 import CouponSheet from './CouponSheet';
+import DiscountCustomersTable from './DiscountCustomersTable';
 
 const WEEK = 7 * 24 * 60 * 60 * 1000;
 
@@ -296,6 +297,8 @@ export default function CouponsTab() {
         }}
         emptyMessage={coupons.length === 0 ? 'No discount codes yet.' : 'No codes match.'}
       />
+
+      <DiscountCustomersTable refreshKey={coupons.reduce((n, c) => n + c.usageCount, 0)} />
 
       {open && (
         <CouponSheet
