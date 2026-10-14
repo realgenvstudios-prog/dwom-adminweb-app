@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import adminAuthService from '../services/authService';
 import { canAccessRoute, resolveUiRole } from '../config/permissions';
 import { getNavGroups } from '../config/navigation';
@@ -20,6 +20,7 @@ function readSidebarOpen(): boolean {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchOpen, setSearchOpen] = useState(false);
 
   const currentAdmin = adminAuthService.getCurrentAdmin();
@@ -46,7 +47,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       />
       <SidebarInset>
         <SiteHeader role={role} onOpenSearch={() => setSearchOpen(true)} />
-        <main className="flex-1 p-4 md:p-6">{children}</main>
+        <main className="flex-1 p-4 md:p-6">
+          {/* Re-keyed per page so each page rises in. */}
+          <div key={location.pathname} className="page-enter">
+            {children}
+          </div>
+        </main>
       </SidebarInset>
       <CommandMenu open={searchOpen} onOpenChange={setSearchOpen} groups={groups} onLogout={handleLogout} />
     </SidebarProvider>

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { ArrowUpRight, TrendingDown, TrendingUp, type LucideIcon } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AnimatedValue } from './animated-number';
 import { cn } from '@/lib/utils';
 
 export interface StatCardProps {
@@ -38,7 +39,12 @@ function ChangeBadge({ change }: { change: number }) {
 
 export function StatCard({ label, value, hint, icon: Icon, tint, loading, failed, href, change }: StatCardProps) {
   const body = (
-    <Card className={cn('h-full gap-0 py-0 transition-all', href && 'group-hover:border-foreground/20 group-hover:shadow-md')}>
+    <Card
+      className={cn(
+        'h-full gap-0 py-0 transition-[transform,box-shadow,border-color] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md',
+        href && 'group-hover:border-foreground/20',
+      )}
+    >
       <CardContent className="flex items-start justify-between gap-3 p-4 sm:p-5">
         <div className="min-w-0 space-y-1">
           <p className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -49,7 +55,7 @@ export function StatCard({ label, value, hint, icon: Icon, tint, loading, failed
             <Skeleton className="h-8 w-20" />
           ) : (
             <p className={cn('truncate text-2xl font-semibold tracking-tight tabular-nums', failed && 'text-muted-foreground')}>
-              {failed ? 'Unavailable' : value}
+              {failed ? 'Unavailable' : <AnimatedValue text={value} />}
             </p>
           )}
           <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
@@ -65,10 +71,12 @@ export function StatCard({ label, value, hint, icon: Icon, tint, loading, failed
   );
 
   return href ? (
-    <Link to={href} className="group block rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
+    <Link to={href} data-stat-card className="group block rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
       {body}
     </Link>
   ) : (
-    body
+    <div data-stat-card className="h-full">
+      {body}
+    </div>
   );
 }
