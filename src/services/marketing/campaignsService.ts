@@ -1,5 +1,5 @@
 import adminApiClient from '../apiClient';
-import type { Campaign, CampaignMetrics } from './marketingTypes';
+import type { Campaign, CampaignMetrics, RepeatInput } from './marketingTypes';
 import { logger } from '../../utils/logger';
 
 // Campaign CRUD + launch. Split out of the former monolithic
@@ -59,6 +59,10 @@ export class CampaignsService {
     objective: string;
     targetZones?: number[];
     targetSubscriptionStatus?: string;
+    targetUserIds?: number[];
+    targetGroupId?: number;
+    /** Omitted = sends once, when launched. */
+    repeat?: RepeatInput;
     startDate: string;
     endDate?: string;
     budget?: number;
@@ -125,9 +129,12 @@ export class CampaignsService {
    * send for real; email errors until a provider is configured; social is
    * marked active only, since posting there isn't automated).
    */
-  async launchCampaign(id: number): Promise<{ totalRecipients: number; successCount: number; failureCount: number; status: string }> {
+  async launchCampaign(id: number): Promise<{ totalRecipients: number; successCount: number; failureCount: number; status: string; scheduled?: boolean; nextRunAt?: string }> {
     try {
-      const result = await adminApiClient.post<{ totalRecipients: number; successCount: number; failureCount: number; status: string }>(`/marketing/campaigns/${id}/launch`, {});
+      const result = await adminApiClient.post<{ totalRecipients: number; successCount: number; failureCount: number; status: string; scheduled?: boolean; nextRunAt?: string }>(
+        `/marketing/campaigns/${id}/launch`,
+        {},
+      );
       return result;
     } catch (error) {
       logger.error('❌ Failed to launch campaign:', (error as Error).message);

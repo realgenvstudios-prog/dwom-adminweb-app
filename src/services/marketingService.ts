@@ -1,10 +1,20 @@
-import type { Campaign, NotificationTemplate, NotificationSend, CartCodeAnalytics, CampaignMetrics, CustomerGroup, CustomerGroupMember } from './marketing/marketingTypes';
+import type {
+  Campaign,
+  NotificationTemplate,
+  NotificationSend,
+  CartCodeAnalytics,
+  CampaignMetrics,
+  CustomerGroup,
+  CustomerGroupMember,
+  MessageSchedule,
+  RepeatInput,
+} from './marketing/marketingTypes';
 import { CampaignsService } from './marketing/campaignsService';
 import { NotificationTemplatesService } from './marketing/notificationTemplatesService';
 import { NotificationSendsService } from './marketing/notificationSendsService';
 import { CartCodeAnalyticsService } from './marketing/cartCodeAnalyticsService';
 
-export type { Campaign, NotificationTemplate, NotificationSend, CartCodeAnalytics, CampaignMetrics, CustomerGroup, CustomerGroupMember };
+export type { Campaign, NotificationTemplate, NotificationSend, CartCodeAnalytics, CampaignMetrics, CustomerGroup, CustomerGroupMember, MessageSchedule, RepeatInput };
 
 // Composes campaigns, notification templates, notification sends, and
 // cart-code analytics into the same flat public API this service exposed
@@ -42,7 +52,7 @@ class MarketingService {
     return this.campaigns.deleteCampaign(id);
   }
 
-  launchCampaign(id: number): Promise<{ totalRecipients: number; successCount: number; failureCount: number; status: string }> {
+  launchCampaign(id: number): ReturnType<CampaignsService['launchCampaign']> {
     return this.campaigns.launchCampaign(id);
   }
 

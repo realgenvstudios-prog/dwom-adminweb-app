@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ExternalLink, Info, Loader2, Pause, Pencil, Play, Rocket, Square, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -22,6 +22,9 @@ import { logger } from '../../utils/logger';
 import { formatDate } from '../customers/CustomerTypes';
 import { formatGhs } from '../orders/order-status';
 import { AUDIENCES, channelOf, num, objectiveLabel, statusOf } from './campaign-meta';
+import customerGroupsService from '../../services/marketing/customerGroupsService';
+import { useCustomerDirectory } from './customer-directory';
+import { fmtRun } from './schedule-rules';
 
 interface CampaignSheetProps {
   campaign: Campaign;
@@ -61,7 +64,25 @@ export default function CampaignSheet({ campaign: c, zones, open, onOpenChange, 
   const [confirm, setConfirm] = useState<'launch' | 'delete' | null>(null);
 
   const zoneNames = c.targetZones?.length ? c.targetZones.map((id) => zones.find((z) => z.id === id)?.name ?? `Zone #${id}`).join(', ') : 'Every zone';
-  const audience = AUDIENCES.find((a) => a.value === (c.targetSubscriptionStatus || 'all'))?.label ?? c.targetSubscriptionStatus;
+  const { customers } = useCustomerDirectory();
+  const [groupName, setGroupName] = useState<string | null>(null);
+  useEffect(() => {
+    if (!c.targetGroupId) return;
+    customerGroupsService
+      .list()
+      .then((gs) => setGroupName(gs.find((g) => g.id === c.targetGroupId)?.name ?? 'A deleted group'))
+      .catch(() => setGroupName('A saved group'));
+  }, [c.targetGroupId]);
+  const chosen = c.targetUserIds ?? [];
+  const picked = c.targetGroupId
+    ? `Group: ${groupName ?? '…'}`
+    : chosen.length
+      ? chosen.length <= 3
+        ? chosen.map((id) => customers?.find((x) => x.id === id)?.name ?? `Customer #${id}`).join(', ')
+        : `${chosen.length} chosen customers`
+      : null;
+  const audience = picked ?? AUDIENCES.find((a) => a.value === (c.targetSubscriptionStatus || 'all'))?.label ?? c.targetSubscriptionStatus;
+  const schedule = c.Schedule ?? null;
 
   const run = async (key: string, fn: () => Promise<unknown>, success: string) => {
     try {
@@ -83,6 +104,7 @@ export default function CampaignSheet({ campaign: c, zones, open, onOpenChange, 
       setBusy('launch');
       const r = await marketingService.launchCampaign(c.id);
       if (c.channel === 'social') toast.success('Campaign is live. Record its results here as they come in');
+      else if (r.scheduled) toast.success('Campaign launched', { description: r.nextRunAt ? `First send ${fmtRun(r.nextRunAt)} (Ghana time).` : undefined });
       else
         toast.success(`Sent to ${r.successCount.toLocaleString()} of ${r.totalRecipients.toLocaleString()} customers`, {
           description: r.failureCount ? `${r.failureCount.toLocaleString()} couldn’t be reached (no app, phone or email).` : undefined,
@@ -285,10 +307,37 @@ export default function CampaignSheet({ campaign: c, zones, open, onOpenChange, 
             </div>
             {c.channel !== 'social' && (
               <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-sm">
-                <dt className="text-muted-foreground">Zones</dt>
-                <dd>{zoneNames}</dd>
+                {!picked && (
+                  <>
+                    <dt className="text-muted-foreground">Zones</dt>
+                    <dd>{zoneNames}</dd>
+                  </>
+                )}
                 <dt className="text-muted-foreground">Who</dt>
                 <dd>{audience}</dd>
+                <dt className="text-muted-foreground">When</dt>
+                <dd>{schedule ? (schedule.summary ?? 'On a schedule') : 'Once, when launched'}</dd>
+                {schedule && (
+                  <>
+                    <dt className="text-muted-foreground">Next send</dt>
+                    <dd>
+                      {schedule.active && schedule.nextRunAt
+                        ? fmtRun(schedule.nextRunAt)
+                        : c.status === 'draft'
+                          ? 'Starts when launched'
+                          : c.status === 'paused'
+                            ? 'Paused'
+                            : 'None, finished'}
+                      {schedule.runCount > 0 && <span className="text-muted-foreground"> · sent {schedule.runCount}×</span>}
+                    </dd>
+                    {schedule.lastError && (
+                      <>
+                        <dt className="text-muted-foreground">Last problem</dt>
+                        <dd className="text-destructive">{schedule.lastError}</dd>
+                      </>
+                    )}
+                  </>
+                )}
               </dl>
             )}
             {c.description && <p className="text-sm text-muted-foreground">Notes: {c.description}</p>}
@@ -342,16 +391,20 @@ export default function CampaignSheet({ campaign: c, zones, open, onOpenChange, 
           {confirm === 'launch' ? (
             <>
               <AlertDialogHeader>
-                <AlertDialogTitle>{c.channel === 'social' ? 'Mark as live?' : `Send “${c.name}” now?`}</AlertDialogTitle>
+                <AlertDialogTitle>{c.channel === 'social' ? 'Mark as live?' : schedule ? `Launch “${c.name}”?` : `Send “${c.name}” now?`}</AlertDialogTitle>
                 <AlertDialogDescription>
                   {c.channel === 'social'
                     ? 'Nothing is sent. This just starts tracking it; post it on your social channels yourself.'
-                    : `This sends a ${channel.label.toLowerCase()} message right now to ${audience?.toLowerCase()} in ${zoneNames === 'Every zone' ? 'every zone' : zoneNames}. It can’t be undone.`}
+                    : schedule
+                      ? `It goes to ${picked ?? audience?.toLowerCase()} on its schedule: ${schedule.summary ?? ''}. Pause or end it any time.`
+                      : picked
+                        ? `This sends a ${channel.label.toLowerCase()} message right now to ${picked}. It can’t be undone.`
+                        : `This sends a ${channel.label.toLowerCase()} message right now to ${audience?.toLowerCase()} in ${zoneNames === 'Every zone' ? 'every zone' : zoneNames}. It can’t be undone.`}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={() => void launch()}>{c.channel === 'social' ? 'Mark as live' : 'Send now'}</AlertDialogAction>
+                <AlertDialogAction onClick={() => void launch()}>{c.channel === 'social' ? 'Mark as live' : schedule ? 'Launch' : 'Send now'}</AlertDialogAction>
               </AlertDialogFooter>
             </>
           ) : (

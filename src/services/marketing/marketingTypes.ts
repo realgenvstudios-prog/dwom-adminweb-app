@@ -7,6 +7,12 @@ export interface Campaign {
   status: 'draft' | 'active' | 'paused' | 'ended';
   targetZones?: number[] | null;
   targetSubscriptionStatus?: string | null;
+  /** Non-empty = only these customers; zones/status ignored. */
+  targetUserIds?: number[];
+  /** A saved customer group, read fresh at every send. */
+  targetGroupId?: number | null;
+  /** Present when the campaign repeats or waits for a set time. */
+  Schedule?: MessageSchedule | null;
   startDate: string;
   endDate?: string;
   budget?: number;
@@ -118,4 +124,42 @@ export interface CustomerGroup {
   members: CustomerGroupMember[];
   createdAt: string;
   updatedAt: string;
+}
+
+/** When a message goes out. Times are Ghana time (UTC). */
+export interface RepeatInput {
+  frequency: 'once' | 'daily' | 'weekly';
+  daysOfWeek?: number[];
+  timeOfDay: string;
+  startsOn: string;
+  endsOn?: string | null;
+}
+
+export interface MessageSchedule {
+  id: number;
+  kind: 'campaign' | 'notification';
+  campaignId: number | null;
+  Campaign?: { id: number; name: string; channel: string; status: string } | null;
+  name: string | null;
+  templateId: number | null;
+  title: string | null;
+  body: string | null;
+  sendPush: boolean;
+  sendSms: boolean;
+  sendEmail: boolean;
+  targetUserIds: number[];
+  groupId: number | null;
+  frequency: RepeatInput['frequency'];
+  daysOfWeek: number[];
+  timeOfDay: string;
+  startsOn: string;
+  endsOn: string | null;
+  active: boolean;
+  nextRunAt: string | null;
+  lastRunAt: string | null;
+  runCount: number;
+  lastError: string | null;
+  /** e.g. "Every Tuesday at 09:00, until stopped" */
+  summary?: string;
+  createdAt: string;
 }

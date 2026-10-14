@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -9,10 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import marketingService, { type Campaign } from '../../services/marketingService';
-import ridersService, { type Zone } from '../../services/ridersService';
 import { logger } from '../../utils/logger';
-import { AUDIENCES, CHANNELS, OBJECTIVES, num } from './campaign-meta';
-import ZonePicker from './ZonePicker';
+import AudiencePicker from './AudiencePicker';
+import { audienceFields, audienceProblem, defaultAudience, type AudienceValue } from './audience';
+import { CHANNELS, OBJECTIVES, num } from './campaign-meta';
+import RepeatPicker from './RepeatPicker';
+import { defaultWhen, toRepeat, whenProblem, type WhenValue } from './when';
 
 interface CampaignDialogProps {
   /** null = new campaign; a draft = edit its wording. Mount with a fresh `key` per open. */
@@ -24,14 +26,18 @@ interface CampaignDialogProps {
 
 const today = () => new Date().toISOString().slice(0, 10);
 
+// Campaigns call the saved group targetGroupId; notifications call it groupId.
+function campaignAudience(a: AudienceValue) {
+  const { groupId, ...rest } = audienceFields(a) as ReturnType<typeof audienceFields> & { groupId?: number };
+  return groupId ? { ...rest, targetGroupId: groupId } : rest;
+}
+
 export default function CampaignDialog({ campaign, open, onOpenChange, onSaved }: CampaignDialogProps) {
   const editing = !!campaign;
   const [form, setForm] = useState({
     name: campaign?.name ?? '',
     channel: (campaign?.channel ?? 'push') as Campaign['channel'],
     objective: (campaign?.objective ?? 'conversion') as Campaign['objective'],
-    targetZones: (campaign?.targetZones ?? []) as number[],
-    audience: campaign?.targetSubscriptionStatus || 'all',
     title: campaign?.title ?? '',
     content: campaign?.content ?? '',
     startDate: campaign ? campaign.startDate.slice(0, 10) : today(),
@@ -39,18 +45,11 @@ export default function CampaignDialog({ campaign, open, onOpenChange, onSaved }
     budget: campaign?.budget != null ? String(num(campaign.budget)) : '',
     description: campaign?.description ?? '',
   });
-  const [zones, setZones] = useState<Zone[]>([]);
+  const [audience, setAudience] = useState<AudienceValue>(() => defaultAudience());
+  const [when, setWhen] = useState<WhenValue>(defaultWhen);
   const [problem, setProblem] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const set = (patch: Partial<typeof form>) => setForm((f) => ({ ...f, ...patch }));
-
-  useEffect(() => {
-    if (editing) return;
-    ridersService
-      .getAllZones()
-      .then(setZones)
-      .catch((err) => logger.error('Failed to load zones:', err));
-  }, [editing]);
 
   const isSocial = form.channel === 'social';
   const smsLength = `${form.title || form.name}: ${form.content}`.length;
@@ -61,6 +60,10 @@ export default function CampaignDialog({ campaign, open, onOpenChange, onSaved }
     if (isSocial && form.endDate && form.endDate < form.startDate) return setProblem('The end date is before the start date.');
     // Dates and budget only mean something for social: every other channel
     // sends the moment it's launched and costs per message, not a budget.
+    if (!editing && !isSocial) {
+      const bad = audienceProblem(audience) ?? whenProblem(when);
+      if (bad) return setProblem(bad);
+    }
     const budget = !isSocial || form.budget.trim() === '' ? undefined : Number.parseFloat(form.budget);
     if (budget !== undefined && !(budget >= 0)) return setProblem('Budget must be 0 or more.');
     setProblem(null);
@@ -81,15 +84,17 @@ export default function CampaignDialog({ campaign, open, onOpenChange, onSaved }
           description: form.description.trim() || undefined,
           channel: form.channel,
           objective: form.objective,
-          targetZones: form.targetZones.length ? form.targetZones : undefined,
-          targetSubscriptionStatus: form.audience,
+          ...(isSocial ? {} : campaignAudience(audience)),
+          ...(!isSocial && toRepeat(when) ? { repeat: toRepeat(when)! } : {}),
           startDate: isSocial ? form.startDate : today(),
           endDate: (isSocial && form.endDate) || undefined,
           budget,
           title: form.title.trim() || undefined,
           content: form.content.trim(),
         });
-        toast.success(isSocial ? 'Campaign saved as a draft' : 'Draft saved. Open it to launch when you’re ready');
+        toast.success(
+          isSocial ? 'Campaign saved as a draft' : when.mode === 'now' ? 'Draft saved. Open it to launch when you’re ready' : 'Draft saved. Launch it to start the schedule',
+        );
       }
       onSaved();
       onOpenChange(false);
@@ -143,27 +148,17 @@ export default function CampaignDialog({ campaign, open, onOpenChange, onSaved }
           )}
 
           {!editing && !isSocial && (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="grid gap-1.5">
-                <Label htmlFor="cp-zones">Zones</Label>
-                <ZonePicker id="cp-zones" zones={zones} value={form.targetZones} onChange={(v) => set({ targetZones: v })} />
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="cp-aud">Who</Label>
-                <Select value={form.audience} onValueChange={(v) => set({ audience: v })}>
-                  <SelectTrigger id="cp-aud" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {AUDIENCES.map((a) => (
-                      <SelectItem key={a.value} value={a.value}>
-                        {a.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <p className="-mt-2 text-xs text-muted-foreground sm:col-span-2">A zone matches customers with any saved address inside it.</p>
+            <div className="grid gap-2">
+              <Label>Who</Label>
+              <AudiencePicker value={audience} onChange={setAudience} />
+            </div>
+          )}
+
+          {!editing && !isSocial && (
+            <div className="grid gap-2">
+              <Label>When</Label>
+              <RepeatPicker value={when} onChange={setWhen} nowLabel="On launch" />
+              {when.mode !== 'now' && <p className="text-xs text-muted-foreground">Nothing goes out until you launch the campaign. Pausing it pauses the schedule too.</p>}
             </div>
           )}
 

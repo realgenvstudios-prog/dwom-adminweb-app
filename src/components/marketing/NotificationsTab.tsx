@@ -21,6 +21,7 @@ import { DataTable, DataTableColumnHeader, facetedFilterFn } from '@/components/
 import marketingService, { type CustomerGroup, type NotificationSend, type NotificationTemplate } from '../../services/marketingService';
 import customerGroupsService from '../../services/marketing/customerGroupsService';
 import CustomerGroupDialog from './CustomerGroupDialog';
+import SchedulesCard from './SchedulesCard';
 import { logger } from '../../utils/logger';
 import SendNotificationDialog from './SendNotificationDialog';
 import TemplateDialog from './TemplateDialog';
@@ -78,6 +79,7 @@ export default function NotificationsTab() {
   const [groupEditOpen, setGroupEditOpen] = useState(false);
   const [toDeleteGroup, setToDeleteGroup] = useState<CustomerGroup | null>(null);
   const [sendOpen, setSendOpen] = useState(false);
+  const [schedulesKey, setSchedulesKey] = useState(0);
   const [edit, setEdit] = useState<{
     template: NotificationTemplate | null;
     token: number;
@@ -353,6 +355,8 @@ export default function NotificationsTab() {
         </CardContent>
       </Card>
 
+      <SchedulesCard refreshKey={schedulesKey} />
+
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
           <div className="space-y-1.5">
@@ -454,7 +458,10 @@ export default function NotificationsTab() {
           initialGroupId={send.groupId}
           open={sendOpen}
           onOpenChange={setSendOpen}
-          onSent={() => void load()}
+          onSent={() => {
+            void load();
+            setSchedulesKey((k) => k + 1);
+          }}
         />
       )}
       {groupEdit && <CustomerGroupDialog key={groupEdit.token} group={groupEdit.group} open={groupEditOpen} onOpenChange={setGroupEditOpen} onSaved={groupSaved} />}
