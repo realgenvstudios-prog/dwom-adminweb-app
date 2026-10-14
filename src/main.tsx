@@ -4,6 +4,9 @@ import './index.css'
 import App from './App.tsx'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
 import { BrowserRouter } from 'react-router-dom';
+import { ThemeProvider } from 'next-themes';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { Toaster } from '@/components/ui/sonner';
 import { logger } from './utils/logger';
 
 logger.log('🚀 main.tsx loaded - React starting...');
@@ -15,9 +18,15 @@ if (rootElement) {
   createRoot(rootElement).render(
     <StrictMode>
       <ErrorBoundary>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        {/* Light-only until every page is on theme tokens — drop forcedTheme to enable dark mode. */}
+        <ThemeProvider attribute="class" forcedTheme="light">
+          <TooltipProvider>
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+            <Toaster richColors position="top-right" />
+          </TooltipProvider>
+        </ThemeProvider>
       </ErrorBoundary>
     </StrictMode>,
   )

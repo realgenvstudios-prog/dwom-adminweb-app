@@ -151,7 +151,7 @@ const AnalyticsPage: React.FC = () => {
                     tickLine={false}
                   />
                   <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} width={40} />
-                  <Tooltip formatter={(value: number | undefined) => value ? value.toLocaleString() : '0'} />
+                  <Tooltip formatter={(value) => (value ? Number(value).toLocaleString() : '0')} />
                   <Bar dataKey="count" fill="#2563eb" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>

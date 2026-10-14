@@ -88,7 +88,7 @@ const SubscriptionsTrendChart: React.FC = () => {
             </defs>
             <XAxis dataKey="date" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} width={32} />
-            <Tooltip formatter={(value: number | undefined) => value ? value.toLocaleString() : '0'} />
+            <Tooltip formatter={(value) => (value ? Number(value).toLocaleString() : '0')} />
             <Area type="monotone" dataKey="active" stroke="#2563eb" fillOpacity={1} fill="url(#colorActive)" />
           </AreaChart>
         </ResponsiveContainer>
