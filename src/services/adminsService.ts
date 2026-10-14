@@ -1,15 +1,13 @@
-import type { Admin, AdminMetrics, AdminActivity, AdminAccessAlert } from './admins/adminTypes';
+import type { Admin, AdminMetrics, AdminRole } from './admins/adminTypes';
 import { AdminDirectoryService } from './admins/adminDirectory';
 import { AdminLifecycleService } from './admins/adminLifecycle';
 import { AdminInsightsService } from './admins/adminInsights';
 
-export type { Admin, AdminMetrics, AdminActivity, AdminAccessAlert };
+export type { Admin, AdminMetrics, AdminRole };
 
-// Composes the directory (listing/querying), lifecycle (invite/role/
-// suspend), and insights (metrics/activity/alerts) pieces into the same
-// flat public API this service exposed before the split — no changes
-// needed at any call site. Split out of the former monolithic
-// AdminsService.
+// Admin accounts and invites. The old fabricated activity feed and
+// "access alerts" (e.g. every Viewer flagged as an "outdated role") are
+// gone — there's no admin audit log behind them.
 class AdminsService {
   private directory = new AdminDirectoryService();
   private lifecycle = new AdminLifecycleService();
@@ -19,39 +17,23 @@ class AdminsService {
     return this.directory.getAllAdmins();
   }
 
-  getAdminsByRole(role: string): Promise<Admin[]> {
-    return this.directory.getAdminsByRole(role);
-  }
-
-  getAdminsByStatus(status: string): Promise<Admin[]> {
-    return this.directory.getAdminsByStatus(status);
-  }
-
-  searchAdmins(query: string): Promise<Admin[]> {
-    return this.directory.searchAdmins(query);
-  }
-
-  inviteAdmin(data: { name: string; email: string; phone?: string; role: string }): Promise<Admin | null> {
+  inviteAdmin(data: { name: string; email: string; role: string }): Promise<void> {
     return this.lifecycle.inviteAdmin(data);
   }
 
-  updateAdminRole(adminId: number, newRole: string): Promise<Admin | null> {
+  updateAdminRole(adminId: number, newRole: string): Promise<void> {
     return this.lifecycle.updateAdminRole(adminId, newRole);
   }
 
-  suspendAdmin(adminId: number): Promise<boolean> {
-    return this.lifecycle.suspendAdmin(adminId);
+  setSuspended(adminId: number, suspended: boolean): Promise<void> {
+    return this.lifecycle.setSuspended(adminId, suspended);
   }
 
-  reactivateAdmin(adminId: number): Promise<boolean> {
-    return this.lifecycle.reactivateAdmin(adminId);
-  }
-
-  resendInvite(inviteId: number): Promise<boolean> {
+  resendInvite(inviteId: number): Promise<void> {
     return this.lifecycle.resendInvite(inviteId);
   }
 
-  cancelInvite(inviteId: number): Promise<boolean> {
+  cancelInvite(inviteId: number): Promise<void> {
     return this.lifecycle.cancelInvite(inviteId);
   }
 
@@ -61,14 +43,6 @@ class AdminsService {
 
   getAdminMetrics(): Promise<AdminMetrics> {
     return this.insights.getAdminMetrics();
-  }
-
-  getAdminActivity(): Promise<AdminActivity[]> {
-    return this.insights.getAdminActivity();
-  }
-
-  getAccessAlerts(): Promise<AdminAccessAlert[]> {
-    return this.insights.getAccessAlerts();
   }
 }
 

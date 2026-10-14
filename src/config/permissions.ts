@@ -1,7 +1,7 @@
 import { mapRole } from '../services/admins/adminRoleMapping';
-import type { Admin } from '../services/admins/adminTypes';
+import type { AdminRole } from '../services/admins/adminTypes';
 
-export type UiRole = Admin['role'];
+export type UiRole = AdminRole;
 
 /**
  * Which roles can see which route, beyond Super Admin (who can always see

@@ -1,156 +1,51 @@
 import adminApiClient from '../apiClient';
-import type { Admin } from './adminTypes';
-import { mapRole, reverseMapRole } from './adminRoleMapping';
+import { reverseMapRole } from './adminRoleMapping';
 import { logger } from '../../utils/logger';
 
-interface RawUserResponse {
-  data?: {
-    id: number;
-    name: string;
-    email: string;
-    phoneNumber?: string;
-    role: string;
-    zones?: string;
-    lastLogin?: string;
-  };
-}
-
-// Inviting, role changes, suspend/reactivate, and invite management for
-// admins. Split out of the former monolithic AdminsService.
+// Inviting, role changes, suspend/reactivate, and invite management — all
+// Super Admin only server-side. Each throws ApiError with the server's
+// message (e.g. "You can't suspend yourself"), so the UI can show it.
 export class AdminLifecycleService {
-  /**
-   * Invite new admin (create admin user)
-   */
-  async inviteAdmin(data: {
-    name: string;
-    email: string;
-    phone?: string;
-    role: string;
-  }): Promise<Admin | null> {
+  /** Emails an invite link; the account is created when they accept (they set their own phone/password). */
+  async inviteAdmin(data: { name: string; email: string; role: string }): Promise<void> {
     try {
-
-      const response = await adminApiClient.post<RawUserResponse>('/users', {
-        name: data.name,
-        email: data.email,
-        phoneNumber: data.phone,
-        role: reverseMapRole(data.role),
-      });
-
-      if (response?.data) {
-        return {
-          id: response.data.id,
-          name: response.data.name,
-          email: response.data.email,
-          phone: response.data.phoneNumber || 'N/A',
-          role: mapRole(response.data.role),
-          zones: response.data.zones || 'All',
-          lastLogin: 'Never',
-          status: 'Pending',
-        };
-      }
-
-      return null;
+      await adminApiClient.post('/users', { name: data.name, email: data.email, role: reverseMapRole(data.role) });
     } catch (error) {
       logger.error('❌ [AdminsService] Error inviting admin:', error);
       throw error;
     }
   }
 
-  /**
-   * Update admin role
-   */
-  async updateAdminRole(adminId: number, newRole: string): Promise<Admin | null> {
+  async updateAdminRole(adminId: number, newRole: string): Promise<void> {
     try {
-
-      const response = await adminApiClient.patch<RawUserResponse>(`/users/${adminId}`, {
-        role: reverseMapRole(newRole),
-      });
-
-      if (response?.data) {
-        return {
-          id: response.data.id,
-          name: response.data.name,
-          email: response.data.email,
-          phone: response.data.phoneNumber || 'N/A',
-          role: mapRole(response.data.role),
-          zones: response.data.zones || 'All',
-          lastLogin: response.data.lastLogin || 'Never',
-          status: 'Active',
-        };
-      }
-
-      return null;
+      await adminApiClient.patch(`/users/${adminId}`, { role: reverseMapRole(newRole) });
     } catch (error) {
       logger.error('❌ [AdminsService] Error updating admin role:', error);
       throw error;
     }
   }
 
-  /**
-   * Suspend admin (set status to suspended)
-   */
-  async suspendAdmin(adminId: number): Promise<boolean> {
+  /** Takes effect on the admin's very next request (the auth guard checks isActive). */
+  async setSuspended(adminId: number, suspended: boolean): Promise<void> {
     try {
-
-      await adminApiClient.patch(`/users/${adminId}`, {
-        status: 'suspended',
-      });
-
-      return true;
+      await adminApiClient.patch(`/users/${adminId}`, { status: suspended ? 'suspended' : 'active' });
     } catch (error) {
-      logger.error('❌ [AdminsService] Error suspending admin:', error);
-      return false;
+      logger.error('❌ [AdminsService] Error changing admin status:', error);
+      throw error;
     }
   }
 
-  /**
-   * Reactivate suspended admin
-   */
-  async reactivateAdmin(adminId: number): Promise<boolean> {
-    try {
-
-      await adminApiClient.patch(`/users/${adminId}`, {
-        status: 'active',
-      });
-
-      return true;
-    } catch (error) {
-      logger.error('❌ [AdminsService] Error reactivating admin:', error);
-      return false;
-    }
+  /** Issues a fresh link and invalidates the old one. */
+  async resendInvite(inviteId: number): Promise<void> {
+    await adminApiClient.post(`/users/invites/${inviteId}/resend`);
   }
 
-  /**
-   * Resend a pending invite — issues a fresh link, invalidating the old one
-   */
-  async resendInvite(inviteId: number): Promise<boolean> {
-    try {
-      await adminApiClient.post(`/users/invites/${inviteId}/resend`);
-      return true;
-    } catch (error) {
-      logger.error('❌ [AdminsService] Error resending invite:', error);
-      return false;
-    }
+  /** The link stops working immediately. */
+  async cancelInvite(inviteId: number): Promise<void> {
+    await adminApiClient.delete(`/users/invites/${inviteId}`);
   }
 
-  /**
-   * Cancel a pending invite — the link stops working immediately
-   */
-  async cancelInvite(inviteId: number): Promise<boolean> {
-    try {
-      await adminApiClient.delete(`/users/invites/${inviteId}`);
-      return true;
-    } catch (error) {
-      logger.error('❌ [AdminsService] Error cancelling invite:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Change the currently logged-in admin's own password. Self-scoped
-   * server-side from the JWT — there is no "change another admin's
-   * password" endpoint.
-   */
+  /** Self-scoped server-side from the JWT. */
   async changeOwnPassword(currentPassword: string, newPassword: string): Promise<void> {
     await adminApiClient.patch('/admin/change-password', { currentPassword, newPassword });
   }
