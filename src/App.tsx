@@ -10,14 +10,13 @@ import OrdersPage from './components/OrdersPage';
 import WarehouseOperationsPage from './components/WarehouseOperationsPage';
 import CatalogPage from './components/CatalogPage';
 import SubscriptionsPage from './components/SubscriptionsPage';
-import WorkforcePage from './components/WorkforcePage';
+import FieldOperationsPage from './components/FieldOperationsPage';
 import FinanceHubPage from './components/FinanceHubPage';
 import MarketingPage from './components/MarketingPage';
 import CustomersPage from './components/CustomersPage';
 import SettingsPage from './components/SettingsPage';
 import SupportPage from './components/SupportPage';
 import DataDeletionRequestsPage from './components/DataDeletionRequestsPage';
-import DeliveryZonesPage from './components/DeliveryZonesPage';
 import AnalyticsPage from './components/AnalyticsPage';
 import './App.css';
 
@@ -68,13 +67,16 @@ const App: React.FC = () => {
       />
       <Route path="/suppliers" element={<Navigate to="/warehouse" replace />} />
       <Route path="/expenses" element={<Navigate to="/finance" replace />} />
-      <Route path="/workers" element={<Navigate to="/workforce" replace />} />
+      <Route path="/workers" element={<Navigate to="/field-operations" replace />} />
+      <Route path="/workforce" element={<Navigate to="/field-operations" replace />} />
+      <Route path="/riders" element={<Navigate to="/field-operations" replace />} />
+      <Route path="/delivery-zones" element={<Navigate to="/field-operations" replace />} />
       <Route
-        path="/workforce"
+        path="/field-operations"
         element={
           <ProtectedRoute>
             <Layout>
-              <WorkforcePage />
+              <FieldOperationsPage />
             </Layout>
           </ProtectedRoute>
         }
@@ -104,7 +106,6 @@ const App: React.FC = () => {
           </ProtectedRoute>
         }
       />
-      <Route path="/riders" element={<Navigate to="/workforce" replace />} />
       <Route
         path="/analytics"
         element={
@@ -172,16 +173,6 @@ const App: React.FC = () => {
           <ProtectedRoute>
             <Layout>
               <DataDeletionRequestsPage />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/delivery-zones"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <DeliveryZonesPage />
             </Layout>
           </ProtectedRoute>
         }

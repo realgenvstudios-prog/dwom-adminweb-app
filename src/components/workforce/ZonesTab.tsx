@@ -1,12 +1,17 @@
 import React from "react";
-import { useZonesData } from "./delivery/useZonesData";
-import { useZoneForm } from "./delivery/useZoneForm";
-import { useTestDeliveryCheck } from "./delivery/useTestDeliveryCheck";
-import ZoneCard from "./delivery/ZoneCard";
-import ZoneFormCard from "./delivery/ZoneFormCard";
-import TestDeliveryCheckCard from "./delivery/TestDeliveryCheckCard";
+import { useZonesData } from "../delivery/useZonesData";
+import { useZoneForm } from "../delivery/useZoneForm";
+import { useTestDeliveryCheck } from "../delivery/useTestDeliveryCheck";
+import ZoneCard from "../delivery/ZoneCard";
+import ZoneFormCard from "../delivery/ZoneFormCard";
+import TestDeliveryCheckCard from "../delivery/TestDeliveryCheckCard";
 
-const DeliveryZonesPage: React.FC = () => {
+// Split out of the former standalone DeliveryZonesPage — now a tab on
+// Field Operations, alongside Riders and Pickers, since zone coverage is
+// a rider-logistics concern. This also retires the duplicate zone-CRUD
+// path that used to live in a modal inside the Riders tab (ZoneManagementModal,
+// deleted) — one zone-management surface instead of two.
+const ZonesTab: React.FC = () => {
   const { zones, loading, error, setError, successMsg, setSuccessMsg, fetchZones, handleToggleZone, handleDeleteZone } = useZonesData();
   const {
     showCreateForm,
@@ -39,18 +44,12 @@ const DeliveryZonesPage: React.FC = () => {
   const inactiveZones = zones.filter((z) => !z.isActive);
 
   return (
-    <div className="max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Delivery Zones</h1>
-          <p className="text-gray-600 mt-1">
-            Manage delivery areas, pricing by location, and where you deliver
-          </p>
-        </div>
+    <>
+      <div className="flex items-center justify-between mb-6">
+        <p className="text-gray-600">Delivery areas, pricing by location, and where riders cover.</p>
         <button
           onClick={() => { resetForm(); setShowCreateForm(true); }}
-          className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold flex items-center gap-2 shadow-sm"
+          className="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold flex items-center gap-2 shadow-sm text-sm"
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
@@ -59,7 +58,6 @@ const DeliveryZonesPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Messages */}
       {successMsg && (
         <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 flex items-center gap-2">
           <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -77,7 +75,6 @@ const DeliveryZonesPage: React.FC = () => {
         </div>
       )}
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
           <div className="text-sm text-gray-500 font-medium">Total Zones</div>
@@ -101,7 +98,6 @@ const DeliveryZonesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Create / Edit Form */}
       {(showCreateForm || editingZone) && (
         <ZoneFormCard
           editingZone={editingZone}
@@ -114,7 +110,6 @@ const DeliveryZonesPage: React.FC = () => {
         />
       )}
 
-      {/* Zones List */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
           <svg className="animate-spin h-10 w-10 text-green-600" viewBox="0 0 24 24">
@@ -139,7 +134,6 @@ const DeliveryZonesPage: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Active Zones */}
           {activeZones.length > 0 && (
             <>
               <h3 className="text-lg font-bold text-green-700 flex items-center gap-2">
@@ -148,19 +142,12 @@ const DeliveryZonesPage: React.FC = () => {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {activeZones.map((zone) => (
-                  <ZoneCard
-                    key={zone.id}
-                    zone={zone}
-                    onEdit={startEditing}
-                    onToggle={handleToggleZone}
-                    onDelete={handleDeleteZone}
-                  />
+                  <ZoneCard key={zone.id} zone={zone} onEdit={startEditing} onToggle={handleToggleZone} onDelete={handleDeleteZone} />
                 ))}
               </div>
             </>
           )}
 
-          {/* Inactive Zones */}
           {inactiveZones.length > 0 && (
             <>
               <h3 className="text-lg font-bold text-red-700 flex items-center gap-2 mt-6">
@@ -170,13 +157,7 @@ const DeliveryZonesPage: React.FC = () => {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {inactiveZones.map((zone) => (
-                  <ZoneCard
-                    key={zone.id}
-                    zone={zone}
-                    onEdit={startEditing}
-                    onToggle={handleToggleZone}
-                    onDelete={handleDeleteZone}
-                  />
+                  <ZoneCard key={zone.id} zone={zone} onEdit={startEditing} onToggle={handleToggleZone} onDelete={handleDeleteZone} />
                 ))}
               </div>
             </>
@@ -198,7 +179,6 @@ const DeliveryZonesPage: React.FC = () => {
         testResult={testResult}
       />
 
-      {/* How it works */}
       <div className="mt-10 bg-blue-50 rounded-lg border border-blue-200 p-6">
         <h3 className="text-lg font-bold text-blue-900 mb-3">How Delivery Zones Work</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-blue-800">
@@ -216,8 +196,8 @@ const DeliveryZonesPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
-export default DeliveryZonesPage;
+export default ZonesTab;

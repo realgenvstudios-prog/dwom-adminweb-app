@@ -2,7 +2,6 @@ import React from "react";
 import CreateRiderModal from "./CreateRiderModal";
 import AssignZoneModal from "./AssignZoneModal";
 import RiderDetailsModal from "./RiderDetailsModal";
-import ZoneManagementModal from "./ZoneManagementModal";
 import { useRidersData } from "./useRidersData";
 import { useRidersFilters } from "./useRidersFilters";
 import { useRiderModals } from "./useRiderModals";
@@ -25,8 +24,6 @@ const RidersTab: React.FC = () => {
     isRiderDetailsOpen,
     setIsRiderDetailsOpen,
     selectedRiderForDetails,
-    isZoneManagementOpen,
-    setIsZoneManagementOpen,
     handleViewDetails,
     handleCreateRider,
     handleAssignZone,
@@ -35,7 +32,7 @@ const RidersTab: React.FC = () => {
 
   return (
     <>
-      <RidersHeader onManageZones={() => setIsZoneManagementOpen(true)} onCreateRider={handleCreateRider} />
+      <RidersHeader onCreateRider={handleCreateRider} />
 
       {/* Stats Cards */}
       {loading ? (
@@ -114,13 +111,6 @@ const RidersTab: React.FC = () => {
         isOpen={isRiderDetailsOpen}
         onClose={() => setIsRiderDetailsOpen(false)}
         rider={selectedRiderForDetails}
-      />
-
-      {/* Zone Management Modal */}
-      <ZoneManagementModal
-        isOpen={isZoneManagementOpen}
-        onClose={() => setIsZoneManagementOpen(false)}
-        onSuccess={handleModalSuccess}
       />
     </>
   );
