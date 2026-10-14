@@ -1,22 +1,33 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import productsService from '../../services/productsService';
-import categoriesService from '../../services/categoriesService';
+import categoriesService, { type Category } from '../../services/categoriesService';
 import { logger } from '../../utils/logger';
 import type { Product, ProductCategory } from './ProductTypes';
+
+/** GET /categories includes every product in the category — archived ones too — and sortOrder. */
+export interface CategoryRecord extends Category {
+  sortOrder?: number;
+  Product?: Array<{ id: number; active: boolean }>;
+}
 
 /** Products + categories for the Catalog. No fallback data: an empty catalog shows as empty. */
 export function useCatalogData() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<ProductCategory[]>([]);
+  const [categoryRecords, setCategoryRecords] = useState<CategoryRecord[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const loadCategories = useCallback(async () => {
     try {
-      const cats = await categoriesService.getAll();
-      setCategories((cats ?? []).map((c: { id: number; name: string }) => ({ id: String(c.id), name: c.name })));
+      setCategoriesError(null);
+      setCategoryRecords(((await categoriesService.getAll()) ?? []) as CategoryRecord[]);
     } catch (err) {
       logger.error('❌ [CatalogPage] Failed to load categories:', err);
+      setCategoriesError(err instanceof Error ? err.message : 'Failed to load categories');
+    } finally {
+      setCategoriesLoading(false);
     }
   }, []);
 
@@ -45,5 +56,21 @@ export function useCatalogData() {
     setProducts((prev) => prev.map((p) => (String(p.id) === String(id) ? { ...p, ...patch } : p)));
   }, []);
 
-  return { products, categories, loading, error, refreshProducts: loadProducts, refreshCategories: loadCategories, patchProduct };
+  const categories: ProductCategory[] = useMemo(
+    () => categoryRecords.map((c) => ({ id: String(c.id), name: c.name })),
+    [categoryRecords],
+  );
+
+  return {
+    products,
+    categories,
+    categoryRecords,
+    loading,
+    error,
+    categoriesLoading,
+    categoriesError,
+    refreshProducts: loadProducts,
+    refreshCategories: loadCategories,
+    patchProduct,
+  };
 }

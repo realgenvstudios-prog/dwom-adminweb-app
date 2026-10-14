@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTabParam } from '@/hooks/use-tab-param';
 import ProductsTab from './products/ProductsTab';
 import CreateProductDialog from './products/CreateProductDialog';
-import CategoriesTab from './products/CategoriesTab';
+import CategoriesTab from './categories/CategoriesTab';
 import BundlesTab from './products/BundlesTab';
 import { useCatalogData } from './products/useCatalogData';
 
@@ -13,7 +13,22 @@ const TABS = ['products', 'categories', 'bundles'] as const;
 
 const CatalogPage: React.FC = () => {
   const [activeTab, setActiveTab] = useTabParam(TABS, 'products');
-  const { products, categories, loading, error, refreshProducts, refreshCategories, patchProduct } = useCatalogData();
+  const {
+    products,
+    categories,
+    categoryRecords,
+    loading,
+    error,
+    categoriesLoading,
+    categoriesError,
+    refreshProducts,
+    refreshCategories,
+    patchProduct,
+  } = useCatalogData();
+  // Product edits/archives change category product counts too.
+  const refreshAll = async () => {
+    await Promise.all([refreshProducts(), refreshCategories()]);
+  };
   const [createOpen, setCreateOpen] = useState(false);
 
   return (
@@ -50,19 +65,19 @@ const CatalogPage: React.FC = () => {
             categories={categories}
             loading={loading}
             error={error}
-            refresh={refreshProducts}
+            refresh={refreshAll}
             patchProduct={patchProduct}
           />
         </TabsContent>
         <TabsContent value="categories">
-          <CategoriesTab onCategoriesChanged={refreshCategories} />
+          <CategoriesTab categories={categoryRecords} loading={categoriesLoading} error={categoriesError} refresh={refreshCategories} />
         </TabsContent>
         <TabsContent value="bundles">
           <BundlesTab />
         </TabsContent>
       </Tabs>
 
-      <CreateProductDialog open={createOpen} onOpenChange={setCreateOpen} categories={categories} onCreated={() => void refreshProducts()} />
+      <CreateProductDialog open={createOpen} onOpenChange={setCreateOpen} categories={categories} onCreated={() => void refreshAll()} />
     </div>
   );
 };
