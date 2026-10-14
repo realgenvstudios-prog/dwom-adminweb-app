@@ -1,66 +1,46 @@
-import { useEffect, useRef, useState } from "react";
-import apiClient from "../../services/apiClient";
-import type { Customer } from "./CustomerTypes";
+import { useCallback, useEffect, useState } from 'react';
+import apiClient from '../../services/apiClient';
 import { logger } from '../../utils/logger';
+import type { Customer } from './CustomerTypes';
 
-// Fetches the customer list (with stats). Split out of the former
-// monolithic CustomersPage.
+type RawCustomer = Partial<Customer> & { id: number; phoneNumber?: string };
+
 export function useCustomersData() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const isFetchingRef = useRef(false);
 
-  const fetchCustomers = async () => {
-    if (isFetchingRef.current) return;
-
+  const load = useCallback(async () => {
     try {
-      isFetchingRef.current = true;
-      setLoading(true);
       setError(null);
-
-      logger.log('📊 [CustomersPage] Fetching customers with stats...');
-
-      const data = await apiClient.get<any[]>('/users/admin/customers');
-      logger.log('📊 [CustomersPage] Response:', data);
-
-      if (!Array.isArray(data)) {
-        logger.error('❌ [CustomersPage] Expected array, got:', typeof data);
-        setError('Invalid response from server');
-        setCustomers([]);
-        return;
-      }
-
-      const mappedCustomers: Customer[] = data.map(user => ({
-        id: user.id,
-        name: user.name || 'Unknown',
-        email: user.email || null,
-        phone: user.phone || user.phoneNumber || 'N/A',
-        role: user.role,
-        createdAt: user.createdAt,
-        address: user.address || null,
-        totalOrders: user.totalOrders || 0,
-        totalSpend: user.totalSpend || 0,
-        avgOrder: user.avgOrder || 0,
-        lastOrder: user.lastOrder || null,
-        status: user.status || 'New',
-      }));
-
-      logger.log(`✅ [CustomersPage] Fetched ${mappedCustomers.length} customers`);
-      setCustomers(mappedCustomers);
-    } catch (err: any) {
-      logger.error('❌ [CustomersPage] Error:', err);
-      setError(err.message || 'Failed to fetch customers');
-      setCustomers([]);
+      const data = await apiClient.get<RawCustomer[]>('/users/admin/customers');
+      if (!Array.isArray(data)) throw new Error('Unexpected response from the server');
+      setCustomers(
+        data.map((u) => ({
+          id: u.id,
+          name: u.name || 'Unnamed customer',
+          email: u.email || null,
+          phone: u.phone || u.phoneNumber || '',
+          createdAt: u.createdAt ?? '',
+          address: u.address || null,
+          totalOrders: u.totalOrders ?? 0,
+          totalSpend: u.totalSpend ?? 0,
+          lastOrder: u.lastOrder || null,
+          status: u.status ?? 'New',
+        })),
+      );
+    } catch (err) {
+      logger.error('❌ [CustomersPage] Failed to fetch customers:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load customers');
     } finally {
       setLoading(false);
-      isFetchingRef.current = false;
     }
-  };
-
-  useEffect(() => {
-    fetchCustomers();
   }, []);
 
-  return { customers, loading, error, fetchCustomers };
+  useEffect(() => {
+    const t = setTimeout(() => void load(), 0);
+    return () => clearTimeout(t);
+  }, [load]);
+
+  return { customers, loading, error, refresh: load };
 }

@@ -1,122 +1,92 @@
-import React, { useState } from "react";
-import { useCustomersData } from "./customers/useCustomersData";
-import { useCustomerSelection } from "./customers/useCustomerSelection";
-import CustomersStatsCards from "./customers/CustomersStatsCards";
-import CustomersFilterBar from "./customers/CustomersFilterBar";
-import CustomersTable from "./customers/CustomersTable";
-import CustomerDetailSidebar from "./customers/CustomerDetailSidebar";
+import React, { useState } from 'react';
+import { AlertCircle, AlertTriangle, RotateCw, UserCheck, Users, Wallet } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { DataTable } from '@/components/data-table';
+import { StatCard } from '@/components/stat-card';
+import adminAuthService from '../services/authService';
+import { canAccessRoute, resolveUiRole } from '../config/permissions';
+import { formatGhs } from './orders/order-status';
+import { customerColumns } from './customers/columns';
+import CustomerSheet from './customers/CustomerSheet';
+import { CUSTOMER_STATUSES } from './customers/CustomerTypes';
+import { useCustomersData } from './customers/useCustomersData';
 
 const CustomersPage: React.FC = () => {
-  const { customers, loading, error, fetchCustomers } = useCustomersData();
-  const {
-    selectedCustomer,
-    orderHistory,
-    orderHistoryLoading,
-    expandedOrderId,
-    setExpandedOrderId,
-    detailTab,
-    setDetailTab,
-    selectCustomer,
-  } = useCustomerSelection();
+  const { customers, loading, error, refresh } = useCustomersData();
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [monthAgo] = useState(() => Date.now() - 30 * 86_400_000);
+  const canOpenOrders = canAccessRoute(resolveUiRole(adminAuthService.getCurrentAdmin()), '/orders');
 
-  const [search, setSearch] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("All");
-
-  const filtered = customers.filter(c =>
-    (selectedStatus === "All" || c.status === selectedStatus) &&
-    (c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.phone.includes(search) ||
-      c.email?.toLowerCase().includes(search.toLowerCase()) ||
-      c.id.toString() === search)
-  );
-
-  // Calculate metrics
-  const totalCustomers = customers.length;
-  const newCustomers = customers.filter(c => c.status === 'New').length;
-  const activeCustomers = customers.filter(c => c.status === 'Active').length;
-  const totalRevenue = customers.reduce((sum, c) => sum + c.totalSpend, 0);
+  const selected = customers.find((c) => c.id === selectedId) ?? null;
+  const count = (s: string) => customers.filter((c) => c.status === s).length;
+  const joinedThisMonth = customers.filter((c) => new Date(c.createdAt).getTime() >= monthAgo).length;
+  const totalSpend = customers.reduce((s, c) => s + c.totalSpend, 0);
+  const paying = customers.filter((c) => c.totalSpend > 0).length;
 
   return (
-    <div className="bg-gray-50 min-h-screen py-8 px-4">
-      <div className="max-w-(--breakpoint-2xl) mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Customers</h1>
-          <p className="text-gray-500 mt-1">Manage and view all registered customers</p>
-        </div>
-
-        <CustomersStatsCards
-          totalCustomers={totalCustomers}
-          newCustomers={newCustomers}
-          activeCustomers={activeCustomers}
-          totalRevenue={totalRevenue}
-        />
-
-        <CustomersFilterBar
-          search={search}
-          setSearch={setSearch}
-          selectedStatus={selectedStatus}
-          setSelectedStatus={setSelectedStatus}
-        />
-
-        {/* Error State */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
-            <div className="flex items-center gap-2 text-red-700">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="font-medium">Error: {error}</span>
-            </div>
-            <button
-              onClick={fetchCustomers}
-              className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
-            >
-              Try again
-            </button>
-          </div>
-        )}
-
-        {/* Loading State */}
-        {loading ? (
-          <div className="bg-white rounded-xl shadow-xs border border-gray-100 p-12 text-center">
-            <svg className="animate-spin h-10 w-10 text-blue-600 mx-auto mb-4" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            <p className="text-gray-600">Loading customers...</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Customer Table */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-xl shadow-xs border border-gray-100 overflow-hidden">
-                <CustomersTable
-                  filtered={filtered}
-                  totalCustomers={customers.length}
-                  selectedCustomerId={selectedCustomer?.id}
-                  onSelectCustomer={selectCustomer}
-                />
-              </div>
-            </div>
-
-            {/* Customer Details Sidebar */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-xs border border-gray-100 sticky top-6 overflow-hidden">
-                <CustomerDetailSidebar
-                  selectedCustomer={selectedCustomer}
-                  detailTab={detailTab}
-                  setDetailTab={setDetailTab}
-                  orderHistory={orderHistory}
-                  orderHistoryLoading={orderHistoryLoading}
-                  expandedOrderId={expandedOrderId}
-                  setExpandedOrderId={setExpandedOrderId}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+    <div className="flex flex-col gap-6">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Customers</h1>
+        <p className="text-sm text-muted-foreground">Everyone who has signed up for the DWOM app, and how they’re ordering.</p>
       </div>
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard label="Customers" value={customers.length.toLocaleString()} hint={`${joinedThisMonth} joined in the last 30 days`} icon={Users} tint="bg-sky-500/10 text-sky-600" loading={loading} failed={!!error} />
+        <StatCard label="Active" value={count('Active').toLocaleString()} hint="Ordered in the last 30 days" icon={UserCheck} tint="bg-emerald-500/10 text-emerald-600" loading={loading} failed={!!error} />
+        <StatCard label="At risk" value={count('At Risk').toLocaleString()} hint="Last order 31–90 days ago" icon={AlertTriangle} tint="bg-amber-500/10 text-amber-600" loading={loading} failed={!!error} />
+        <StatCard
+          label="Lifetime paid spend"
+          value={formatGhs(totalSpend)}
+          hint={paying ? `${formatGhs(totalSpend / paying)} per paying customer` : 'No paid orders yet'}
+          icon={Wallet}
+          tint="bg-violet-500/10 text-violet-600"
+          loading={loading}
+          failed={!!error}
+        />
+      </div>
+
+      {error && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
+          <div className="flex items-center gap-2 text-destructive">
+            <AlertCircle className="size-4" />
+            Couldn’t load customers: {error}
+          </div>
+          <Button variant="outline" size="sm" onClick={() => void refresh()}>
+            <RotateCw />
+            Retry
+          </Button>
+        </div>
+      )}
+
+      <DataTable
+        columns={customerColumns}
+        data={customers}
+        isLoading={loading}
+        getRowId={(c) => String(c.id)}
+        initialSorting={[{ id: 'joined', desc: true }]}
+        searchPlaceholder="Search name, phone, email, or #ID…"
+        filters={[
+          {
+            columnId: 'status',
+            title: 'Status',
+            options: CUSTOMER_STATUSES.map((s) => ({
+              value: s.value,
+              label: s.label,
+              icon: ({ className }: { className?: string }) => <span className={`size-2 rounded-full ${s.dot} ${className ?? ''}`} />,
+            })),
+          },
+        ]}
+        onRowClick={(c) => {
+          setSelectedId(c.id);
+          setSheetOpen(true);
+        }}
+        emptyMessage={customers.length === 0 ? 'No customers yet — they’ll appear here as people sign up.' : 'No customers match these filters.'}
+      />
+
+      {selected && (
+        <CustomerSheet key={selected.id} customer={selected} open={sheetOpen} onOpenChange={setSheetOpen} canOpenOrders={canOpenOrders} />
+      )}
     </div>
   );
 };
