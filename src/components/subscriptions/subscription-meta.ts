@@ -38,7 +38,12 @@ export const BILLING_STATUS: Record<string, { label: string; className: string }
 };
 
 export const basketSummary = (s: Subscription) => {
-  const names = (s.SubscriptionItem ?? []).map((i) => i.Product?.nameEnglish).filter(Boolean) as string[];
+  const names = (s.SubscriptionItem ?? [])
+    .map((i) => {
+      const opts = Array.isArray(i.selectedVariations) ? i.selectedVariations.map((v) => v?.label).filter(Boolean).join(' · ') : '';
+      return i.Product?.nameEnglish ? (opts ? `${i.Product.nameEnglish} (${opts})` : i.Product.nameEnglish) : undefined;
+    })
+    .filter(Boolean) as string[];
   if (names.length === 0) return 'No items';
   return names.length <= 2 ? names.join(', ') : `${names.slice(0, 2).join(', ')} +${names.length - 2} more`;
 };

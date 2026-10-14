@@ -26,6 +26,8 @@ export interface SubscriptionItem {
   productId: number;
   quantity: number;
   unitPrice: number | string;
+  /** Chosen options snapshot, e.g. [{ label: "15 half crate" }] */
+  selectedVariations?: Array<{ label?: string }> | null;
   Product?: { id?: number; nameEnglish: string; pricePerUnit?: number | string; imageUrl?: string | null; active?: boolean } | null;
 }
 

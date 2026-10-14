@@ -140,6 +140,9 @@ export default function SubscriptionSheet({ subscription: row, open, onOpenChang
                   <span className="min-w-0">
                     <span className="font-medium">{i.quantity}×</span> {i.Product?.nameEnglish ?? `Product #${i.productId}`}
                     {i.Product?.active === false && <span className="ml-1.5 text-xs text-amber-700">(archived)</span>}
+                    {Array.isArray(i.selectedVariations) && i.selectedVariations.some((v) => v?.label) && (
+                      <span className="ml-1.5 text-xs text-sky-700">{i.selectedVariations.map((v) => v?.label).filter(Boolean).join(' · ')}</span>
+                    )}
                   </span>
                   <span className="shrink-0 text-muted-foreground tabular-nums">
                     {formatGhs(num(i.unitPrice))} · <span className="text-foreground">{formatGhs(num(i.unitPrice) * i.quantity)}</span>
