@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import {
@@ -56,10 +56,13 @@ function NavLinkItem({ item, active }: { item: NavItem; active: boolean }) {
 // Expanded sidebar: a chevron row that slides its sub-pages open.
 function NavCollapsibleItem({ item, active, currentTab }: { item: NavItem; active: boolean; currentTab?: string }) {
   const [open, setOpen] = useState(active);
+  const [wasActive, setWasActive] = useState(active);
 
-  useEffect(() => {
+  // Auto-expand when navigating onto this page; manual collapse still sticks.
+  if (active !== wasActive) {
+    setWasActive(active);
     if (active) setOpen(true);
-  }, [active]);
+  }
 
   return (
     <Collapsible asChild open={open} onOpenChange={setOpen} className="group/collapsible">
