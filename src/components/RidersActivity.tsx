@@ -41,7 +41,7 @@ const RidersActivity: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow p-6 mb-6 border">
+    <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold">Riders Activity</h3>
         <button onClick={() => navigate('/field-operations')} className="text-blue-600 text-sm font-medium hover:underline">View all riders</button>

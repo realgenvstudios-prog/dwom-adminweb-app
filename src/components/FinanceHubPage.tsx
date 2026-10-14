@@ -26,7 +26,7 @@ const FinanceHubPage: React.FC = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
-      <div className="max-w-screen-2xl mx-auto">
+      <div className="max-w-(--breakpoint-2xl) mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Finance</h1>
           <p className="text-gray-600 mt-1">Revenue, real cost, profitability, and the config that drives all of it — in one place.</p>

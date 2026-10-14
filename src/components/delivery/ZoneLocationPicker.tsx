@@ -193,7 +193,7 @@ const ZoneLocationPicker: React.FC<Props> = ({ value, onChange }) => {
               }
             }}
             placeholder='Start typing… e.g. "East Legon", "Accra Mall"'
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-green-500"
           />
           {searching && (
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">Searching…</span>
@@ -220,10 +220,10 @@ const ZoneLocationPicker: React.FC<Props> = ({ value, onChange }) => {
         </div>
 
         {resolvedLabel && (
-          <div className="mt-2 text-xs text-gray-600 bg-gray-50 rounded px-3 py-2">📍 {resolvedLabel}</div>
+          <div className="mt-2 text-xs text-gray-600 bg-gray-50 rounded-sm px-3 py-2">📍 {resolvedLabel}</div>
         )}
         {!resolvedLabel && hasLocation && (
-          <div className="mt-2 text-xs text-gray-500 bg-gray-50 rounded px-3 py-2">
+          <div className="mt-2 text-xs text-gray-500 bg-gray-50 rounded-sm px-3 py-2">
             Current center: {value.lat.toFixed(4)}, {value.lng.toFixed(4)} — type above to change it, or drag the pin on the map below.
           </div>
         )}

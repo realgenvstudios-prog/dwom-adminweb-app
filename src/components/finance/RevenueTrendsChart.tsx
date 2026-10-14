@@ -59,7 +59,7 @@ const RevenueTrendsChart: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow p-6 mb-8">
+    <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
       <h3 className="text-lg font-semibold mb-4">GMV vs Net Revenue</h3>
       {loading ? (
         <div className="flex items-center justify-center h-64">

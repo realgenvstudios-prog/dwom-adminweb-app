@@ -176,7 +176,7 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
               <div className="mb-2 text-sm"><span className="font-medium">Category:</span> {typeof product.category === 'object' && product.category?.name ? product.category.name : (typeof (product as any).Category === 'object' && (product as any).Category?.name ? (product as any).Category.name : 'N/A')}</div>
               <div className="mb-2 text-sm"><span className="font-medium">Unit:</span> {product.unitType}</div>
               <div className="mb-2 text-sm"><span className="font-medium">Price:</span> GHS {typeof product.pricePerUnit === 'string' ? parseFloat(product.pricePerUnit).toFixed(2) : (product.pricePerUnit as number).toFixed(2)}</div>
-              <div className="mb-2 text-sm"><span className="font-medium">Inventory:</span> <span className={`px-2 py-1 rounded text-xs font-semibold ${product.inventory?.status === 'out_of_stock' ? 'bg-red-100 text-red-700' : product.inventory?.status === 'low_stock' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>{product.inventory?.quantity || 0} {product.unitType}</span></div>
+              <div className="mb-2 text-sm"><span className="font-medium">Inventory:</span> <span className={`px-2 py-1 rounded-sm text-xs font-semibold ${product.inventory?.status === 'out_of_stock' ? 'bg-red-100 text-red-700' : product.inventory?.status === 'low_stock' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>{product.inventory?.quantity || 0} {product.unitType}</span></div>
               <div className="mb-4 text-sm"><span className="font-medium">Description:</span> {product.description || 'N/A'}</div>
               {/* Variation Groups Display */}
               {variationGroups.length > 0 && (
@@ -201,14 +201,14 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
               <div className="flex gap-2 mt-6">
                 <button 
                   onClick={() => setEditing(true)}
-                  className="px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 text-sm"
+                  className="px-4 py-2 rounded-sm bg-blue-600 text-white font-semibold hover:bg-blue-700 text-sm"
                 >
                   Edit product
                 </button>
                 <button 
                   onClick={handleDelete}
                   disabled={loading}
-                  className="px-4 py-2 rounded bg-red-100 text-red-700 font-semibold hover:bg-red-200 text-sm disabled:opacity-50"
+                  className="px-4 py-2 rounded-sm bg-red-100 text-red-700 font-semibold hover:bg-red-200 text-sm disabled:opacity-50"
                 >
                   Delete
                 </button>
@@ -224,7 +224,7 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
                     type="text"
                     value={formData.nameEnglish}
                     onChange={(e) => setFormData({ ...formData, nameEnglish: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
@@ -233,7 +233,7 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
                     type="text"
                     value={formData.nameLocal}
                     onChange={(e) => setFormData({ ...formData, nameLocal: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
@@ -242,7 +242,7 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
                     type="text"
                     value={formData.nameFrench}
                     onChange={(e) => setFormData({ ...formData, nameFrench: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                     placeholder="e.g., Tomates"
                   />
                 </div>
@@ -251,7 +251,7 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
                   <select
                     value={formData.categoryId}
                     onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select a category</option>
                     {categories.map((cat) => (
@@ -268,7 +268,7 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
                     step="0.01"
                     value={formData.pricePerUnit.toString()}
                     onChange={(e) => setFormData({ ...formData, pricePerUnit: parseFloat(e.target.value) })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
@@ -277,7 +277,7 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
                     type="text"
                     value={formData.unitType}
                     onChange={(e) => setFormData({ ...formData, unitType: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
@@ -288,7 +288,7 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
                     min="0"
                     value={formData.inventoryQuantity.toString()}
                     onChange={(e) => setFormData({ ...formData, inventoryQuantity: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   />
                   <p className="text-xs text-gray-500 mt-1">Current: {product.inventory?.quantity || 0} {product.unitType}</p>
                 </div>
@@ -297,7 +297,7 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                     rows={3}
                   />
                 </div>
@@ -321,14 +321,14 @@ const ProductDetailsPanel: React.FC<ProductDetailsPanelProps> = ({
                 <button 
                   onClick={handleSaveEdit}
                   disabled={loading}
-                  className="px-4 py-2 rounded bg-green-600 text-white font-semibold hover:bg-green-700 text-sm disabled:opacity-50"
+                  className="px-4 py-2 rounded-sm bg-green-600 text-white font-semibold hover:bg-green-700 text-sm disabled:opacity-50"
                 >
                   {loading ? 'Saving...' : 'Save Changes'}
                 </button>
                 <button 
                   onClick={() => setEditing(false)}
                   disabled={loading}
-                  className="px-4 py-2 rounded bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 text-sm disabled:opacity-50"
+                  className="px-4 py-2 rounded-sm bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 text-sm disabled:opacity-50"
                 >
                   Cancel
                 </button>

@@ -11,7 +11,7 @@ export default function UserRolesSection() {
   const matrix = getRoleAccessMatrix();
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-8 flex flex-col gap-6">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-8 flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Role Access Matrix</h2>
         <Link to="/admins" className="text-sm font-medium text-blue-600 hover:text-blue-700">

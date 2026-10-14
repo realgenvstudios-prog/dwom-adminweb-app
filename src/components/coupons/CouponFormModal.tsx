@@ -44,7 +44,7 @@ export default function CouponFormModal({ editingCoupon, form, setForm, formErro
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Coupon Code *</label>
             <input
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono uppercase focus:outline-hidden focus:ring-2 focus:ring-red-500"
               placeholder="e.g. SAVE20"
               value={form.code}
               onChange={e => setForm(f => ({ ...f, code: e.target.value.toUpperCase() }))}
@@ -57,7 +57,7 @@ export default function CouponFormModal({ editingCoupon, form, setForm, formErro
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
             <input
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-red-500"
               placeholder="e.g. 20% off your first order"
               value={form.description}
               onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
@@ -69,7 +69,7 @@ export default function CouponFormModal({ editingCoupon, form, setForm, formErro
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Discount Type *</label>
               <select
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-red-500"
                 value={form.discountType}
                 onChange={e => setForm(f => ({ ...f, discountType: e.target.value as 'percentage' | 'fixed' }))}
               >
@@ -86,7 +86,7 @@ export default function CouponFormModal({ editingCoupon, form, setForm, formErro
                 min="0"
                 max={form.discountType === 'percentage' ? 100 : undefined}
                 step="0.01"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-red-500"
                 placeholder={form.discountType === 'percentage' ? '20' : '10.00'}
                 value={form.discountValue || ''}
                 onChange={e => setForm(f => ({ ...f, discountValue: parseFloat(e.target.value) || 0 }))}
@@ -101,7 +101,7 @@ export default function CouponFormModal({ editingCoupon, form, setForm, formErro
               type="number"
               min="0"
               step="0.01"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-red-500"
               placeholder="0 = no minimum"
               value={form.minOrderAmount || ''}
               onChange={e => setForm(f => ({ ...f, minOrderAmount: parseFloat(e.target.value) || 0 }))}
@@ -116,7 +116,7 @@ export default function CouponFormModal({ editingCoupon, form, setForm, formErro
                 type="number"
                 min="1"
                 step="1"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-red-500"
                 placeholder="Leave empty = unlimited"
                 value={form.maxUses ?? ''}
                 onChange={e => setForm(f => ({ ...f, maxUses: e.target.value ? parseInt(e.target.value) : null }))}
@@ -128,7 +128,7 @@ export default function CouponFormModal({ editingCoupon, form, setForm, formErro
                 type="number"
                 min="1"
                 step="1"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-red-500"
                 placeholder="1"
                 value={form.usagePerUser || 1}
                 onChange={e => setForm(f => ({ ...f, usagePerUser: parseInt(e.target.value) || 1 }))}
@@ -142,7 +142,7 @@ export default function CouponFormModal({ editingCoupon, form, setForm, formErro
             <input
               type="date"
               min={new Date().toISOString().split('T')[0]}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-red-500"
               value={form.expiresAt ?? ''}
               onChange={e => setForm(f => ({ ...f, expiresAt: e.target.value || null }))}
             />
@@ -160,7 +160,7 @@ export default function CouponFormModal({ editingCoupon, form, setForm, formErro
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Linked Campaign</label>
             <select
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-red-500"
               value={form.campaignId ?? ''}
               onChange={e => setForm(f => ({ ...f, campaignId: e.target.value ? parseInt(e.target.value, 10) : null }))}
             >

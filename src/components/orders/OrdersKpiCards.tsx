@@ -51,7 +51,7 @@ const OrdersKpiCards: React.FC = () => {
       {kpis.map((kpi) => (
         <div
           key={kpi.label}
-          className="bg-white rounded-lg border border-gray-100 shadow-sm px-4 py-3 flex flex-col gap-1 min-w-[120px]"
+          className="bg-white rounded-lg border border-gray-100 shadow-xs px-4 py-3 flex flex-col gap-1 min-w-[120px]"
         >
           <div className="text-xs font-medium text-gray-500 mb-1">{kpi.label}</div>
           <div className={`text-xl font-bold ${kpi.color} ${loading && kpi.value === "—" ? "animate-pulse" : ""}`}>

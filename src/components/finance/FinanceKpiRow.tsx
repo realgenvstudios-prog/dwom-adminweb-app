@@ -92,7 +92,7 @@ const FinanceKpiRow: React.FC<FinanceKpiRowProps> = ({ row }) => {
   return (
     <>
       {cardsToShow.map((kpi) => (
-        <div key={kpi.label} className="bg-white rounded-xl shadow p-6 flex flex-col items-center justify-center h-full">
+        <div key={kpi.label} className="bg-white rounded-xl shadow-sm p-6 flex flex-col items-center justify-center h-full">
           <span className="text-lg font-medium mb-2 text-center">{kpi.label}</span>
           <span className="text-2xl font-bold text-center">{kpi.value}</span>
         </div>

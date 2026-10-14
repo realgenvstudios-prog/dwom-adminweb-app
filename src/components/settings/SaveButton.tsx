@@ -8,7 +8,7 @@ export default function SaveButton({ saving, settingsLoaded, onSave }: SaveButto
   return (
     <div className="mt-4 flex justify-end">
       <button
-        className="px-6 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:bg-blue-400 shadow-sm"
+        className="px-6 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:bg-blue-400 shadow-xs"
         onClick={onSave}
         disabled={saving || !settingsLoaded}
       >

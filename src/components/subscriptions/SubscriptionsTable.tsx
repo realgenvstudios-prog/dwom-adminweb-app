@@ -83,7 +83,7 @@ const SubscriptionsTable: React.FC<Props> = ({ subscriptions, onView }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4 overflow-x-auto">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-xs px-4 py-4 overflow-x-auto">
       <table className="min-w-full text-sm">
         <thead>
           <tr className="text-xs text-gray-500 font-semibold">

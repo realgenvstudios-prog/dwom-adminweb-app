@@ -87,7 +87,7 @@ const PickersTab: React.FC = () => {
       </div>
 
       {activeSubTab === "workers" ? (
-        <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-6">
+        <div className="bg-white shadow-xs rounded-xl border border-gray-100 p-6">
           <h2 className="text-lg font-semibold mb-4">Roster</h2>
           {loadingWorkers ? (
             <p className="text-gray-500 text-sm py-8 text-center">Loading...</p>
@@ -129,7 +129,7 @@ const PickersTab: React.FC = () => {
           )}
         </div>
       ) : (
-        <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-6">
+        <div className="bg-white shadow-xs rounded-xl border border-gray-100 p-6">
           <h2 className="text-lg font-semibold mb-4">Trip history</h2>
           {loadingTrips ? (
             <p className="text-gray-500 text-sm py-8 text-center">Loading...</p>

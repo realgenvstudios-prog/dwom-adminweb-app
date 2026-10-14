@@ -35,7 +35,7 @@ export default function RatingsSection({ riderRatingData, productReviewsData }: 
           <div className="text-xs font-semibold text-gray-700 mb-2">📝 PRODUCT REVIEWS</div>
           <div className="space-y-2">
             {productReviewsData.map((review, i) => (
-              <div key={i} className="bg-blue-50 p-3 rounded border border-blue-200">
+              <div key={i} className="bg-blue-50 p-3 rounded-sm border border-blue-200">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-semibold text-gray-900">{review.productName}</span>
                   <span className="text-sm">{'⭐'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</span>

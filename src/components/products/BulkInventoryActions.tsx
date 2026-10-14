@@ -138,7 +138,7 @@ const BulkInventoryActions: React.FC<BulkInventoryActionsProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow border border-gray-100 p-4 mb-6">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
       {/* Messages */}
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
@@ -184,7 +184,7 @@ const BulkInventoryActions: React.FC<BulkInventoryActionsProps> = ({
           <button
             onClick={handleDownloadBackup}
             disabled={loading || allProducts.length === 0}
-            className="flex items-center gap-2 px-4 py-2 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition"
+            className="flex items-center gap-2 px-4 py-2 rounded-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
             ⬇ Backup
           </button>
@@ -199,7 +199,7 @@ const BulkInventoryActions: React.FC<BulkInventoryActionsProps> = ({
               setActionMode("restock");
             }}
             disabled={loading || selectedCount === 0}
-            className="flex items-center gap-2 px-4 py-2 rounded bg-green-600 hover:bg-green-700 text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition"
+            className="flex items-center gap-2 px-4 py-2 rounded-sm bg-green-600 hover:bg-green-700 text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
             + Add Stock
           </button>
@@ -214,7 +214,7 @@ const BulkInventoryActions: React.FC<BulkInventoryActionsProps> = ({
               setActionMode("setQuantity");
             }}
             disabled={loading || selectedCount === 0}
-            className="flex items-center gap-2 px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition"
+            className="flex items-center gap-2 px-4 py-2 rounded-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
             = Set Quantity
           </button>
@@ -245,7 +245,7 @@ const BulkInventoryActions: React.FC<BulkInventoryActionsProps> = ({
                 max="999999"
                 value={quantity}
                 onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 0))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 placeholder="0"
               />
             </div>
@@ -254,14 +254,14 @@ const BulkInventoryActions: React.FC<BulkInventoryActionsProps> = ({
               <button
                 onClick={() => setActionMode(null)}
                 disabled={loading}
-                className="flex-1 px-4 py-2 rounded border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 disabled:opacity-50 transition"
+                className="flex-1 px-4 py-2 rounded-sm border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 disabled:opacity-50 transition"
               >
                 Cancel
               </button>
               <button
                 onClick={handleRestock}
                 disabled={loading}
-                className="flex-1 px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold disabled:opacity-50 transition"
+                className="flex-1 px-4 py-2 rounded-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold disabled:opacity-50 transition"
               >
                 {loading ? "Processing..." : "Confirm"}
               </button>

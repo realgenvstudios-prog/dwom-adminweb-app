@@ -131,7 +131,7 @@ const DashboardPage: React.FC = () => {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         {kpis.map((kpi, index) => (
-          <div key={index} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
+          <div key={index} className="bg-white rounded-lg shadow-xs p-6 hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">{kpi.title}</p>
@@ -150,7 +150,7 @@ const DashboardPage: React.FC = () => {
           shallower duplicate chart here. */}
       <button
         onClick={() => navigate('/finance')}
-        className="w-full bg-white rounded-xl shadow-sm p-6 flex items-center justify-between hover:shadow-md transition-shadow text-left"
+        className="w-full bg-white rounded-xl shadow-xs p-6 flex items-center justify-between hover:shadow-md transition-shadow text-left"
       >
         <div>
           <div className="font-semibold text-gray-900">Revenue, P&L, and margin</div>

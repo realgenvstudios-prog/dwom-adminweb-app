@@ -60,7 +60,7 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
 
         <form onSubmit={handleSubmit} className="px-6 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
           {error && (
-            <div className="p-3 rounded bg-red-50 text-red-700 text-sm">
+            <div className="p-3 rounded-sm bg-red-50 text-red-700 text-sm">
               {error}
             </div>
           )}
@@ -73,7 +73,7 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., Breakfast Bundle, Family Pack"
               disabled={loading}
             />
@@ -86,7 +86,7 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               placeholder="Optional description..."
               rows={2}
               disabled={loading}
@@ -104,7 +104,7 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
               step="0.5"
               value={discount}
               onChange={(e) => setDiscount(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., 10"
               disabled={loading}
             />
@@ -157,14 +157,14 @@ const CreateBundleModal: React.FC<CreateBundleModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 rounded bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 disabled:opacity-50"
+              className="px-4 py-2 rounded-sm bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 rounded bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-50"
+              className="px-4 py-2 rounded-sm bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-50"
             >
               {loading ? 'Saving...' : editingBundle ? 'Update Bundle' : 'Create Bundle'}
             </button>

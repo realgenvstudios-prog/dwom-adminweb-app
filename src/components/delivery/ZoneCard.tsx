@@ -13,7 +13,7 @@ export default function ZoneCard({ zone, onEdit, onToggle, onDelete }: ZoneCardP
   const riderCount = zone.Rider?.length || 0;
 
   return (
-    <div className={`bg-white rounded-lg shadow-sm border p-5 transition hover:shadow-md ${zone.isActive ? "border-green-200" : "border-gray-300 opacity-75"}`}>
+    <div className={`bg-white rounded-lg shadow-xs border p-5 transition hover:shadow-md ${zone.isActive ? "border-green-200" : "border-gray-300 opacity-75"}`}>
       <div className="flex items-start justify-between mb-3">
         <div>
           <h4 className="font-bold text-gray-900 text-lg">{zone.name}</h4>

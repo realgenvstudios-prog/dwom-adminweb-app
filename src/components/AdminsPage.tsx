@@ -152,15 +152,15 @@ const AdminsPage: React.FC = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
-      <div className="max-w-screen-2xl mx-auto">
+      <div className="max-w-(--breakpoint-2xl) mx-auto">
         {/* Header Bar */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-5 mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-xs px-6 py-5 mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Admins & Access Control</h1>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 w-full sm:w-auto">
             <button
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-5 py-2 shadow-sm transition"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-5 py-2 shadow-xs transition"
               onClick={() => setShowModal(true)}
             >
               Invite Admin
@@ -201,7 +201,7 @@ const AdminsPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Left: Admins Table */}
             <div className="lg:col-span-8">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+            <div className="bg-white rounded-xl shadow-xs border border-gray-100 p-6 mb-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Admin Users</h2>
               </div>
@@ -262,7 +262,7 @@ const AdminsPage: React.FC = () => {
                 </div>
                 <div className="flex gap-2 items-center">
                   <button
-                    className="px-2 py-1 rounded hover:bg-gray-100 disabled:opacity-50"
+                    className="px-2 py-1 rounded-sm hover:bg-gray-100 disabled:opacity-50"
                     disabled={page === 1}
                     onClick={() => setPage(page - 1)}
                   >
@@ -271,14 +271,14 @@ const AdminsPage: React.FC = () => {
                   {Array.from({ length: totalPages }, (_, i) => (
                     <button
                       key={i}
-                      className={`px-2 py-1 rounded ${page === i + 1 ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}
+                      className={`px-2 py-1 rounded-sm ${page === i + 1 ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}
                       onClick={() => setPage(i + 1)}
                     >
                       {i + 1}
                     </button>
                   ))}
                   <button
-                    className="px-2 py-1 rounded hover:bg-gray-100 disabled:opacity-50"
+                    className="px-2 py-1 rounded-sm hover:bg-gray-100 disabled:opacity-50"
                     disabled={page === totalPages}
                     onClick={() => setPage(page + 1)}
                   >
@@ -291,13 +291,13 @@ const AdminsPage: React.FC = () => {
           {/* Right: Summary & Activity */}
           <div className="lg:col-span-4 flex flex-col gap-8">
             {/* Role Summary */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="bg-white rounded-xl shadow-xs border border-gray-100 p-6">
               <h3 className="text-lg font-semibold mb-4">Role Summary</h3>
               <div className="space-y-2">
                 {metrics && Object.entries(metrics.roleCounts).map(([role, count]) => (
                   <button
                     key={role}
-                    className={`flex items-center justify-between w-full px-3 py-2 rounded hover:bg-blue-50 transition text-sm ${roleFilter === role ? 'bg-blue-100 font-semibold' : ''}`}
+                    className={`flex items-center justify-between w-full px-3 py-2 rounded-sm hover:bg-blue-50 transition text-sm ${roleFilter === role ? 'bg-blue-100 font-semibold' : ''}`}
                     onClick={() => { setRoleFilter(role); setPage(1); }}
                   >
                     <span>{role}</span>
@@ -307,7 +307,7 @@ const AdminsPage: React.FC = () => {
               </div>
             </div>
             {/* Recent Admin Activity */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="bg-white rounded-xl shadow-xs border border-gray-100 p-6">
               <h3 className="text-lg font-semibold mb-4">Recent Admin Activity</h3>
               <div className="space-y-3 text-sm text-gray-700">
                 {activity.length > 0 ? (
@@ -323,7 +323,7 @@ const AdminsPage: React.FC = () => {
               </div>
             </div>
             {/* Access Alerts */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="bg-white rounded-xl shadow-xs border border-gray-100 p-6">
               <h3 className="text-lg font-semibold mb-4">Access Alerts</h3>
               <ul className="space-y-2 text-sm">
                 {alerts.length > 0 ? (
@@ -409,7 +409,7 @@ const AdminsPage: React.FC = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-sm"
+                    className="px-5 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-xs"
                   >
                     Send Invite
                   </button>

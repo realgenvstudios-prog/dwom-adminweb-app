@@ -107,7 +107,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
 
         <form onSubmit={handleSubmit} className="px-6 py-4 space-y-4">
           {error && (
-            <div className="p-3 rounded bg-red-50 text-red-700 text-sm">
+            <div className="p-3 rounded-sm bg-red-50 text-red-700 text-sm">
               {error}
             </div>
           )}
@@ -120,7 +120,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., Vegetables, Grains, Spices"
               disabled={loading}
             />
@@ -134,7 +134,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
               type="text"
               value={nameFrench}
               onChange={(e) => setNameFrench(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., Légumes, Céréales, Épices"
               disabled={loading}
             />
@@ -147,7 +147,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               placeholder="Optional description..."
               rows={3}
               disabled={loading}
@@ -161,14 +161,14 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 rounded bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 disabled:opacity-50"
+              className="px-4 py-2 rounded-sm bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 rounded bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-50"
+              className="px-4 py-2 rounded-sm bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-50"
             >
               {loading ? 'Saving...' : editingCategory ? 'Update Category' : 'Create Category'}
             </button>

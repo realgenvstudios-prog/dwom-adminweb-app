@@ -103,7 +103,7 @@ const CreateOrderModal: React.FC<Props> = ({ open, onClose, onOrderCreated }) =>
               required
               value={formData.customerId}
               onChange={(e) => setFormData({ ...formData, customerId: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               placeholder="Enter customer user ID"
             />
           </div>
@@ -116,7 +116,7 @@ const CreateOrderModal: React.FC<Props> = ({ open, onClose, onOrderCreated }) =>
               required
               value={formData.deliveryAddressId}
               onChange={(e) => setFormData({ ...formData, deliveryAddressId: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               placeholder="Enter address ID"
             />
           </div>
@@ -127,7 +127,7 @@ const CreateOrderModal: React.FC<Props> = ({ open, onClose, onOrderCreated }) =>
             <select
               value={formData.paymentMethod}
               onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             >
               <option value="cash">Cash on Delivery</option>
               <option value="card">Card</option>
@@ -141,7 +141,7 @@ const CreateOrderModal: React.FC<Props> = ({ open, onClose, onOrderCreated }) =>
             <textarea
               value={formData.riderNotes}
               onChange={(e) => setFormData({ ...formData, riderNotes: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               placeholder="Add notes for the rider..."
               rows={3}
             />
@@ -158,7 +158,7 @@ const CreateOrderModal: React.FC<Props> = ({ open, onClose, onOrderCreated }) =>
                     required
                     value={item.productId}
                     onChange={(e) => handleItemChange(index, 'productId', e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                     placeholder="Product ID"
                   />
                   <input
@@ -167,7 +167,7 @@ const CreateOrderModal: React.FC<Props> = ({ open, onClose, onOrderCreated }) =>
                     min="1"
                     value={item.quantity}
                     onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value))}
-                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                     placeholder="Qty"
                   />
                   {formData.items.length > 1 && (

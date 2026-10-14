@@ -11,7 +11,7 @@ interface SuppliersTableProps {
 // SuppliersPage.
 export default function SuppliersTable({ suppliers, loadingSuppliers, onEdit, onDeactivate }: SuppliersTableProps) {
   return (
-    <section className="bg-white rounded-xl shadow p-6">
+    <section className="bg-white rounded-xl shadow-sm p-6">
       <h2 className="text-xl font-bold mb-4">All Suppliers</h2>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
@@ -61,14 +61,14 @@ export default function SuppliersTable({ suppliers, loadingSuppliers, onEdit, on
                     <div className="flex gap-2">
                       <button
                         onClick={() => onEdit(s)}
-                        className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200"
+                        className="text-xs px-2 py-1 rounded-sm bg-blue-100 text-blue-700 hover:bg-blue-200"
                       >
                         Edit
                       </button>
                       {s.active && (
                         <button
                           onClick={() => onDeactivate(s)}
-                          className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200"
+                          className="text-xs px-2 py-1 rounded-sm bg-red-100 text-red-700 hover:bg-red-200"
                         >
                           Deactivate
                         </button>

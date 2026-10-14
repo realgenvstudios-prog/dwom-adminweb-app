@@ -140,7 +140,7 @@ const SubscriptionDetailsDrawer: React.FC<Props> = ({ open, subscription, onClos
             ) : (
               <div className="space-y-2">
                 {items.map((item, idx) => (
-                  <div key={idx} className="bg-gray-50 rounded p-2">
+                  <div key={idx} className="bg-gray-50 rounded-sm p-2">
                     <div className="flex justify-between items-start">
                       <div>
                         <div className="text-xs font-medium text-gray-700">{item.product?.nameEnglish || "Product"}</div>

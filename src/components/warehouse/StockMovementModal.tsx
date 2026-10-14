@@ -106,7 +106,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
 
         <form onSubmit={handleSubmit} className="px-6 py-4 space-y-4">
           {error && (
-            <div className="p-3 rounded bg-red-50 text-red-700 text-sm">
+            <div className="p-3 rounded-sm bg-red-50 text-red-700 text-sm">
               {error}
             </div>
           )}
@@ -115,7 +115,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Product
             </label>
-            <p className="px-3 py-2 rounded bg-gray-50 text-gray-700 font-medium">
+            <p className="px-3 py-2 rounded-sm bg-gray-50 text-gray-700 font-medium">
               {productName || 'Unknown Product'}
             </p>
           </div>
@@ -125,7 +125,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Current Stock
               </label>
-              <p className="px-3 py-2 rounded bg-gray-50 text-gray-700 font-medium">
+              <p className="px-3 py-2 rounded-sm bg-gray-50 text-gray-700 font-medium">
                 {currentStock} units
               </p>
             </div>
@@ -141,7 +141,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
                 setType(e.target.value as 'IN' | 'OUT' | 'ADJUSTMENT');
                 setReason('');
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               disabled={loading}
             >
               <option value="IN">Stock In (Addition)</option>
@@ -159,7 +159,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
               min="1"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., 10"
               disabled={loading}
             />
@@ -172,7 +172,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
             <select
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               disabled={loading}
             >
               <option value="">Select reason</option>
@@ -192,7 +192,7 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
               type="text"
               value={reference}
               onChange={(e) => setReference(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., ORD-12345"
               disabled={loading}
             />
@@ -203,14 +203,14 @@ const StockMovementModal: React.FC<StockMovementModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 rounded bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 disabled:opacity-50"
+              className="px-4 py-2 rounded-sm bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 rounded bg-green-600 text-white font-medium hover:bg-green-700 disabled:opacity-50"
+              className="px-4 py-2 rounded-sm bg-green-600 text-white font-medium hover:bg-green-700 disabled:opacity-50"
             >
               {loading ? 'Recording...' : 'Record Movement'}
             </button>

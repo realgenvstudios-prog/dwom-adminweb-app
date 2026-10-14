@@ -73,7 +73,7 @@ const AssignZoneModal: React.FC<AssignZoneModalProps> = ({
         </p>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-sm text-red-700 text-sm">
             {error}
           </div>
         )}
@@ -96,7 +96,7 @@ const AssignZoneModal: React.FC<AssignZoneModalProps> = ({
             <select
               value={selectedZoneId}
               onChange={(e) => setSelectedZoneId(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             >
               {zones.map((zone) => (
                 <option key={zone.id} value={zone.id}>

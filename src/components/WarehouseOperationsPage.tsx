@@ -201,27 +201,27 @@ const WarehouseOperationsPage: React.FC = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
-              <div className="bg-white rounded-xl shadow p-6">
+              <div className="bg-white rounded-xl shadow-sm p-6">
                 <p className="text-sm text-gray-600 mb-2">Total Quantity</p>
                 <p className="text-4xl font-bold text-blue-600">{stats?.totalUnits || 0}</p>
                 <p className="text-xs text-gray-500 mt-2">{stats?.totalProducts || 0} products tracked</p>
               </div>
-              <div className="bg-white rounded-xl shadow p-6">
+              <div className="bg-white rounded-xl shadow-sm p-6">
                 <p className="text-sm text-gray-600 mb-2">Low Stock Items</p>
                 <p className="text-4xl font-bold text-yellow-500">{stats?.lowStockItems || 0}</p>
                 <p className="text-xs text-gray-500 mt-2">Below minimum threshold</p>
               </div>
-              <div className="bg-white rounded-xl shadow p-6">
+              <div className="bg-white rounded-xl shadow-sm p-6">
                 <p className="text-sm text-gray-600 mb-2">Out of Stock</p>
                 <p className="text-4xl font-bold text-red-500">{stats?.outOfStockItems || 0}</p>
                 <p className="text-xs text-gray-500 mt-2">Unavailable products</p>
               </div>
-              <div className="bg-white rounded-xl shadow p-6">
+              <div className="bg-white rounded-xl shadow-sm p-6">
                 <p className="text-sm text-gray-600 mb-2">Inventory Value</p>
                 <p className="text-4xl font-bold text-green-600">GH₵ {(stats?.totalInventoryValue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 <p className="text-xs text-gray-500 mt-2">At sell price</p>
               </div>
-              <div className="bg-white rounded-xl shadow p-6">
+              <div className="bg-white rounded-xl shadow-sm p-6">
                 <p className="text-sm text-gray-600 mb-2">Inventory Cost Basis</p>
                 <p className="text-4xl font-bold text-purple-600">GH₵ {(stats?.totalInventoryCostBasis || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 <p className="text-xs text-gray-500 mt-2">What this stock actually cost</p>
@@ -247,7 +247,7 @@ const WarehouseOperationsPage: React.FC = () => {
             {!showBulkOperations ? (
               <>
             {/* Inventory Table */}
-            <section className="bg-white rounded-xl shadow p-6">
+            <section className="bg-white rounded-xl shadow-sm p-6">
               <h2 className="text-xl font-bold mb-4">Inventory List</h2>
               
               <div className="flex flex-wrap gap-4 mb-6">
@@ -256,12 +256,12 @@ const WarehouseOperationsPage: React.FC = () => {
                   placeholder="Search products..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1 min-w-[200px] border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 min-w-[200px] border border-gray-300 rounded-lg px-4 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="stock">Sort by Stock</option>
                   <option value="name">Sort by Name</option>
@@ -308,28 +308,28 @@ const WarehouseOperationsPage: React.FC = () => {
                               <div className="flex gap-2 flex-wrap">
                                 <button
                                   onClick={() => handleEditThresholds(item)}
-                                  className="text-xs px-2 py-1 rounded bg-orange-100 text-orange-700 hover:bg-orange-200"
+                                  className="text-xs px-2 py-1 rounded-sm bg-orange-100 text-orange-700 hover:bg-orange-200"
                                   title="Edit thresholds"
                                 >
                                   Settings
                                 </button>
                                 <button
                                   onClick={() => handleUpdateStock(item)}
-                                  className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200"
+                                  className="text-xs px-2 py-1 rounded-sm bg-blue-100 text-blue-700 hover:bg-blue-200"
                                   title="Update stock"
                                 >
                                   Restock
                                 </button>
                                 <button
                                   onClick={() => handleRecordMovement(item)}
-                                  className="text-xs px-2 py-1 rounded bg-green-100 text-green-700 hover:bg-green-200"
+                                  className="text-xs px-2 py-1 rounded-sm bg-green-100 text-green-700 hover:bg-green-200"
                                   title="Record movement"
                                 >
                                   Move
                                 </button>
                                 <button
                                   onClick={() => handleViewHistory(item)}
-                                  className="text-xs px-2 py-1 rounded bg-purple-100 text-purple-700 hover:bg-purple-200"
+                                  className="text-xs px-2 py-1 rounded-sm bg-purple-100 text-purple-700 hover:bg-purple-200"
                                   title="View history"
                                 >
                                   History

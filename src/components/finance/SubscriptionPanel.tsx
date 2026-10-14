@@ -37,10 +37,10 @@ const SubscriptionPanel: React.FC = () => {
   const projectedMRR = Math.round(activeSubscriptions * 25); // GHS 25/month
 
   return (
-    <div className="bg-white rounded-xl shadow p-6 mb-8">
+    <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
       <h3 className="text-lg font-semibold mb-4">Subscriptions & Predictability</h3>
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm">
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-sm text-sm">
           ⚠️ {error}
         </div>
       )}

@@ -49,7 +49,7 @@ export default function ProductPicker({
           placeholder="Search products..."
           value={productSearch}
           onChange={(e) => setProductSearch(e.target.value)}
-          className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           disabled={loading}
         />
       </div>
@@ -102,7 +102,7 @@ export default function ProductPicker({
               ? parseFloat(product.pricePerUnit)
               : (product.pricePerUnit as number);
             return (
-              <div key={product.id as number} className={`border rounded p-3 transition-colors ${bundleItem ? 'border-blue-400 bg-blue-50' : 'border-gray-200'}`}>
+              <div key={product.id as number} className={`border rounded-sm p-3 transition-colors ${bundleItem ? 'border-blue-400 bg-blue-50' : 'border-gray-200'}`}>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -132,7 +132,7 @@ export default function ProductPicker({
                         min="1"
                         value={bundleItem.quantity}
                         onChange={(e) => onUpdateQuantity(product.id as any, parseInt(e.target.value))}
-                        className="w-16 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-16 px-2 py-1 border border-gray-300 rounded-sm text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                         disabled={loading}
                       />
                       <span className="text-xs text-gray-500">

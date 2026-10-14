@@ -36,7 +36,7 @@ export default function OrderItemsList({ items, loading, error }: OrderItemsList
                 </span>
               </div>
               {(item as any).notes && (
-                <div className="mt-1.5 flex items-start gap-1.5 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                <div className="mt-1.5 flex items-start gap-1.5 bg-amber-50 border border-amber-200 rounded-sm px-2 py-1">
                   <span className="text-xs text-amber-800">📝 <strong>Note:</strong> {(item as any).notes}</span>
                 </div>
               )}

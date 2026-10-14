@@ -99,7 +99,7 @@ const SubscriptionsSummaryCards: React.FC = () => {
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-5 animate-pulse h-20"
+            className="bg-white rounded-xl border border-gray-100 shadow-xs px-6 py-5 animate-pulse h-20"
           />
         ))}
       </div>
@@ -111,7 +111,7 @@ const SubscriptionsSummaryCards: React.FC = () => {
       {cards.map((card) => (
         <div
           key={card.label}
-          className="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-5 flex flex-col gap-1 min-w-[180px]"
+          className="bg-white rounded-xl border border-gray-100 shadow-xs px-6 py-5 flex flex-col gap-1 min-w-[180px]"
         >
           <div className="text-xs font-medium text-gray-500 mb-1">{card.label}</div>
           <div className="text-2xl font-bold text-gray-900 flex items-baseline gap-2">

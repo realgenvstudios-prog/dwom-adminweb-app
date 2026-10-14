@@ -81,23 +81,23 @@ export default function CouponsTable({ loading, filtered, search, filterStatus, 
                 <td className="px-4 py-3 whitespace-nowrap">
                   <button
                     onClick={() => onToggle(coupon)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${coupon.active ? 'bg-green-500' : 'bg-gray-300'}`}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-hidden ${coupon.active ? 'bg-green-500' : 'bg-gray-300'}`}
                     title={coupon.active ? 'Click to deactivate' : 'Click to activate'}
                   >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${coupon.active ? 'translate-x-6' : 'translate-x-1'}`} />
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${coupon.active ? 'translate-x-6' : 'translate-x-1'}`} />
                   </button>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => onEdit(coupon)}
-                      className="text-blue-600 hover:text-blue-800 text-xs font-medium px-2 py-1 rounded hover:bg-blue-50 transition-colors"
+                      className="text-blue-600 hover:text-blue-800 text-xs font-medium px-2 py-1 rounded-sm hover:bg-blue-50 transition-colors"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => onRequestDelete(coupon.id)}
-                      className="text-red-500 hover:text-red-700 text-xs font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                      className="text-red-500 hover:text-red-700 text-xs font-medium px-2 py-1 rounded-sm hover:bg-red-50 transition-colors"
                     >
                       Delete
                     </button>

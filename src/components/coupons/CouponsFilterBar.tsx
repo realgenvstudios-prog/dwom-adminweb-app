@@ -7,7 +7,7 @@ interface CouponsFilterBarProps {
 
 export default function CouponsFilterBar({ search, setSearch, filterStatus, setFilterStatus }: CouponsFilterBarProps) {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-4 mb-6 flex flex-col sm:flex-row gap-3">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-xs px-6 py-4 mb-6 flex flex-col sm:flex-row gap-3">
       <input
         className="border rounded-lg px-4 py-2 flex-1 text-sm"
         placeholder="Search by code or description…"

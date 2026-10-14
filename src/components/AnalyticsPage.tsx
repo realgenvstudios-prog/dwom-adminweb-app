@@ -112,7 +112,7 @@ const AnalyticsPage: React.FC = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
         </div>
       ) : totalEvents === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-12 text-center">
           <p className="text-lg font-semibold text-gray-800 mb-2">No events recorded yet</p>
           <p className="text-gray-600 max-w-md mx-auto">
             The tracking pipeline is live, but no activity has come in for this range yet. Mobile
@@ -125,7 +125,7 @@ const AnalyticsPage: React.FC = () => {
           {/* Funnel step cards */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
             {FUNNEL_EVENTS.map((step) => (
-              <div key={step.name} className={`bg-white rounded-lg shadow p-6 border-l-4 ${step.accent.split(' ')[0]}`}>
+              <div key={step.name} className={`bg-white rounded-lg shadow-sm p-6 border-l-4 ${step.accent.split(' ')[0]}`}>
                 <p className="text-gray-600 text-sm">{step.label}</p>
                 <p className={`text-3xl font-bold ${step.accent.split(' ')[1]}`}>
                   {countFor(step.name).toLocaleString()}
@@ -135,7 +135,7 @@ const AnalyticsPage: React.FC = () => {
           </div>
 
           {/* All events chart */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-8">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-6 mb-8">
             <div className="font-semibold text-gray-800 mb-4">Event counts, this range</div>
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
@@ -160,7 +160,7 @@ const AnalyticsPage: React.FC = () => {
 
           {/* Everything else, as a table */}
           {otherEvents.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
               <div className="font-semibold text-gray-800 px-6 py-4 border-b border-gray-100">
                 Other events
               </div>

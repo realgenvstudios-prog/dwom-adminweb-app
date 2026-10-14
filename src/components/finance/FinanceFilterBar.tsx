@@ -12,14 +12,14 @@ const FinanceFilterBar: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 w-full">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-xs px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 w-full">
       <FinanceFilters />
       <div className="relative flex-1 min-w-[180px]">
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => handleSearch(e.target.value)}
-          className="border border-gray-300 rounded-lg px-4 py-2 w-full text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="border border-gray-300 rounded-lg px-4 py-2 w-full text-base focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           placeholder="Search by customer, order, or payment..."
         />
         {searchQuery && (

@@ -79,7 +79,7 @@ export default function AdminSecuritySection() {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div className="bg-white rounded-xl shadow-xs border border-gray-100 p-6">
       <h3 className="text-lg font-semibold mb-4">Account Security</h3>
 
       <form onSubmit={handleChangePassword} className="flex flex-col gap-3 mb-6">

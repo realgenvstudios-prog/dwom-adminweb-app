@@ -130,27 +130,27 @@ const SupportPage: React.FC = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
-      <div className="max-w-screen-2xl mx-auto">
+      <div className="max-w-(--breakpoint-2xl) mx-auto">
         {/* KPI Cards */}
         {metrics && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col items-center justify-center text-center">
+            <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-6 flex flex-col items-center justify-center text-center">
               <div className="text-gray-600 text-sm font-medium mb-2">Total Tickets</div>
               <div className="text-3xl font-bold text-gray-900">{metrics.totalTickets}</div>
             </div>
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col items-center justify-center text-center">
+            <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-6 flex flex-col items-center justify-center text-center">
               <div className="text-gray-600 text-sm font-medium mb-2">Open</div>
               <div className="text-3xl font-bold text-blue-600">{metrics.openTickets}</div>
             </div>
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col items-center justify-center text-center">
+            <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-6 flex flex-col items-center justify-center text-center">
               <div className="text-gray-600 text-sm font-medium mb-2">Avg Response</div>
               <div className="text-3xl font-bold text-yellow-600">{metrics.avgResponseTime}m</div>
             </div>
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col items-center justify-center text-center">
+            <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-6 flex flex-col items-center justify-center text-center">
               <div className="text-gray-600 text-sm font-medium mb-2">Avg Resolution</div>
               <div className="text-3xl font-bold text-green-600">{Math.floor(metrics.avgResolutionTime / 60)}h</div>
             </div>
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col items-center justify-center text-center">
+            <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-6 flex flex-col items-center justify-center text-center">
               <div className="text-gray-600 text-sm font-medium mb-2">FCR Rate</div>
               <div className="text-3xl font-bold text-purple-600">{metrics.firstContactResolution}%</div>
             </div>
@@ -158,7 +158,7 @@ const SupportPage: React.FC = () => {
         )}
 
         {/* Top Bar */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-5 mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-xs px-6 py-5 mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Support</h1>
           </div>
@@ -191,7 +191,7 @@ const SupportPage: React.FC = () => {
         ) : (
           <div className="flex flex-col gap-8">
             {/* Ticket List */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="bg-white rounded-xl shadow-xs border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Tickets ({filtered.length})</h2>
               </div>
@@ -237,14 +237,14 @@ const SupportPage: React.FC = () => {
                   {`${pageStart}–${pageEnd} of ${filtered.length}`}
                 </div>
                 <div className="flex gap-2 items-center">
-                  <button className="px-2 py-1 rounded hover:bg-gray-100">Prev</button>
-                  <button className="px-2 py-1 rounded hover:bg-gray-100">Next</button>
+                  <button className="px-2 py-1 rounded-sm hover:bg-gray-100">Prev</button>
+                  <button className="px-2 py-1 rounded-sm hover:bg-gray-100">Next</button>
                 </div>
               </div>
             </div>
 
             {/* Ticket Details */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="bg-white rounded-xl shadow-xs border border-gray-100 p-6">
               {selectedTicket ? (
                 <div className="flex flex-col h-full">
                   {/* Header */}
@@ -253,21 +253,21 @@ const SupportPage: React.FC = () => {
                       <div className="font-bold text-lg">{selectedTicket.subject}</div>
                       <div className="flex gap-2">
                         <select 
-                          className="border rounded px-2 py-1 text-xs" 
+                          className="border rounded-sm px-2 py-1 text-xs" 
                           value={selectedTicket.status} 
                           onChange={(e) => handleStatusChange(e.target.value)}
                         >
                           {statuses.filter(s => s !== "All").map(s => <option key={s}>{s}</option>)}
                         </select>
                         <select 
-                          className="border rounded px-2 py-1 text-xs" 
+                          className="border rounded-sm px-2 py-1 text-xs" 
                           value={selectedTicket.priority} 
                           onChange={(e) => handlePriorityChange(e.target.value)}
                         >
                           {priorities.map(p => <option key={p}>{p}</option>)}
                         </select>
                         <select 
-                          className="border rounded px-2 py-1 text-xs" 
+                          className="border rounded-sm px-2 py-1 text-xs" 
                           value={selectedTicket.assigned} 
                           onChange={(e) => handleAssignChange(e.target.value)}
                         >
@@ -289,7 +289,7 @@ const SupportPage: React.FC = () => {
                     <div className="flex flex-col gap-3">
                       {selectedTicket.conversation.map((msg, i) => (
                         <div key={i} className={`flex ${msg.sender === "Admin" ? "justify-end" : "justify-start"}`}>
-                          <div className={`max-w-[70%] px-4 py-2 rounded-lg shadow-sm text-sm ${msg.sender === "Admin" ? "bg-blue-100 text-blue-900" : "bg-gray-100 text-gray-900"}`}>
+                          <div className={`max-w-[70%] px-4 py-2 rounded-lg shadow-xs text-sm ${msg.sender === "Admin" ? "bg-blue-100 text-blue-900" : "bg-gray-100 text-gray-900"}`}>
                             <div className="flex items-center gap-2 mb-1">
                               <span className="font-semibold">{msg.sender}</span>
                               <span className="text-xs text-gray-400">{msg.time}</span>
@@ -305,7 +305,7 @@ const SupportPage: React.FC = () => {
                   <div className="border-t pt-4 mt-auto">
                     <div className="flex gap-2 mb-2">
                       <select
-                        className="border rounded px-2 py-1 text-xs"
+                        className="border rounded-sm px-2 py-1 text-xs"
                         value={quickReply}
                         onChange={e => setQuickReply(e.target.value)}
                       >
@@ -313,7 +313,7 @@ const SupportPage: React.FC = () => {
                         {quickReplies.map(q => <option key={q}>{q}</option>)}
                       </select>
                       <button
-                        className="px-3 py-1 rounded bg-gray-100 text-gray-700 text-xs hover:bg-gray-200"
+                        className="px-3 py-1 rounded-sm bg-gray-100 text-gray-700 text-xs hover:bg-gray-200"
                         onClick={() => setReply(reply + (quickReply ? (reply ? "\n" : "") + quickReply : ""))}
                       >
                         Insert
@@ -328,7 +328,7 @@ const SupportPage: React.FC = () => {
                     />
                     <div className="flex gap-2 justify-end">
                       <button
-                        className="px-5 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-sm disabled:opacity-50"
+                        className="px-5 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-xs disabled:opacity-50"
                         onClick={handleSendReply}
                         disabled={!reply.trim() || replyLoading}
                       >

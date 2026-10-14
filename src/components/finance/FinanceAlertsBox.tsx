@@ -57,7 +57,7 @@ const FinanceAlertsBox: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow p-6 mb-8">
+    <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
       <h3 className="text-lg font-semibold mb-4">Alerts</h3>
       {loading ? (
         <div className="flex items-center justify-center py-8">
@@ -69,7 +69,7 @@ const FinanceAlertsBox: React.FC = () => {
       ) : (
         <ul className="space-y-2 text-sm">
           {alerts.map((alert, idx) => (
-            <li key={idx} className="bg-yellow-50 text-yellow-800 px-3 py-2 rounded-lg shadow-sm">
+            <li key={idx} className="bg-yellow-50 text-yellow-800 px-3 py-2 rounded-lg shadow-xs">
               {alert}
             </li>
           ))}

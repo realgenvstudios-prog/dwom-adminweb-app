@@ -60,7 +60,7 @@ export default function InternalTimelineSection({
           <select
             value={newEventStage}
             onChange={(e) => setNewEventStage(e.target.value)}
-            className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           >
             {SUGGESTED_ORDER_EVENT_STAGES.map((stage) => (
               <option key={stage} value={stage}>
@@ -77,7 +77,7 @@ export default function InternalTimelineSection({
               type="text"
               value={newEventCustomStage}
               onChange={(e) => setNewEventCustomStage(e.target.value)}
-              className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               placeholder="e.g. repackaged"
             />
           </div>
@@ -88,7 +88,7 @@ export default function InternalTimelineSection({
             type="text"
             value={newEventPerformedBy}
             onChange={(e) => setNewEventPerformedBy(e.target.value)}
-            className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             placeholder="e.g. Ama"
           />
         </div>

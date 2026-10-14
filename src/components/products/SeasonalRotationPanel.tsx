@@ -38,7 +38,7 @@ const SeasonalRotationPanel: React.FC<SeasonalRotationPanelProps> = ({ seasonalP
   };
 
   return (
-    <div className="bg-white rounded-xl shadow border border-gray-100 p-6 mb-6">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-4">Seasonal Rotation</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div>
@@ -46,7 +46,7 @@ const SeasonalRotationPanel: React.FC<SeasonalRotationPanelProps> = ({ seasonalP
           <select
             value={config.rotationFrequency}
             onChange={(e) => setConfig({ ...config, rotationFrequency: e.target.value as SeasonalConfig["rotationFrequency"] })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 outline-none"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 outline-hidden"
           >
             <option value="daily">Daily</option>
             <option value="weekly">Weekly</option>
@@ -58,7 +58,7 @@ const SeasonalRotationPanel: React.FC<SeasonalRotationPanelProps> = ({ seasonalP
           <select
             value={config.featuredProductId}
             onChange={(e) => setConfig({ ...config, featuredProductId: parseInt(e.target.value, 10) })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 outline-none"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 outline-hidden"
           >
             <option value={0}>Auto-rotate (Random)</option>
             {seasonalProducts.map((p) => (

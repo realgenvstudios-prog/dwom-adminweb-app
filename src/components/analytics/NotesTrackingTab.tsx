@@ -51,30 +51,30 @@ const NotesTrackingTab: React.FC = () => {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-5 gap-4 mb-8">
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-600">
+        <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-blue-600">
           <p className="text-gray-600 text-sm">Total Notes</p>
           <p className="text-3xl font-bold text-blue-600">{analytics.stats.totalNotes}</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-600">
+        <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-green-600">
           <p className="text-gray-600 text-sm">Successfully Parsed</p>
           <p className="text-3xl font-bold text-green-600">{analytics.stats.processedNotes}</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-600">
+        <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-yellow-600">
           <p className="text-gray-600 text-sm">Parsing Errors</p>
           <p className="text-3xl font-bold text-yellow-600">{analytics.stats.errorNotes}</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-purple-600">
+        <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-600">
           <p className="text-gray-600 text-sm">Added to Cart</p>
           <p className="text-3xl font-bold text-purple-600">{analytics.stats.addedToCart}</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-indigo-600">
+        <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-indigo-600">
           <p className="text-gray-600 text-sm">Avg Confidence</p>
           <p className="text-3xl font-bold text-indigo-600">{(analytics.stats.avgConfidence * 100).toFixed(0)}%</p>
         </div>
       </div>
 
       {/* Sub-tabs */}
-      <div className="bg-white rounded-lg shadow mb-6">
+      <div className="bg-white rounded-lg shadow-sm mb-6">
         <div className="flex border-b border-gray-200">
           <button
             onClick={() => setSelectedTab('overview')}
@@ -125,7 +125,7 @@ const NotesTrackingTab: React.FC = () => {
                 <h3 className="text-lg font-semibold mb-4">Top Common Searches</h3>
                 <div className="space-y-3">
                   {analytics.commonSearches.slice(0, 10).map((search, index) => (
-                    <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded">
+                    <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-sm">
                       <div>
                         <p className="font-medium text-gray-900">{search.text}</p>
                       </div>
@@ -220,7 +220,7 @@ const NotesTrackingTab: React.FC = () => {
                 <div key={error.id} className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <div className="flex items-start justify-between mb-2">
                     <p className="font-semibold text-red-900">{error.originalText}</p>
-                    <span className="text-xs text-red-600 bg-red-100 px-2 py-1 rounded">
+                    <span className="text-xs text-red-600 bg-red-100 px-2 py-1 rounded-sm">
                       {new Date(error.createdAt).toLocaleDateString()}
                     </span>
                   </div>

@@ -51,7 +51,7 @@ export default function RidersTable({
                   <div className="text-xs text-gray-500">{rider.email}</div>
                 </td>
                 <td className="py-4 px-4">
-                  <span className="capitalize text-xs bg-blue-50 px-2 py-1 rounded">
+                  <span className="capitalize text-xs bg-blue-50 px-2 py-1 rounded-sm">
                     {rider.vehicleType}
                   </span>
                 </td>
@@ -63,7 +63,7 @@ export default function RidersTable({
                       onStatusChange(rider, e.target.value)
                     }
                     disabled={!rider.isActive}
-                    className={`px-3 py-1 rounded text-xs font-medium border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 ${getStatusColor(
+                    className={`px-3 py-1 rounded text-xs font-medium border-0 focus:outline-hidden focus:ring-2 focus:ring-blue-500 ${getStatusColor(
                       rider.status
                     )} ${!rider.isActive ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
@@ -89,14 +89,14 @@ export default function RidersTable({
                       <>
                         <button
                           onClick={(e) => {e.stopPropagation(); onAssignZone(rider);}}
-                          className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200"
+                          className="text-xs px-2 py-1 rounded-sm bg-blue-100 text-blue-700 hover:bg-blue-200"
                           title="Assign to zone"
                         >
                           Zone
                         </button>
                         <button
                           onClick={(e) => {e.stopPropagation(); onDeactivate(rider);}}
-                          className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200"
+                          className="text-xs px-2 py-1 rounded-sm bg-red-100 text-red-700 hover:bg-red-200"
                           title="Deactivate rider"
                         >
                           Deactivate
@@ -105,7 +105,7 @@ export default function RidersTable({
                     ) : (
                       <button
                         onClick={(e) => {e.stopPropagation(); onReactivate(rider);}}
-                        className="text-xs px-2 py-1 rounded bg-green-100 text-green-700 hover:bg-green-200"
+                        className="text-xs px-2 py-1 rounded-sm bg-green-100 text-green-700 hover:bg-green-200"
                         title="Reactivate rider"
                       >
                         Reactivate

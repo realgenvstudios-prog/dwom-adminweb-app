@@ -88,7 +88,7 @@ const SettingsTab: React.FC = () => {
         These numbers drive every cost/margin calculation across Overview, Product Costs, Expenses, and Workers & Trips.
       </p>
 
-      <form onSubmit={handleSave} className="bg-white shadow-sm rounded-xl border border-gray-100 p-6">
+      <form onSubmit={handleSave} className="bg-white shadow-xs rounded-xl border border-gray-100 p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {FIELDS.map((f) => (
             <div key={f.key}>

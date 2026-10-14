@@ -196,7 +196,7 @@ const CatalogPage: React.FC = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
-      <div className="max-w-screen-2xl mx-auto">
+      <div className="max-w-(--breakpoint-2xl) mx-auto">
         {/* Header Row */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
           <div>
@@ -207,11 +207,11 @@ const CatalogPage: React.FC = () => {
             <div className="flex gap-2 mt-3 sm:mt-0">
               <button
                 onClick={() => setCreateModalOpen(true)}
-                className="px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 text-sm"
+                className="px-4 py-2 rounded-sm bg-blue-600 text-white font-semibold hover:bg-blue-700 text-sm"
               >
                 Add New Product
               </button>
-              <button className="px-4 py-2 rounded bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 text-sm">Bulk Upload (CSV)</button>
+              <button className="px-4 py-2 rounded-sm bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 text-sm">Bulk Upload (CSV)</button>
             </div>
           )}
         </div>

@@ -24,7 +24,7 @@ export default function ZoneFormCard({
   onCancel,
 }: ZoneFormCardProps) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+    <div className="bg-white rounded-lg shadow-xs border border-gray-200 p-6 mb-8">
       <h2 className="text-xl font-bold mb-4">
         {editingZone ? `Edit Zone: ${editingZone.name}` : "Create New Delivery Zone"}
       </h2>
@@ -38,7 +38,7 @@ export default function ZoneFormCard({
               value={formData.name}
               onChange={handleChange}
               placeholder="e.g., Accra Central, East Legon, Tema"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-green-500"
               required
             />
           </div>
@@ -71,7 +71,7 @@ export default function ZoneFormCard({
               value={formData.deliveryFee}
               onChange={handleChange}
               placeholder="e.g., 8.00"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-green-500"
               required
             />
             <p className="text-xs text-gray-500 mt-1">Price charged to customer for delivery in this zone</p>

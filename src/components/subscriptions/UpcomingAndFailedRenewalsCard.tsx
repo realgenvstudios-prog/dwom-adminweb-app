@@ -67,7 +67,7 @@ const UpcomingAndFailedRenewalsCard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-5 flex flex-col gap-8">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-xs px-6 py-5 flex flex-col gap-8">
         <div className="h-40 bg-gray-100 rounded-lg animate-pulse" />
         <div className="h-24 bg-gray-100 rounded-lg animate-pulse" />
       </div>
@@ -75,7 +75,7 @@ const UpcomingAndFailedRenewalsCard: React.FC = () => {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-5 flex flex-col gap-8">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-xs px-6 py-5 flex flex-col gap-8">
       <div>
         <div className="font-semibold text-gray-800 mb-2">Upcoming Renewals (Next 7 Days)</div>
         {upcoming.length > 0 ? (

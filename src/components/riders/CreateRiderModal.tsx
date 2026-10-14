@@ -85,7 +85,7 @@ const CreateRiderModal: React.FC<CreateRiderModalProps> = ({
         <h2 className="text-2xl font-bold mb-4">Add New Rider</h2>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-sm text-red-700 text-sm">
             {error}
           </div>
         )}
@@ -101,7 +101,7 @@ const CreateRiderModal: React.FC<CreateRiderModalProps> = ({
               value={formData.name}
               onChange={handleChange}
               placeholder="e.g., John Doe"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -115,7 +115,7 @@ const CreateRiderModal: React.FC<CreateRiderModalProps> = ({
               value={formData.phone}
               onChange={handleChange}
               placeholder="e.g., +233501234567"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -129,7 +129,7 @@ const CreateRiderModal: React.FC<CreateRiderModalProps> = ({
               value={formData.email}
               onChange={handleChange}
               placeholder="e.g., john@example.com"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -141,7 +141,7 @@ const CreateRiderModal: React.FC<CreateRiderModalProps> = ({
               name="vehicleType"
               value={formData.vehicleType}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             >
               <option value="motor">Motor</option>
               <option value="car">Car</option>
@@ -154,7 +154,7 @@ const CreateRiderModal: React.FC<CreateRiderModalProps> = ({
                 type="checkbox"
                 checked={showLicense}
                 onChange={(e) => setShowLicense(e.target.checked)}
-                className="rounded border-gray-300"
+                className="rounded-sm border-gray-300"
               />
               <span className="text-sm text-gray-600">Add License Number</span>
             </label>
@@ -171,7 +171,7 @@ const CreateRiderModal: React.FC<CreateRiderModalProps> = ({
                 value={formData.licenseNumber}
                 onChange={handleChange}
                 placeholder="e.g., DL123456"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               />
             </div>
           )}

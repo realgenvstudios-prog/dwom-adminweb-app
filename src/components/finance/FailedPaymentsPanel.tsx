@@ -36,10 +36,10 @@ const FailedPaymentsPanel: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow p-6 mb-8">
+    <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
       <h3 className="text-lg font-semibold mb-4">Failed Payments</h3>
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm">
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-sm text-sm">
           ⚠️ {error}
         </div>
       )}

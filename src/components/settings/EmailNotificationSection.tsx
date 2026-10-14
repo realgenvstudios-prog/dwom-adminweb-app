@@ -29,7 +29,7 @@ export default function EmailNotificationSection({
   saving, settingsLoaded, onSave,
 }: EmailNotificationSectionProps) {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-8 flex flex-col gap-6">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-8 flex flex-col gap-6">
       <h2 className="text-xl font-semibold mb-2">Email & Notification Settings</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>

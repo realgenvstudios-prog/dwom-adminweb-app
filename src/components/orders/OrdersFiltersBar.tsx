@@ -28,24 +28,24 @@ const paymentOptions = [
 ];
 
 const OrdersFiltersBar: React.FC<Props> = ({ filter, onChange, zones, riders }) => (
-  <div className="bg-white rounded-lg border border-gray-100 shadow-sm px-4 py-2 flex flex-wrap gap-3 items-center mb-4">
+  <div className="bg-white rounded-lg border border-gray-100 shadow-xs px-4 py-2 flex flex-wrap gap-3 items-center mb-4">
     {/* Date Range Picker */}
     <input
       type="date"
-      className="border rounded px-2 py-1 text-sm"
+      className="border rounded-sm px-2 py-1 text-sm"
       value={filter.dateRange[0]}
       onChange={e => onChange({ dateRange: [e.target.value, filter.dateRange[1]] })}
     />
     <span className="mx-1 text-gray-400">–</span>
     <input
       type="date"
-      className="border rounded px-2 py-1 text-sm"
+      className="border rounded-sm px-2 py-1 text-sm"
       value={filter.dateRange[1]}
       onChange={e => onChange({ dateRange: [filter.dateRange[0], e.target.value] })}
     />
     {/* Order Status */}
     <select
-      className="border rounded px-2 py-1 text-sm"
+      className="border rounded-sm px-2 py-1 text-sm"
       value={filter.status}
       onChange={e => onChange({ status: e.target.value })}
     >
@@ -55,7 +55,7 @@ const OrdersFiltersBar: React.FC<Props> = ({ filter, onChange, zones, riders }) 
     </select>
     {/* Payment Status */}
     <select
-      className="border rounded px-2 py-1 text-sm"
+      className="border rounded-sm px-2 py-1 text-sm"
       value={filter.paymentStatus}
       onChange={e => onChange({ paymentStatus: e.target.value })}
     >
@@ -65,7 +65,7 @@ const OrdersFiltersBar: React.FC<Props> = ({ filter, onChange, zones, riders }) 
     </select>
     {/* Zone */}
     <select
-      className="border rounded px-2 py-1 text-sm"
+      className="border rounded-sm px-2 py-1 text-sm"
       value={filter.zone}
       onChange={e => onChange({ zone: e.target.value })}
     >
@@ -74,7 +74,7 @@ const OrdersFiltersBar: React.FC<Props> = ({ filter, onChange, zones, riders }) 
     </select>
     {/* Rider */}
     <select
-      className="border rounded px-2 py-1 text-sm"
+      className="border rounded-sm px-2 py-1 text-sm"
       value={filter.rider}
       onChange={e => onChange({ rider: e.target.value })}
     >
@@ -83,7 +83,7 @@ const OrdersFiltersBar: React.FC<Props> = ({ filter, onChange, zones, riders }) 
     </select>
     {/* Search */}
     <input
-      className="border rounded px-2 py-1 text-sm min-w-[180px] flex-1"
+      className="border rounded-sm px-2 py-1 text-sm min-w-[180px] flex-1"
       placeholder="Search by order ID, customer, phone…"
       value={filter.search}
       onChange={e => onChange({ search: e.target.value })}

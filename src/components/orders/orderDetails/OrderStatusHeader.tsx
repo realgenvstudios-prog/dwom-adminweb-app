@@ -36,7 +36,7 @@ export default function OrderStatusHeader({
   onOpenPickerModal,
 }: OrderStatusHeaderProps) {
   return (
-    <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
+    <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 shadow-xs">
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="text-2xl font-bold text-gray-900">Order #{order.id}</div>

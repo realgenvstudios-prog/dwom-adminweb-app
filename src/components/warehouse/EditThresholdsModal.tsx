@@ -66,7 +66,7 @@ const EditThresholdsModal: React.FC<EditThresholdsModalProps> = ({
         </p>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-sm text-red-700 text-sm">
             {error}
           </div>
         )}
@@ -81,7 +81,7 @@ const EditThresholdsModal: React.FC<EditThresholdsModalProps> = ({
               min="0"
               value={reorderLevel}
               onChange={(e) => setReorderLevel(parseInt(e.target.value) || 0)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., 10"
             />
             <p className="text-xs text-gray-500 mt-1">
@@ -98,7 +98,7 @@ const EditThresholdsModal: React.FC<EditThresholdsModalProps> = ({
               min="0"
               value={reorderQuantity}
               onChange={(e) => setReorderQuantity(parseInt(e.target.value) || 0)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., 50"
             />
             <p className="text-xs text-gray-500 mt-1">

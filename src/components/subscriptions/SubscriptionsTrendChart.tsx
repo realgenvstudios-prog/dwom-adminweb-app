@@ -67,7 +67,7 @@ const SubscriptionsTrendChart: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-5">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-xs px-6 py-5">
         <div className="font-semibold text-gray-800 mb-4">Subscriptions Trend</div>
         <div className="h-56 bg-gray-100 rounded-lg animate-pulse" />
       </div>
@@ -75,7 +75,7 @@ const SubscriptionsTrendChart: React.FC = () => {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-5">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-xs px-6 py-5">
       <div className="font-semibold text-gray-800 mb-4">Subscriptions Trend</div>
       <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">

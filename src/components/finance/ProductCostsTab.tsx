@@ -79,7 +79,7 @@ const ProductCostsTab: React.FC = () => {
         )}
       </p>
 
-      <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-6">
+      <div className="bg-white shadow-xs rounded-xl border border-gray-100 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Products ({filtered.length})</h2>
           <input

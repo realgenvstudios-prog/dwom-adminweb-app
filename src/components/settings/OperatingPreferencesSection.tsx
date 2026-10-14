@@ -34,7 +34,7 @@ export default function OperatingPreferencesSection({
   saving, settingsLoaded, onSave,
 }: OperatingPreferencesSectionProps) {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-8 flex flex-col gap-6">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-8 flex flex-col gap-6">
       <h2 className="text-xl font-semibold mb-2">Operating Preferences</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="flex items-center gap-3">
@@ -79,9 +79,9 @@ export default function OperatingPreferencesSection({
             <button
               type="button"
               onClick={() => setIsServiceClosed(v => !v)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isServiceClosed ? 'bg-red-600' : 'bg-gray-300'}`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-hidden ${isServiceClosed ? 'bg-red-600' : 'bg-gray-300'}`}
             >
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${isServiceClosed ? 'translate-x-6' : 'translate-x-1'}`} />
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${isServiceClosed ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
           </div>
           {isServiceClosed && (

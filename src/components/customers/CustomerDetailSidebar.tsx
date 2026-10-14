@@ -39,7 +39,7 @@ export default function CustomerDetailSidebar({
       {/* Profile Header */}
       <div className="p-6 pb-4 border-b border-gray-100">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold shrink-0">
+          <div className="w-14 h-14 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold shrink-0">
             {selectedCustomer.name.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">

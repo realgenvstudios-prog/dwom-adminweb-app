@@ -9,12 +9,12 @@ interface CustomersFilterBarProps {
 
 export default function CustomersFilterBar({ search, setSearch, selectedStatus, setSelectedStatus }: CustomersFilterBarProps) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+    <div className="bg-white rounded-xl shadow-xs border border-gray-100 p-4 mb-6">
       <div className="flex flex-col sm:flex-row gap-4">
         <input
           type="text"
           placeholder="Search by name, email, phone, or ID..."
-          className="flex-1 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />

@@ -83,7 +83,7 @@ const OrdersTable: React.FC<Props> = ({
 
   return (
     <>
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-x-auto">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead>
             <tr className="text-xs text-gray-500 font-semibold bg-gray-50">
@@ -159,7 +159,7 @@ const OrdersTable: React.FC<Props> = ({
                           e
                         )
                       }
-                      className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200"
+                      className="text-xs px-2 py-1 rounded-sm bg-blue-100 text-blue-700 hover:bg-blue-200"
                     >
                       Assign
                     </button>
@@ -181,7 +181,7 @@ const OrdersTable: React.FC<Props> = ({
         {/* Pagination */}
         <div className="flex justify-between items-center px-4 py-2 border-t border-gray-100 bg-gray-50">
           <button
-            className="px-3 py-1 rounded border text-sm disabled:opacity-50"
+            className="px-3 py-1 rounded-sm border text-sm disabled:opacity-50"
             onClick={() => onPageChange(page - 1)}
             disabled={page === 1}
           >
@@ -191,7 +191,7 @@ const OrdersTable: React.FC<Props> = ({
             {Array.from({ length: pageCount }, (_, i) => (
               <button
                 key={i}
-                className={`px-2 py-1 rounded ${page === i + 1 ? "bg-blue-100 text-blue-700 font-semibold" : "hover:bg-gray-200"}`}
+                className={`px-2 py-1 rounded-sm ${page === i + 1 ? "bg-blue-100 text-blue-700 font-semibold" : "hover:bg-gray-200"}`}
                 onClick={() => onPageChange(i + 1)}
               >
                 {i + 1}
@@ -199,7 +199,7 @@ const OrdersTable: React.FC<Props> = ({
             ))}
           </div>
           <button
-            className="px-3 py-1 rounded border text-sm disabled:opacity-50"
+            className="px-3 py-1 rounded-sm border text-sm disabled:opacity-50"
             onClick={() => onPageChange(page + 1)}
             disabled={page === pageCount}
           >

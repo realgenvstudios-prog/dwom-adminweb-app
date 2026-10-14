@@ -65,7 +65,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <div className="bg-white border-b border-gray-200 px-8 py-6 flex items-center justify-between shadow-sm">
+        <div className="bg-white border-b border-gray-200 px-8 py-6 flex items-center justify-between shadow-xs">
           <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
           <div className="flex items-center gap-4">
             <div className="text-right">

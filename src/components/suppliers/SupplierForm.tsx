@@ -32,7 +32,7 @@ export default function SupplierForm({
 }: SupplierFormProps) {
   const linkedProductIds = new Set(linkedProducts.map((l) => l.productId));
   return (
-    <section className="bg-white rounded-xl shadow p-6 mb-8">
+    <section className="bg-white rounded-xl shadow-sm p-6 mb-8">
       <h2 className="text-xl font-bold mb-4">{editingSupplierId ? "Edit Supplier" : "Add Supplier"}</h2>
       <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -41,7 +41,7 @@ export default function SupplierForm({
             type="text"
             value={supplierForm.name}
             onChange={(e) => setSupplierForm({ ...supplierForm, name: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
@@ -51,7 +51,7 @@ export default function SupplierForm({
             type="text"
             value={supplierForm.contactName}
             onChange={(e) => setSupplierForm({ ...supplierForm, contactName: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           />
         </div>
         <div>
@@ -60,7 +60,7 @@ export default function SupplierForm({
             type="text"
             value={supplierForm.phone}
             onChange={(e) => setSupplierForm({ ...supplierForm, phone: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           />
         </div>
         <div>
@@ -69,7 +69,7 @@ export default function SupplierForm({
             type="text"
             value={supplierForm.location}
             onChange={(e) => setSupplierForm({ ...supplierForm, location: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             placeholder="e.g. Makola Market"
           />
         </div>
@@ -79,7 +79,7 @@ export default function SupplierForm({
             type="text"
             value={supplierForm.notes}
             onChange={(e) => setSupplierForm({ ...supplierForm, notes: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           />
         </div>
         <div className="md:col-span-2 flex gap-3">
@@ -122,7 +122,7 @@ export default function SupplierForm({
                     checked={isLinked}
                     disabled={linkingProductId === p.id}
                     onChange={() => onToggleProductLink(p.id)}
-                    className="rounded border-gray-300"
+                    className="rounded-sm border-gray-300"
                   />
                   {p.nameEnglish}
                 </label>

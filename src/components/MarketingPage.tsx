@@ -109,7 +109,7 @@ const MarketingPage: React.FC = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
-      <div className="max-w-screen-2xl mx-auto">
+      <div className="max-w-(--breakpoint-2xl) mx-auto">
         <div className="mb-6 flex gap-2">
           <button
             onClick={() => setActiveTab("campaigns")}
@@ -135,7 +135,7 @@ const MarketingPage: React.FC = () => {
         <>
         {/* Top Filter Bar */}
         <div className="mb-8">
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 w-full">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-xs px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 w-full">
             <select className="border rounded-lg px-4 py-2 min-w-[150px] text-base" value={dateRange} onChange={e => setDateRange(e.target.value)}>
               <option value="today">Today</option>
               <option value="last-7-days">Last 7 days</option>
@@ -166,7 +166,7 @@ const MarketingPage: React.FC = () => {
         <div className="mb-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {kpis.map((kpi) => (
-              <div key={kpi.label} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col items-center justify-center h-full">
+              <div key={kpi.label} className="bg-white rounded-xl shadow-xs border border-gray-100 p-6 flex flex-col items-center justify-center h-full">
                 <span className="text-lg font-medium mb-2 text-center text-gray-600">{kpi.label}</span>
                 <span className="text-2xl font-bold text-center text-gray-900">{kpi.value}</span>
               </div>
@@ -178,7 +178,7 @@ const MarketingPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
           {/* Left Column - Campaigns */}
           <div className="lg:col-span-8 flex flex-col gap-8">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+            <div className="bg-white rounded-xl shadow-xs border border-gray-100 p-8">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Active Campaigns ({campaigns.filter(c => c.status === 'active').length})</h3>
                 <button onClick={() => setCampaignModalOpen(true)} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">+ New Campaign</button>
@@ -205,7 +205,7 @@ const MarketingPage: React.FC = () => {
                         <td className="py-2 pr-4 font-medium">{campaign.name}</td>
                         <td className="py-2 pr-4">
                           {campaign.Coupon && campaign.Coupon.length > 0 ? (
-                            <span className="text-xs font-mono bg-gray-100 px-2 py-0.5 rounded" title={`${campaign.Coupon[0].usageCount} uses`}>
+                            <span className="text-xs font-mono bg-gray-100 px-2 py-0.5 rounded-sm" title={`${campaign.Coupon[0].usageCount} uses`}>
                               {campaign.Coupon[0].code} · {campaign.Coupon[0].usageCount} uses
                             </span>
                           ) : (
@@ -237,7 +237,7 @@ const MarketingPage: React.FC = () => {
                             <button
                               onClick={() => handleLaunchCampaign(campaign)}
                               disabled={launchingId === campaign.id}
-                              className="px-3 py-1 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 disabled:opacity-50"
+                              className="px-3 py-1 bg-green-600 text-white rounded-sm text-xs font-medium hover:bg-green-700 disabled:opacity-50"
                             >
                               {launchingId === campaign.id ? 'Launching…' : 'Launch'}
                             </button>
@@ -256,7 +256,7 @@ const MarketingPage: React.FC = () => {
 
           {/* Right Column - Promo & Cart Codes */}
           <div className="lg:col-span-4 flex flex-col gap-8">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+            <div className="bg-white rounded-xl shadow-xs border border-gray-100 p-8">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Cart Sharing Codes</h3>
               </div>
@@ -269,20 +269,20 @@ const MarketingPage: React.FC = () => {
                           <div className="font-medium text-gray-900">{code.code}</div>
                           <div className="text-xs text-gray-500">Creator: {code.creator}</div>
                         </div>
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${code.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                        <span className={`px-2 py-1 rounded-sm text-xs font-medium ${code.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
                           {code.isActive ? 'Active' : 'Expired'}
                         </span>
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-xs text-center">
-                        <div className="bg-blue-50 rounded p-2">
+                        <div className="bg-blue-50 rounded-sm p-2">
                           <div className="font-semibold text-blue-600">{code.totalShares}</div>
                           <div className="text-gray-500">Shares</div>
                         </div>
-                        <div className="bg-green-50 rounded p-2">
+                        <div className="bg-green-50 rounded-sm p-2">
                           <div className="font-semibold text-green-600">{code.totalUsages}</div>
                           <div className="text-gray-500">Uses</div>
                         </div>
-                        <div className="bg-purple-50 rounded p-2">
+                        <div className="bg-purple-50 rounded-sm p-2">
                           <div className="font-semibold text-purple-600">GHS {code.totalRevenue.toLocaleString()}</div>
                           <div className="text-gray-500">Revenue</div>
                         </div>
@@ -295,7 +295,7 @@ const MarketingPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+            <div className="bg-white rounded-xl shadow-xs border border-gray-100 p-8">
               <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
               <div className="flex flex-col gap-3">
                 <button onClick={() => setCampaignModalOpen(true)} className="w-full border border-gray-300 rounded-lg py-2 font-medium hover:bg-gray-50 text-gray-700">Create Campaign</button>
@@ -318,7 +318,7 @@ const MarketingPage: React.FC = () => {
 
         {/* Notification History */}
         <div className="mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+          <div className="bg-white rounded-xl shadow-xs border border-gray-100 p-8">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Notification History</h3>
               <button onClick={() => setNotificationModalOpen(true)} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 text-sm">
@@ -329,8 +329,8 @@ const MarketingPage: React.FC = () => {
               <div className="text-center py-8">
                 <p className="text-gray-400 mb-3">No notifications sent yet</p>
                 <div className="flex gap-2 justify-center">
-                  <button onClick={() => setTemplateModalOpen(true)} className="px-3 py-1 border border-gray-300 rounded text-sm text-gray-600 hover:bg-gray-50">Create Template</button>
-                  <button onClick={() => setNotificationModalOpen(true)} className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">Send Notification</button>
+                  <button onClick={() => setTemplateModalOpen(true)} className="px-3 py-1 border border-gray-300 rounded-sm text-sm text-gray-600 hover:bg-gray-50">Create Template</button>
+                  <button onClick={() => setNotificationModalOpen(true)} className="px-3 py-1 bg-blue-600 text-white rounded-sm text-sm hover:bg-blue-700">Send Notification</button>
                 </div>
               </div>
             ) : (
@@ -392,7 +392,7 @@ const MarketingPage: React.FC = () => {
 
         {/* Templates Management */}
         <div className="mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+          <div className="bg-white rounded-xl shadow-xs border border-gray-100 p-8">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Notification Templates ({templates.length})</h3>
               <button onClick={() => { setSelectedTemplate(null); setTemplateModalOpen(true); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">+ New Template</button>

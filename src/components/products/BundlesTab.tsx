@@ -81,7 +81,7 @@ const BundlesTab: React.FC = () => {
           placeholder="Search bundles..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full sm:w-80 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full sm:w-80 px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
         />
         <button
           onClick={handleCreateClick}
@@ -106,7 +106,7 @@ const BundlesTab: React.FC = () => {
       {!loading && !error && (
         <>
           {filtered.length === 0 ? (
-            <div className="bg-white rounded-xl shadow border border-gray-100 p-12 text-center">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
               <p className="text-gray-500 text-lg">
                 {bundles.length === 0 ? 'No bundles yet. Create your first one!' : 'No bundles match your search.'}
               </p>
@@ -116,7 +116,7 @@ const BundlesTab: React.FC = () => {
               {filtered.map((bundle) => (
                 <div
                   key={bundle.id}
-                  className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow"
+                  className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow"
                 >
                   {bundle.imageUrl && (
                     <img
@@ -132,12 +132,12 @@ const BundlesTab: React.FC = () => {
                       {bundle.description && <p className="text-sm text-gray-600 mt-1">{bundle.description}</p>}
                     </div>
                     <div className="grid grid-cols-2 gap-2 mb-4">
-                      <div className="p-2 bg-blue-50 rounded">
+                      <div className="p-2 bg-blue-50 rounded-sm">
                         <p className="text-xs text-gray-600">Price</p>
                         <p className="text-lg font-bold text-blue-700">GHS {bundle.price?.toFixed(2)}</p>
                       </div>
                       {bundle.discount > 0 && (
-                        <div className="p-2 bg-green-50 rounded">
+                        <div className="p-2 bg-green-50 rounded-sm">
                           <p className="text-xs text-gray-600">Discount</p>
                           <p className="text-lg font-bold text-green-700">{bundle.discount}%</p>
                         </div>
@@ -149,9 +149,9 @@ const BundlesTab: React.FC = () => {
                       </p>
                     )}
                     <div className="flex gap-2 pt-4 border-t">
-                      <button onClick={() => handleViewClick(bundle)} className="flex-1 px-3 py-2 rounded text-sm font-medium text-purple-600 hover:bg-purple-50 transition-colors">View</button>
-                      <button onClick={() => handleEditClick(bundle)} className="flex-1 px-3 py-2 rounded text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">Edit</button>
-                      <button onClick={() => handleDeleteClick(bundle)} className="flex-1 px-3 py-2 rounded text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">Delete</button>
+                      <button onClick={() => handleViewClick(bundle)} className="flex-1 px-3 py-2 rounded-sm text-sm font-medium text-purple-600 hover:bg-purple-50 transition-colors">View</button>
+                      <button onClick={() => handleEditClick(bundle)} className="flex-1 px-3 py-2 rounded-sm text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">Edit</button>
+                      <button onClick={() => handleDeleteClick(bundle)} className="flex-1 px-3 py-2 rounded-sm text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">Delete</button>
                     </div>
                   </div>
                 </div>

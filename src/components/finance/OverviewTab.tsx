@@ -25,31 +25,31 @@ const OverviewTab: React.FC = () => {
       {/* Main Charts Row */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-8">
         <div className="md:col-span-8">
-          <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-8 h-full flex flex-col justify-between">
+          <div className="bg-white shadow-xs rounded-xl border border-gray-100 p-8 h-full flex flex-col justify-between">
             <RevenueTrendsChart />
           </div>
         </div>
         <div className="md:col-span-4">
-          <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-8 h-full flex flex-col justify-between">
+          <div className="bg-white shadow-xs rounded-xl border border-gray-100 p-8 h-full flex flex-col justify-between">
             <RevenueByZoneChart />
           </div>
         </div>
       </div>
       {/* Middle Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-8 h-full flex flex-col justify-between">
+        <div className="bg-white shadow-xs rounded-xl border border-gray-100 p-8 h-full flex flex-col justify-between">
           <FailedPaymentsPanel />
         </div>
-        <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-8 h-full flex flex-col justify-between">
+        <div className="bg-white shadow-xs rounded-xl border border-gray-100 p-8 h-full flex flex-col justify-between">
           <FinanceAlertsBox />
         </div>
       </div>
       {/* Bottom Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-8 h-full flex flex-col justify-between">
+        <div className="bg-white shadow-xs rounded-xl border border-gray-100 p-8 h-full flex flex-col justify-between">
           <SubscriptionPanel />
         </div>
-        <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-8 h-full flex flex-col justify-between">
+        <div className="bg-white shadow-xs rounded-xl border border-gray-100 p-8 h-full flex flex-col justify-between">
           <TopCustomersTable />
         </div>
       </div>

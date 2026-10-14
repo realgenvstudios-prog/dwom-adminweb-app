@@ -49,7 +49,7 @@ const PnLPanel: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow p-6 mb-8">
+    <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold">Profit &amp; Loss</h3>
         <div className="flex gap-2">
@@ -71,7 +71,7 @@ const PnLPanel: React.FC = () => {
         Excludes founder capital contributions and reimbursements.
       </p>
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm">⚠️ {error}</div>
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-sm text-sm">⚠️ {error}</div>
       )}
       {loading && !series.length ? (
         <div className="flex items-center justify-center h-64">

@@ -81,7 +81,7 @@ const MovementHistoryModal: React.FC<MovementHistoryModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl leading-none flex-shrink-0"
+            className="text-gray-500 hover:text-gray-700 text-2xl leading-none shrink-0"
           >
             ×
           </button>
@@ -131,7 +131,7 @@ const MovementHistoryModal: React.FC<MovementHistoryModalProps> = ({
                           )}
                         </div>
                       </div>
-                      <div className="text-right flex-shrink-0">
+                      <div className="text-right shrink-0">
                         <p className="text-xs text-gray-500">
                           {new Date(movement.createdAt).toLocaleDateString()}
                         </p>
@@ -150,7 +150,7 @@ const MovementHistoryModal: React.FC<MovementHistoryModalProps> = ({
         <div className="sticky bottom-0 px-6 py-4 border-t border-gray-200 bg-white z-10">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 rounded bg-gray-100 text-gray-700 font-medium hover:bg-gray-200"
+            className="w-full px-4 py-2 rounded-sm bg-gray-100 text-gray-700 font-medium hover:bg-gray-200"
           >
             Close
           </button>

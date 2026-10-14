@@ -33,7 +33,7 @@ class ErrorBoundary extends React.Component<Props, State> {
               This page hit an unexpected error. Reloading usually fixes a transient issue —
               if it keeps happening, the detail below is what's actually failing.
             </p>
-            <pre className="text-xs bg-gray-100 rounded p-3 overflow-x-auto whitespace-pre-wrap text-red-700">
+            <pre className="text-xs bg-gray-100 rounded-sm p-3 overflow-x-auto whitespace-pre-wrap text-red-700">
               {this.state.error.message}
             </pre>
             <button

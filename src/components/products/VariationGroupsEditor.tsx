@@ -145,7 +145,7 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
                 {TYPE_LABELS[group.type] || group.type}
               </span>
               {group.required && (
-                <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Required</span>
+                <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-sm">Required</span>
               )}
             </div>
             <button
@@ -163,7 +163,7 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
                 type="checkbox"
                 checked={showPreparationOptions}
                 onChange={(e) => onShowPrepChange(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded border-gray-300"
+                className="w-4 h-4 text-blue-600 rounded-sm border-gray-300"
               />
               <span className="text-sm text-gray-700">Show these preparation options to customers</span>
             </label>
@@ -177,7 +177,7 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
                 type="text"
                 value={group.name}
                 onChange={(e) => updateGroup(gi, 'name', e.target.value)}
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-sm focus:outline-hidden focus:ring-1 focus:ring-blue-500"
               />
             </div>
             <div>
@@ -186,7 +186,7 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
                 type="text"
                 value={group.nameFrench || ''}
                 onChange={(e) => updateGroup(gi, 'nameFrench', e.target.value)}
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-sm focus:outline-hidden focus:ring-1 focus:ring-blue-500"
                 placeholder="Optional"
               />
             </div>
@@ -216,7 +216,7 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
                     type="text"
                     value={opt.label}
                     onChange={(e) => updateOption(gi, oi, 'label', e.target.value)}
-                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded-sm focus:outline-hidden focus:ring-1 focus:ring-blue-500"
                     placeholder="e.g. 1kg"
                   />
                 </div>
@@ -225,7 +225,7 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
                     type="text"
                     value={opt.labelFrench || ''}
                     onChange={(e) => updateOption(gi, oi, 'labelFrench', e.target.value)}
-                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded-sm focus:outline-hidden focus:ring-1 focus:ring-blue-500"
                     placeholder="Optional"
                   />
                 </div>
@@ -237,7 +237,7 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
                       min="0"
                       value={opt.extraCharge ?? 0}
                       onChange={(e) => updateOption(gi, oi, 'extraCharge', parseFloat(e.target.value) || 0)}
-                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded-sm focus:outline-hidden focus:ring-1 focus:ring-blue-500"
                     />
                   ) : (
                     <input
@@ -250,7 +250,7 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
                         const val = raw === '' ? 0 : parseFloat(raw);
                         updateOption(gi, oi, 'priceMultiplier', isNaN(val) ? 0 : val);
                       }}
-                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded-sm focus:outline-hidden focus:ring-1 focus:ring-blue-500"
                     />
                   )}
                 </div>

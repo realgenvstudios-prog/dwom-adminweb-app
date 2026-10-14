@@ -75,7 +75,7 @@ const CategoriesTab: React.FC<CategoriesTabProps> = ({ onCategoriesChanged }) =>
           placeholder="Search categories..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full sm:w-80 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full sm:w-80 px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
         />
         <button
           onClick={handleCreateClick}
@@ -100,13 +100,13 @@ const CategoriesTab: React.FC<CategoriesTabProps> = ({ onCategoriesChanged }) =>
       {!loading && !error && (
         <>
           {filtered.length === 0 ? (
-            <div className="bg-white rounded-xl shadow border border-gray-100 p-12 text-center">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
               <p className="text-gray-500 text-lg">
                 {categories.length === 0 ? 'No categories yet. Create your first one!' : 'No categories match your search.'}
               </p>
             </div>
           ) : (
-            <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50 border-b">
@@ -125,10 +125,10 @@ const CategoriesTab: React.FC<CategoriesTabProps> = ({ onCategoriesChanged }) =>
                           <img
                             src={category.imageUrl}
                             alt={category.name}
-                            className="w-12 h-12 rounded object-cover border border-gray-200"
+                            className="w-12 h-12 rounded-sm object-cover border border-gray-200"
                           />
                         ) : (
-                          <div className="w-12 h-12 rounded bg-gray-200 flex items-center justify-center">
+                          <div className="w-12 h-12 rounded-sm bg-gray-200 flex items-center justify-center">
                             <span className="text-gray-400 text-xs">No image</span>
                           </div>
                         )}
@@ -147,7 +147,7 @@ const CategoriesTab: React.FC<CategoriesTabProps> = ({ onCategoriesChanged }) =>
                               e.stopPropagation();
                               handleEditClick(category);
                             }}
-                            className="px-3 py-1 rounded text-sm font-medium text-blue-600 hover:bg-blue-50"
+                            className="px-3 py-1 rounded-sm text-sm font-medium text-blue-600 hover:bg-blue-50"
                           >
                             Edit
                           </button>
@@ -156,7 +156,7 @@ const CategoriesTab: React.FC<CategoriesTabProps> = ({ onCategoriesChanged }) =>
                               e.stopPropagation();
                               handleDeleteClick(category);
                             }}
-                            className="px-3 py-1 rounded text-sm font-medium text-red-600 hover:bg-red-50"
+                            className="px-3 py-1 rounded-sm text-sm font-medium text-red-600 hover:bg-red-50"
                           >
                             Delete
                           </button>

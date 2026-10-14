@@ -66,7 +66,7 @@ const RidersTab: React.FC = () => {
           <RidersStatsCards riders={riders} />
 
           {/* Riders Table */}
-          <section className="bg-white rounded-xl shadow p-6">
+          <section className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-bold mb-4">Riders List</h2>
 
             <RidersFilterBar

@@ -91,7 +91,7 @@ const ExpensesTab: React.FC = () => {
         Operating costs — rent, salaries, kayayie/rider fees, packaging. Capex and founder capital are tracked separately.
       </p>
 
-      <form onSubmit={handleSubmit} className="bg-white shadow-sm rounded-xl border border-gray-100 p-6 mb-8">
+      <form onSubmit={handleSubmit} className="bg-white shadow-xs rounded-xl border border-gray-100 p-6 mb-8">
         <h2 className="text-lg font-semibold mb-4">Record an expense</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
@@ -185,7 +185,7 @@ const ExpensesTab: React.FC = () => {
         </button>
       </form>
 
-      <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-6">
+      <div className="bg-white shadow-xs rounded-xl border border-gray-100 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">
             Expenses {categoryFilter ? `— ${categoryFilter}` : ""}{" "}

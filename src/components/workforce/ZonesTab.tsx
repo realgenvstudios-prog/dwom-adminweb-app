@@ -49,7 +49,7 @@ const ZonesTab: React.FC = () => {
         <p className="text-gray-600">Delivery areas, pricing by location, and where riders cover.</p>
         <button
           onClick={() => { resetForm(); setShowCreateForm(true); }}
-          className="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold flex items-center gap-2 shadow-sm text-sm"
+          className="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold flex items-center gap-2 shadow-xs text-sm"
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
@@ -60,7 +60,7 @@ const ZonesTab: React.FC = () => {
 
       {successMsg && (
         <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 flex items-center gap-2">
-          <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="w-5 h-5 text-green-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
           </svg>
           {successMsg}
@@ -68,7 +68,7 @@ const ZonesTab: React.FC = () => {
       )}
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 flex items-center gap-2">
-          <svg className="w-5 h-5 text-red-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="w-5 h-5 text-red-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
           </svg>
           {error}
@@ -76,19 +76,19 @@ const ZonesTab: React.FC = () => {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <div className="bg-white rounded-lg shadow-xs border border-gray-200 p-5">
           <div className="text-sm text-gray-500 font-medium">Total Zones</div>
           <div className="text-3xl font-bold text-gray-900 mt-1">{zones.length}</div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-green-200 p-5">
+        <div className="bg-white rounded-lg shadow-xs border border-green-200 p-5">
           <div className="text-sm text-green-600 font-medium">Active (Delivering)</div>
           <div className="text-3xl font-bold text-green-700 mt-1">{activeZones.length}</div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-red-200 p-5">
+        <div className="bg-white rounded-lg shadow-xs border border-red-200 p-5">
           <div className="text-sm text-red-600 font-medium">Inactive (Paused)</div>
           <div className="text-3xl font-bold text-red-700 mt-1">{inactiveZones.length}</div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-blue-200 p-5">
+        <div className="bg-white rounded-lg shadow-xs border border-blue-200 p-5">
           <div className="text-sm text-blue-600 font-medium">Fee Range</div>
           <div className="text-3xl font-bold text-blue-700 mt-1">
             {zones.length > 0
@@ -118,7 +118,7 @@ const ZonesTab: React.FC = () => {
           </svg>
         </div>
       ) : zones.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+        <div className="bg-white rounded-lg shadow-xs border border-gray-200 p-12 text-center">
           <div className="text-6xl mb-4">🗺️</div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">No delivery zones yet</h3>
           <p className="text-gray-600 mb-6">

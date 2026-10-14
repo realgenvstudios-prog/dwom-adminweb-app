@@ -79,7 +79,7 @@ const NeedsAttentionCard: React.FC<NeedsAttentionCardProps> = ({ outOfStockProdu
   ].filter((row) => row.count > 0);
 
   return (
-    <div className="bg-white rounded-xl shadow p-6 border">
+    <div className="bg-white rounded-xl shadow-sm p-6 border">
       <h3 className="text-lg font-semibold mb-4">Needs Attention</h3>
       {loading ? (
         <div className="flex items-center justify-center py-4">

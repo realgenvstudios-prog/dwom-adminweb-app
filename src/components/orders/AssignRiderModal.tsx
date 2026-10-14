@@ -76,7 +76,7 @@ const AssignRiderModal: React.FC<AssignRiderModalProps> = ({
         <h2 className="text-2xl font-bold mb-4">Assign Rider</h2>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-sm text-red-700 text-sm">
             {error}
           </div>
         )}
@@ -113,7 +113,7 @@ const AssignRiderModal: React.FC<AssignRiderModalProps> = ({
               <select
                 value={selectedRiderId || ""}
                 onChange={(e) => setSelectedRiderId(e.target.value ? parseInt(e.target.value) : null)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Choose a rider...</option>
                 {riders.map((rider) => (

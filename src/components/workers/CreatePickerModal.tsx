@@ -59,7 +59,7 @@ const CreatePickerModal: React.FC<CreatePickerModalProps> = ({ isOpen, onClose, 
         <h2 className="text-2xl font-bold mb-4">Add New Picker</h2>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">{error}</div>
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-sm text-red-700 text-sm">{error}</div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -71,7 +71,7 @@ const CreatePickerModal: React.FC<CreatePickerModalProps> = ({ isOpen, onClose, 
               value={formData.name}
               onChange={handleChange}
               placeholder="e.g., Ama"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -83,7 +83,7 @@ const CreatePickerModal: React.FC<CreatePickerModalProps> = ({ isOpen, onClose, 
               value={formData.phone}
               onChange={handleChange}
               placeholder="e.g., +233501234567"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -93,7 +93,7 @@ const CreatePickerModal: React.FC<CreatePickerModalProps> = ({ isOpen, onClose, 
               name="type"
               value={formData.type}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             >
               <option value="kayayie">Kayayie</option>
               <option value="picker">Picker</option>

@@ -62,7 +62,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
   const pageSelectedCount = pageProductIds.filter(id => selectedProducts.includes(id)).length;
   const isPageFullySelected = pageSelectedCount === products.length && products.length > 0;
   return (
-    <div className="bg-white rounded-xl shadow border border-gray-100 overflow-x-auto">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
       <table className="min-w-full text-sm">
         <thead>
           <tr className="bg-gray-50">
@@ -71,7 +71,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
                 type="checkbox" 
                 checked={isPageFullySelected}
                 onChange={handleSelectPageProducts}
-                className="rounded border-gray-300"
+                className="rounded-sm border-gray-300"
               />
             </th>
             <th className="px-4 py-3 text-left cursor-pointer" onClick={() => onSort("nameEnglish")}>Product {sortBy === "nameEnglish" && (sortDir === "asc" ? "▲" : "▼")}</th>
@@ -93,7 +93,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
                   type="checkbox"
                   checked={selectedProducts.includes(product.id.toString())}
                   onChange={() => handleProductCheck(product.id.toString())}
-                  className="rounded border-gray-300"
+                  className="rounded-sm border-gray-300"
                 />
               </td>
               <td className="px-4 py-3 cursor-pointer" onClick={() => onRowClick(product)}>
@@ -119,7 +119,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
                   value={product.discount || 0}
                   onChange={(e) => onDiscountChange?.(product.id as number, parseFloat(e.target.value))}
                   disabled={discountUpdating}
-                  className="w-16 px-2 py-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100"
+                  className="w-16 px-2 py-1 border border-gray-300 rounded-sm text-center focus:ring-2 focus:ring-blue-500 outline-hidden disabled:bg-gray-100"
                   placeholder="0"
                 />
               </td>
@@ -127,7 +127,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
                 <select
                   value={product.stockStatus || "in_stock"}
                   onChange={(e) => onStockStatusChange?.(product.id as number, e.target.value)}
-                  className={`px-2 py-1 rounded text-xs font-semibold border-0 outline-none cursor-pointer ${
+                  className={`px-2 py-1 rounded text-xs font-semibold border-0 outline-hidden cursor-pointer ${
                     product.stockStatus === "out_of_stock"
                       ? "bg-red-100 text-red-700"
                       : product.stockStatus === "low_stock"
@@ -145,11 +145,11 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
                   type="checkbox"
                   checked={!!product.seasonal}
                   onChange={() => onSeasonalToggle?.(product.id as number, !product.seasonal)}
-                  className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer"
+                  className="w-4 h-4 rounded-sm border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer"
                 />
               </td>
               <td className="px-4 py-3 cursor-pointer" onClick={() => onRowClick(product)}>
-                {product.active ? <span className="px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs font-semibold">Active</span> : <span className="px-2 py-1 rounded bg-gray-200 text-gray-600 text-xs font-semibold">Inactive</span>}
+                {product.active ? <span className="px-2 py-1 rounded-sm bg-blue-100 text-blue-700 text-xs font-semibold">Active</span> : <span className="px-2 py-1 rounded-sm bg-gray-200 text-gray-600 text-xs font-semibold">Inactive</span>}
               </td>
               <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                 <button className="text-blue-600 hover:underline text-xs mr-2" onClick={() => onRowClick(product)}>Edit</button>
@@ -163,8 +163,8 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
       <div className="flex justify-between items-center px-4 py-3 border-t bg-gray-50">
         <span className="text-sm text-gray-500">Page {page} of {Math.ceil(total / pageSize)}</span>
         <div className="flex gap-2">
-          <button className="px-2 py-1 rounded bg-gray-200 text-gray-700 text-xs" disabled={page === 1} onClick={() => onPageChange(page - 1)}>Prev</button>
-          <button className="px-2 py-1 rounded bg-gray-200 text-gray-700 text-xs" disabled={page === Math.ceil(total / pageSize)} onClick={() => onPageChange(page + 1)}>Next</button>
+          <button className="px-2 py-1 rounded-sm bg-gray-200 text-gray-700 text-xs" disabled={page === 1} onClick={() => onPageChange(page - 1)}>Prev</button>
+          <button className="px-2 py-1 rounded-sm bg-gray-200 text-gray-700 text-xs" disabled={page === Math.ceil(total / pageSize)} onClick={() => onPageChange(page + 1)}>Next</button>
         </div>
       </div>
     </div>

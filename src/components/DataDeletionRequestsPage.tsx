@@ -154,14 +154,14 @@ const DataDeletionRequestsPage: React.FC = () => {
         <button
           key="verify"
           onClick={() => handleActionClick(request, 'verify')}
-          className="px-3 py-1 text-xs font-semibold rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors mr-2"
+          className="px-3 py-1 text-xs font-semibold rounded-sm bg-blue-500 text-white hover:bg-blue-600 transition-colors mr-2"
         >
           Verify
         </button>,
         <button
           key="reject"
           onClick={() => handleActionClick(request, 'reject')}
-          className="px-3 py-1 text-xs font-semibold rounded bg-red-500 text-white hover:bg-red-600 transition-colors"
+          className="px-3 py-1 text-xs font-semibold rounded-sm bg-red-500 text-white hover:bg-red-600 transition-colors"
         >
           Reject
         </button>
@@ -173,7 +173,7 @@ const DataDeletionRequestsPage: React.FC = () => {
         <button
           key="approve"
           onClick={() => handleActionClick(request, 'approve')}
-          className="px-3 py-1 text-xs font-semibold rounded bg-purple-500 text-white hover:bg-purple-600 transition-colors"
+          className="px-3 py-1 text-xs font-semibold rounded-sm bg-purple-500 text-white hover:bg-purple-600 transition-colors"
         >
           Approve
         </button>
@@ -185,7 +185,7 @@ const DataDeletionRequestsPage: React.FC = () => {
         <button
           key="complete"
           onClick={() => handleActionClick(request, 'complete')}
-          className="px-3 py-1 text-xs font-semibold rounded bg-green-500 text-white hover:bg-green-600 transition-colors"
+          className="px-3 py-1 text-xs font-semibold rounded-sm bg-green-500 text-white hover:bg-green-600 transition-colors"
         >
           Mark Complete
         </button>
@@ -220,7 +220,7 @@ const DataDeletionRequestsPage: React.FC = () => {
               placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-hidden"
             />
           </div>
           <div>
@@ -230,7 +230,7 @@ const DataDeletionRequestsPage: React.FC = () => {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-hidden"
             >
               {statusOptions.map(status => (
                 <option key={status} value={status}>{status}</option>
@@ -342,7 +342,7 @@ const DataDeletionRequestsPage: React.FC = () => {
               placeholder="Add notes about this action (optional)..."
               value={adminNotes}
               onChange={(e) => setAdminNotes(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none mb-4 resize-none"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-hidden mb-4 resize-none"
               rows={3}
             />
 

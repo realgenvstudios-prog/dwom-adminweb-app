@@ -43,7 +43,7 @@ const ImageUpload: React.FC<Props> = ({ value, onChange, label = 'Image' }) => {
           <img
             src={value}
             alt="Preview"
-            className="w-16 h-16 rounded object-cover border border-gray-300 flex-shrink-0"
+            className="w-16 h-16 rounded-sm object-cover border border-gray-300 shrink-0"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
             }}
@@ -54,7 +54,7 @@ const ImageUpload: React.FC<Props> = ({ value, onChange, label = 'Image' }) => {
             type="url"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-sm"
             placeholder="https://example.com/image.jpg or upload below"
           />
           <div className="flex items-center gap-2">

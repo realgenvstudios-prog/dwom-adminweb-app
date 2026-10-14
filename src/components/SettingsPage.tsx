@@ -36,7 +36,7 @@ const SettingsPage: React.FC = () => {
           <p className="ml-3 text-gray-600">Loading settings...</p>
         </div>
       ) : (
-        <div className="max-w-screen-2xl mx-auto flex flex-col gap-10">
+        <div className="max-w-(--breakpoint-2xl) mx-auto flex flex-col gap-10">
           {/* Error Message */}
           {s.error && (
             <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">

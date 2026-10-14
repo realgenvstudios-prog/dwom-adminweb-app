@@ -37,8 +37,8 @@ const PopularItems: React.FC = () => {
         <div className="flex flex-row justify-start gap-6 overflow-x-auto pb-2">
           {products.length > 0 ? (
             products.map((product) => (
-              <div key={product.id} className="bg-white rounded-xl shadow-md overflow-hidden border hover:shadow-xl transition-all w-44 flex-shrink-0">
-                <div className="w-full h-28 bg-gradient-to-r from-orange-200 to-orange-100 flex items-center justify-center overflow-hidden">
+              <div key={product.id} className="bg-white rounded-xl shadow-md overflow-hidden border hover:shadow-xl transition-all w-44 shrink-0">
+                <div className="w-full h-28 bg-linear-to-r from-orange-200 to-orange-100 flex items-center justify-center overflow-hidden">
                   {product.imageUrl ? (
                     <img 
                       src={product.imageUrl} 

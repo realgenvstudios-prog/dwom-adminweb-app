@@ -29,7 +29,7 @@ export default function TestDeliveryCheckCard({
   testResult,
 }: TestDeliveryCheckCardProps) {
   return (
-    <div className="mt-10 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div className="mt-10 bg-white rounded-lg shadow-xs border border-gray-200 p-6">
       <h3 className="text-lg font-bold text-gray-900 mb-1">Test Delivery Check</h3>
       <p className="text-sm text-gray-600 mb-4">
         Search by address or landmark to check if a location falls within a delivery zone.
@@ -62,7 +62,7 @@ export default function TestDeliveryCheckCard({
               }
             }}
             placeholder='Start typing… e.g. "East Legon", "Accra Mall"'
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           />
           {geocoding && (
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">Searching…</span>
@@ -90,7 +90,7 @@ export default function TestDeliveryCheckCard({
           )}
         </div>
         {geocodedLabel && (
-          <div className="mt-2 text-xs text-gray-500 bg-gray-50 rounded px-3 py-2">
+          <div className="mt-2 text-xs text-gray-500 bg-gray-50 rounded-sm px-3 py-2">
             📍 Found: {geocodedLabel}
           </div>
         )}

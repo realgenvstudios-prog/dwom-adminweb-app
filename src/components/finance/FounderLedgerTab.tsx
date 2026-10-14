@@ -92,15 +92,15 @@ const FounderLedgerTab: React.FC = () => {
 
       {balance && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow p-6">
+          <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="text-sm text-gray-500 mb-1">Total Contributions</div>
             <div className="text-2xl font-bold text-green-700">GHS {balance.totalContributions.toLocaleString()}</div>
           </div>
-          <div className="bg-white rounded-xl shadow p-6">
+          <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="text-sm text-gray-500 mb-1">Total Reimbursements</div>
             <div className="text-2xl font-bold text-amber-700">GHS {balance.totalReimbursements.toLocaleString()}</div>
           </div>
-          <div className="bg-white rounded-xl shadow p-6">
+          <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="text-sm text-gray-500 mb-1">Outstanding Balance</div>
             <div className={`text-2xl font-bold ${balance.balance >= 0 ? "text-blue-700" : "text-red-700"}`}>
               GHS {balance.balance.toLocaleString()}
@@ -111,7 +111,7 @@ const FounderLedgerTab: React.FC = () => {
       )}
 
       {balance && balance.byFounder.length > 0 && (
-        <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-6 mb-8">
+        <div className="bg-white shadow-xs rounded-xl border border-gray-100 p-6 mb-8">
           <h2 className="text-lg font-semibold mb-4">By founder</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {balance.byFounder.map((f) => (
@@ -129,7 +129,7 @@ const FounderLedgerTab: React.FC = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white shadow-sm rounded-xl border border-gray-100 p-6 mb-8">
+      <form onSubmit={handleSubmit} className="bg-white shadow-xs rounded-xl border border-gray-100 p-6 mb-8">
         <h2 className="text-lg font-semibold mb-4">Record an entry</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
@@ -214,7 +214,7 @@ const FounderLedgerTab: React.FC = () => {
         </button>
       </form>
 
-      <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-6">
+      <div className="bg-white shadow-xs rounded-xl border border-gray-100 p-6">
         <h2 className="text-lg font-semibold mb-4">All entries</h2>
         {error && <p className="text-red-600 text-sm mb-3">⚠️ {error}</p>}
         {loading ? (
