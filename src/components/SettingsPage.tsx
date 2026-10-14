@@ -5,7 +5,6 @@ import OperatingPreferencesSection from "./settings/OperatingPreferencesSection"
 import UserRolesSection from "./settings/UserRolesSection";
 import PaymentBillingSection from "./settings/PaymentBillingSection";
 import EmailNotificationSection from "./settings/EmailNotificationSection";
-import SecurityAuditSection from "./settings/SecurityAuditSection";
 
 const SettingsPage: React.FC = () => {
   const s = useSettingsData();
@@ -94,13 +93,6 @@ const SettingsPage: React.FC = () => {
             notifyFailedSubscriptions={s.notifyFailedSubscriptions} setNotifyFailedSubscriptions={s.setNotifyFailedSubscriptions}
             notifyLowInventory={s.notifyLowInventory} setNotifyLowInventory={s.setNotifyLowInventory}
             notifyNewRiders={s.notifyNewRiders} setNotifyNewRiders={s.setNotifyNewRiders}
-            saving={s.saving} settingsLoaded={s.settingsLoaded} onSave={s.handleSave}
-          />
-
-          <SecurityAuditSection
-            password={s.password} setPassword={s.setPassword}
-            enable2FA={s.enable2FA} setEnable2FA={s.setEnable2FA}
-            ipAccessControlList={s.ipAccessControlList}
             saving={s.saving} settingsLoaded={s.settingsLoaded} onSave={s.handleSave}
           />
         </div>

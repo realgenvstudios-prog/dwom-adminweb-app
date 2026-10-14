@@ -58,7 +58,6 @@ export default function EmailNotificationSection({
             <input type="checkbox" checked={notifyNewRiders} onChange={e => setNotifyNewRiders(e.target.checked)} />
             <span className="text-sm">New rider signup</span>
           </div>
-          <button className="mt-2 px-4 py-2 rounded bg-blue-100 text-blue-700 text-sm font-medium" onClick={() => {}}>Template Management</button>
         </div>
       </div>
       <SaveButton saving={saving} settingsLoaded={settingsLoaded} onSave={onSave} />

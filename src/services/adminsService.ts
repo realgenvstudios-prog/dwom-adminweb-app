@@ -55,6 +55,10 @@ class AdminsService {
     return this.lifecycle.cancelInvite(inviteId);
   }
 
+  changeOwnPassword(currentPassword: string, newPassword: string): Promise<void> {
+    return this.lifecycle.changeOwnPassword(currentPassword, newPassword);
+  }
+
   getAdminMetrics(): Promise<AdminMetrics> {
     return this.insights.getAdminMetrics();
   }

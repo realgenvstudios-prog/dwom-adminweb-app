@@ -42,11 +42,6 @@ export function useSettingsData() {
   const [notifyLowInventory, setNotifyLowInventory] = useState(false);
   const [notifyNewRiders, setNotifyNewRiders] = useState(true);
 
-  // Security & Audit
-  const [password, setPassword] = useState("");
-  const [enable2FA, setEnable2FA] = useState(false);
-  const [ipAccessControlList, setIpAccessControlList] = useState<string[]>(["102.176.0.1", "41.215.12.34"]);
-
   // UI State
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -90,8 +85,6 @@ export function useSettingsData() {
       setNotifyFailedSubscriptions(!!s.notifyFailedSubscriptions);
       setNotifyLowInventory(!!s.notifyLowInventory);
       setNotifyNewRiders(!!s.notifyNewRiders);
-      setEnable2FA(!!s.enable2FA);
-      setIpAccessControlList(s.ipAccessControlList ?? []);
       setSettingsLoaded(true);
     } catch (err: any) {
       logger.error('❌ Error loading settings:', err);
@@ -138,8 +131,6 @@ export function useSettingsData() {
         notifyFailedSubscriptions,
         notifyLowInventory,
         notifyNewRiders,
-        enable2FA,
-        ipAccessControlList,
       };
 
       await settingsService.updateSettings(updatedSettings);
@@ -183,9 +174,6 @@ export function useSettingsData() {
     notifyFailedSubscriptions, setNotifyFailedSubscriptions,
     notifyLowInventory, setNotifyLowInventory,
     notifyNewRiders, setNotifyNewRiders,
-    password, setPassword,
-    enable2FA, setEnable2FA,
-    ipAccessControlList,
     loading,
     saving,
     settingsLoaded,

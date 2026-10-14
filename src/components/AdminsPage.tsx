@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import adminsService, { type Admin, type AdminMetrics, type AdminActivity, type AdminAccessAlert } from "../services/adminsService";
+import AdminSecuritySection from "./admins/AdminSecuritySection";
 import { logger } from '../utils/logger';
 
 const roles = [
@@ -337,6 +338,7 @@ const AdminsPage: React.FC = () => {
                 )}
               </ul>
             </div>
+            <AdminSecuritySection />
           </div>
           </div>
         )}

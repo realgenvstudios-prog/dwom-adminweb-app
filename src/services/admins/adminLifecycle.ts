@@ -145,4 +145,13 @@ export class AdminLifecycleService {
       return false;
     }
   }
+
+  /**
+   * Change the currently logged-in admin's own password. Self-scoped
+   * server-side from the JWT — there is no "change another admin's
+   * password" endpoint.
+   */
+  async changeOwnPassword(currentPassword: string, newPassword: string): Promise<void> {
+    await adminApiClient.patch('/admin/change-password', { currentPassword, newPassword });
+  }
 }
