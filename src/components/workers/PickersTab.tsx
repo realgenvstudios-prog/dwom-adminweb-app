@@ -176,7 +176,7 @@ export default function PickersTab() {
                 ],
               },
             ]}
-            emptyMessage={workers.length === 0 ? 'No pickers yet — add your first one.' : 'No pickers match these filters.'}
+            emptyMessage={workers.length === 0 ? 'No pickers yet. Add your first one.' : 'No pickers match these filters.'}
             toolbarActions={
               <Button size="sm" className="h-8" onClick={() => setCreateOpen(true)}>
                 <Plus />
@@ -194,7 +194,7 @@ export default function PickersTab() {
             initialSorting={[{ id: 'date', desc: true }]}
             searchPlaceholder="Search order #…"
             filters={[{ columnId: 'picker', title: 'Picker', options: workers.map((w) => ({ value: String(w.id), label: w.name })) }]}
-            emptyMessage={trips.length === 0 ? 'No trips yet — they’re created when you assign a picker to an order.' : 'No trips match these filters.'}
+            emptyMessage={trips.length === 0 ? 'No trips yet. They’re created when you assign a picker to an order.' : 'No trips match these filters.'}
           />
         </TabsContent>
       </Tabs>

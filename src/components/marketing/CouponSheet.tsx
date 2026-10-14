@@ -61,7 +61,7 @@ export default function CouponSheet({ coupon: c, campaign, open, onOpenChange, o
     try {
       setBusy('toggle');
       await couponService.toggleStatus(c.id, !c.active);
-      toast.success(c.active ? `${c.code} paused — customers can’t use it` : `${c.code} is active again`);
+      toast.success(c.active ? `${c.code} paused. Customers can’t use it` : `${c.code} is active again`);
       onChanged();
     } catch (err) {
       logger.error('Failed to toggle code:', err);
@@ -137,7 +137,7 @@ export default function CouponSheet({ coupon: c, campaign, open, onOpenChange, o
                 <p className="text-xs text-muted-foreground">{m.label}</p>
                 {m.value === null ? (
                   statsFailed ? (
-                    <p className="mt-0.5 text-lg font-semibold">—</p>
+                    <p className="mt-0.5 text-sm font-medium text-muted-foreground">Unavailable</p>
                   ) : (
                     <Skeleton className="mt-1.5 h-5 w-16" />
                   )

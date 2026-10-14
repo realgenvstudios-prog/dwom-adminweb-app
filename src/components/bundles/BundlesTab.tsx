@@ -150,7 +150,7 @@ export default function BundlesTab({ products, categories }: BundlesTabProps) {
         </div>
       ) : visible.length === 0 ? (
         <div className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">
-          {active.length === 0 ? 'No bundles yet — group a few products into your first one.' : 'No bundles match your search.'}
+          {active.length === 0 ? 'No bundles yet. Group a few products into your first one.' : 'No bundles match your search.'}
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

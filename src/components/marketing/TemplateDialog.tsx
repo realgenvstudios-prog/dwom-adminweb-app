@@ -119,7 +119,7 @@ export default function TemplateDialog({ template, open, onOpenChange, onSaved }
 
           <div className="grid gap-1.5">
             <Label htmlFor="tp-desc">Internal notes</Label>
-            <Input id="tp-desc" value={form.description} onChange={(e) => set({ description: e.target.value })} placeholder="Optional — when to use it" />
+            <Input id="tp-desc" value={form.description} onChange={(e) => set({ description: e.target.value })} placeholder="Optional. When to use it" />
           </div>
         </div>
 

@@ -149,7 +149,7 @@ export default function CampaignsTab() {
         accessorKey: 'impressions',
         header: ({ column }) => <DataTableColumnHeader column={column} title="Delivered" className="justify-end" />,
         enableGlobalFilter: false,
-        cell: ({ row }) => <div className="text-right tabular-nums">{row.original.status === 'draft' ? '—' : row.original.impressions.toLocaleString()}</div>,
+        cell: ({ row }) => <div className="text-right tabular-nums">{row.original.status === 'draft' ? 'Not sent' : row.original.impressions.toLocaleString()}</div>,
         meta: { title: 'Delivered', className: 'text-right' },
       },
       {
@@ -159,9 +159,9 @@ export default function CampaignsTab() {
         enableGlobalFilter: false,
         cell: ({ row }) => (
           <div className="text-right whitespace-nowrap tabular-nums">
-            {row.original.status === 'draft' ? '—' : row.original.conversions.toLocaleString()}
+            {row.original.status === 'draft' ? 'Not sent' : row.original.conversions.toLocaleString()}
             {row.original.status !== 'draft' && row.original.metricsAreEstimate && row.original.conversions > 0 && (
-              <span className="ml-1 text-xs text-muted-foreground" title="Entered by hand — no orders credited yet">
+              <span className="ml-1 text-xs text-muted-foreground" title="Entered by hand. No orders credited yet">
                 est.
               </span>
             )}
@@ -174,7 +174,7 @@ export default function CampaignsTab() {
         accessorFn: (c) => (c.metricsAreEstimate ? 0 : c.revenue),
         header: ({ column }) => <DataTableColumnHeader column={column} title="Revenue" className="justify-end" />,
         enableGlobalFilter: false,
-        cell: ({ row }) => <div className="text-right font-medium whitespace-nowrap tabular-nums">{row.original.metricsAreEstimate ? '—' : formatGhs(row.original.revenue)}</div>,
+        cell: ({ row }) => <div className="text-right font-medium whitespace-nowrap tabular-nums">{row.original.metricsAreEstimate ? 'Not tracked' : formatGhs(row.original.revenue)}</div>,
         meta: { title: 'Revenue', className: 'text-right' },
       },
       {
@@ -183,7 +183,7 @@ export default function CampaignsTab() {
         header: ({ column }) => <DataTableColumnHeader column={column} title="Spend" className="justify-end" />,
         enableGlobalFilter: false,
         cell: ({ row }) => (
-          <div className="text-right whitespace-nowrap text-muted-foreground tabular-nums">{num(row.original.actualSpend) ? formatGhs(num(row.original.actualSpend)) : '—'}</div>
+          <div className="text-right whitespace-nowrap text-muted-foreground tabular-nums">{num(row.original.actualSpend) ? formatGhs(num(row.original.actualSpend)) : 'None'}</div>
         ),
         meta: { title: 'Spend', className: 'text-right' },
       },
@@ -194,7 +194,7 @@ export default function CampaignsTab() {
         enableSorting: false,
         cell: ({ row }) => {
           const k = row.original.Coupon?.[0];
-          return k ? <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{k.code}</code> : <span className="text-muted-foreground">—</span>;
+          return k ? <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{k.code}</code> : <span className="text-muted-foreground">None</span>;
         },
         meta: { title: 'Code' },
       },

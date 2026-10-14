@@ -67,7 +67,7 @@ export default function ZonesTab() {
   const toggle = async (z: DeliveryZone) => {
     try {
       await deliveryService.toggleZone(z.id);
-      toast.success(z.isActive ? `${z.name} paused — no new deliveries there` : `${z.name} is delivering again`);
+      toast.success(z.isActive ? `${z.name} paused. No new deliveries there` : `${z.name} is delivering again`);
       await load();
     } catch (err) {
       logger.error('Failed to toggle zone:', err);
@@ -95,7 +95,7 @@ export default function ZonesTab() {
   const riders = zones.reduce((s, z) => s + (z.Rider?.length ?? 0), 0);
   const sorted = [...active, ...zones.filter((z) => !z.isActive)];
   const feeRange = !fees.length
-    ? '—'
+    ? 'None'
     : Math.min(...fees) === Math.max(...fees)
       ? formatGhs(fees[0])
       : `${formatGhs(Math.min(...fees))} – ${Math.max(...fees).toFixed(2)}`;
@@ -108,7 +108,7 @@ export default function ZonesTab() {
         <StatCard label="Riders covering" value={String(riders)} hint="Active riders assigned to a zone" icon={Bike} tint="bg-sky-500/10 text-sky-600" loading={loading} failed={!!error} />
         <StatCard
           label="Coverage"
-          value={active.length ? formatArea(active.reduce((sum, z) => sum + zoneAreaKm2(z), 0)) : '—'}
+          value={active.length ? formatArea(active.reduce((sum, z) => sum + zoneAreaKm2(z), 0)) : 'None'}
           hint="Active zones combined (overlaps count twice)"
           icon={MapPin}
           tint="bg-violet-500/10 text-violet-600"

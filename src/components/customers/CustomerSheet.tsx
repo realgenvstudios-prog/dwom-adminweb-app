@@ -200,7 +200,7 @@ export default function CustomerSheet({ customer, open, onOpenChange, canOpenOrd
             <TabsContent value="profile" className="mt-0">
               <dl className="divide-y rounded-lg border text-sm">
                 {[
-                  { icon: Phone, label: 'Phone', value: customer.phone || '—' },
+                  { icon: Phone, label: 'Phone', value: customer.phone || 'None' },
                   { icon: Mail, label: 'Email', value: customer.email || 'No email' },
                   { icon: MapPin, label: 'First saved address', value: customer.address || 'No address saved' },
                   { icon: Calendar, label: 'Joined', value: formatDate(customer.createdAt) },

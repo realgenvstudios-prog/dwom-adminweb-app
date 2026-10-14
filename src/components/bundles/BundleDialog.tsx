@@ -63,7 +63,7 @@ export default function BundleDialog({ bundle, open, onOpenChange, products, cat
   const save = async () => {
     if (!name.trim()) return setProblem('Give the bundle a name.');
     if (lines.length === 0) return setProblem('Add at least one product.');
-    if (totals.final <= 0) return setProblem('The bundle price must be above zero — add products or lower the discount.');
+    if (totals.final <= 0) return setProblem('The bundle price must be above zero. Add products or lower the discount.');
     setProblem(null);
     const price = Number.parseFloat(totals.final.toFixed(2));
     try {
@@ -151,7 +151,7 @@ export default function BundleDialog({ bundle, open, onOpenChange, products, cat
               {totals.unavailable.length > 0 && (
                 <p className="flex items-start gap-2 rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-800">
                   <AlertTriangle className="mt-px size-3.5 shrink-0" />
-                  Archived products still count at their last listed price, but customers can’t buy them on their own anymore — consider removing them.
+                  Archived products still count at their last listed price, but customers can’t buy them on their own anymore. Consider removing them.
                 </p>
               )}
             </section>

@@ -53,7 +53,7 @@ export default function AssignZoneDialog({ rider, zones, open, onOpenChange, onA
         <div className="grid gap-1.5">
           <Label htmlFor="az-zone">Zone</Label>
           {zones.length === 0 ? (
-            <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">No zones yet — create one on the Delivery Zones tab.</p>
+            <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">No zones yet. Create one on the Delivery Zones tab.</p>
           ) : (
             <Select value={zoneId} onValueChange={setZoneId}>
               <SelectTrigger id="az-zone" className="w-full">

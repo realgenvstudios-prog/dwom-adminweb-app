@@ -119,7 +119,7 @@ export default function SupportPage() {
         />
         <StatCard
           label="Typical first response"
-          value={metrics?.medianFirstResponseMinutes != null ? minutesLabel(metrics.medianFirstResponseMinutes) : '—'}
+          value={metrics?.medianFirstResponseMinutes != null ? minutesLabel(metrics.medianFirstResponseMinutes) : 'None'}
           hint="Median over the last 30 days"
           icon={Clock}
           tint="bg-sky-500/10 text-sky-600"
@@ -172,7 +172,7 @@ export default function SupportPage() {
             ) : visible.length === 0 ? (
               <div className="flex flex-col items-center gap-2 px-6 py-12 text-center text-sm text-muted-foreground">
                 <Inbox className="size-8" />
-                {query ? 'No conversations match.' : view === 'needs_reply' ? 'All caught up — nobody is waiting.' : 'Nothing here.'}
+                {query ? 'No conversations match.' : view === 'needs_reply' ? 'All caught up. Nobody is waiting.' : 'Nothing here.'}
               </div>
             ) : (
               <ul className="flex flex-col p-1.5">

@@ -16,7 +16,7 @@ import { categoryIdOf, categoryNameOf, discountOf, num, priceOf, salePrice } fro
 import type { Product, ProductCategory } from '../products/ProductTypes';
 
 type Health = 'missing' | 'loss' | 'thin' | 'healthy';
-const THIN = 15; // % — below this a margin is flagged as thin
+const THIN = 15; // %: below this a margin is flagged as thin
 
 const costOf = (p: Product): number | null => {
   const raw = (p as Product & { standardCost?: number | string | null }).standardCost;
@@ -107,7 +107,7 @@ function buildColumns(categories: ProductCategory[], onSave: (p: Product, cost: 
           </div>
           <div className="min-w-0">
             <p className="truncate font-medium">{row.original.nameEnglish}</p>
-            <p className="truncate text-xs text-muted-foreground">{categoryNameOf(row.original, categories) || '—'}</p>
+            <p className="truncate text-xs text-muted-foreground">{categoryNameOf(row.original, categories) || 'None'}</p>
           </div>
         </div>
       ),
@@ -119,7 +119,7 @@ function buildColumns(categories: ProductCategory[], onSave: (p: Product, cost: 
       header: 'Category',
       filterFn: facetedFilterFn,
       enableGlobalFilter: false,
-      cell: ({ row }) => categoryNameOf(row.original, categories) || '—',
+      cell: ({ row }) => categoryNameOf(row.original, categories) || 'None',
       meta: { title: 'Category' },
     },
     {
@@ -154,7 +154,7 @@ function buildColumns(categories: ProductCategory[], onSave: (p: Product, cost: 
       enableGlobalFilter: false,
       cell: ({ row }) => {
         const m = marginOf(row.original);
-        if (!m) return <div className="text-right text-muted-foreground">—</div>;
+        if (!m) return <div className="text-right text-muted-foreground">None</div>;
         return (
           <div className={cn('text-right whitespace-nowrap tabular-nums', m.amount < 0 ? 'text-red-600' : m.pct < THIN ? 'text-amber-600' : 'text-emerald-700')}>
             <span className="font-medium">{m.pct.toFixed(0)}%</span>
@@ -218,7 +218,7 @@ const ProductCostsTab: React.FC = () => {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Costs set" value={`${costed.length} / ${products.length}`} hint="Live products" icon={CircleDollarSign} tint="bg-sky-500/10 text-sky-600" loading={loading} failed={!!error} />
         <StatCard label="Missing a cost" value={String(products.length - costed.length)} hint="Profit falls back to an estimate" icon={PackageX} tint="bg-amber-500/10 text-amber-600" loading={loading} failed={!!error} />
-        <StatCard label="Average margin" value={costed.length ? `${avgPct.toFixed(1)}%` : '—'} hint="Across costed products, at today’s prices" icon={Percent} tint="bg-emerald-500/10 text-emerald-600" loading={loading} failed={!!error} />
+        <StatCard label="Average margin" value={costed.length ? `${avgPct.toFixed(1)}%` : 'None'} hint="Across costed products, at today’s prices" icon={Percent} tint="bg-emerald-500/10 text-emerald-600" loading={loading} failed={!!error} />
         <StatCard label="Selling below cost" value={String(losses)} hint={losses ? 'Each sale loses money' : 'None'} icon={TrendingDown} tint="bg-red-500/10 text-red-600" loading={loading} failed={!!error} />
       </div>
 

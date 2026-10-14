@@ -49,10 +49,10 @@ const when = (d?: string) =>
         hour: '2-digit',
         minute: '2-digit',
       })
-    : '—';
+    : 'None';
 
 function ChannelResult({ ok = 0, failed = 0 }: { ok?: number; failed?: number }) {
-  if (!ok && !failed) return <span className="text-muted-foreground">—</span>;
+  if (!ok && !failed) return <span className="text-muted-foreground">None</span>;
   return (
     <span className="whitespace-nowrap tabular-nums">
       {ok.toLocaleString()}

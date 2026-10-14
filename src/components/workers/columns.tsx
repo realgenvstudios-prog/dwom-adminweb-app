@@ -176,7 +176,7 @@ export function buildTripColumns(onRemove: (t: Trip) => void, canOpenOrders: boo
       accessorFn: (t) => t.notes ?? '',
       header: 'Notes',
       enableSorting: false,
-      cell: ({ row }) => <span className="block max-w-[220px] truncate text-muted-foreground">{row.original.notes || '—'}</span>,
+      cell: ({ row }) => <span className="block max-w-[220px] truncate text-muted-foreground">{row.original.notes || 'None'}</span>,
       meta: { title: 'Notes' },
     },
     {

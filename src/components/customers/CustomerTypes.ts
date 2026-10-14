@@ -59,15 +59,15 @@ export function initialsOf(name: string): string {
 }
 
 export function formatDate(iso: string | null | undefined): string {
-  if (!iso) return '—';
+  if (!iso) return 'None';
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  return Number.isNaN(d.getTime()) ? 'None' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 export function timeAgo(iso: string | null | undefined): string {
-  if (!iso) return '—';
+  if (!iso) return 'None';
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
-  if (Number.isNaN(days)) return '—';
+  if (Number.isNaN(days)) return 'None';
   if (days <= 0) return 'Today';
   if (days === 1) return 'Yesterday';
   if (days < 30) return `${days} days ago`;

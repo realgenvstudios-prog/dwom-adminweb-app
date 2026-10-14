@@ -42,7 +42,7 @@ export default function DeliveryCheckCard() {
             <Loader2 className="size-4 animate-spin" /> Checking…
           </p>
         )}
-        {failed && <p className="text-sm text-destructive">The check failed — try again.</p>}
+        {failed && <p className="text-sm text-destructive">The check failed. Try again.</p>}
         {result && (
           <div
             className={cn(

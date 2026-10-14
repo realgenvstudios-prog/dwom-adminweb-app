@@ -164,7 +164,7 @@ export default function CategoriesTab({ categories, loading, error, refresh }: C
             ) : visible.length === 0 ? (
               <TableRow className="hover:bg-transparent">
                 <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                  {categories.length === 0 ? 'No categories yet — create the first one.' : 'No categories match your search.'}
+                  {categories.length === 0 ? 'No categories yet. Create the first one.' : 'No categories match your search.'}
                 </TableCell>
               </TableRow>
             ) : (
@@ -207,7 +207,7 @@ export default function CategoriesTab({ categories, loading, error, refresh }: C
                       </div>
                     </TableCell>
                     <TableCell className="hidden max-w-[320px] md:table-cell">
-                      <p className="truncate text-muted-foreground">{c.description || '—'}</p>
+                      <p className="truncate text-muted-foreground">{c.description || 'None'}</p>
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       <span className="font-medium">{counts.live}</span>

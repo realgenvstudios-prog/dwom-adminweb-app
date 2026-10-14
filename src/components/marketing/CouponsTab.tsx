@@ -193,7 +193,7 @@ export default function CouponsTab() {
               <span className="truncate">{campaignName(row.original.campaignId)}</span>
             </span>
           ) : (
-            <span className="text-muted-foreground">—</span>
+            <span className="text-muted-foreground">None</span>
           ),
         meta: { title: 'Campaign' },
       },

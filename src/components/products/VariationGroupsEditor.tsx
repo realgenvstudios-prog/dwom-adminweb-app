@@ -242,7 +242,7 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
           ))}
         </div>
       )}
-      {groups.length === 0 && <p className="text-xs text-muted-foreground">No variations — the product sells at its base price.</p>}
+      {groups.length === 0 && <p className="text-xs text-muted-foreground">No variations. The product sells at its base price.</p>}
     </div>
   );
 };

@@ -95,7 +95,7 @@ export default function SupplierSheet({ supplier, products, open, onOpenChange, 
         onOpenChange(false);
       } else {
         await suppliersService.create(dto);
-        toast.success(`${dto.name} added — open it to link the products they supply`);
+        toast.success(`${dto.name} added. Open it to link the products they supply`);
         onOpenChange(false);
       }
       onSaved();
@@ -119,7 +119,7 @@ export default function SupplierSheet({ supplier, products, open, onOpenChange, 
           <section className="grid gap-4">
             <div className="grid gap-1.5">
               <Label htmlFor="sp-name">Name</Label>
-              <Input id="sp-name" value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="e.g. Makola — Auntie Akos" autoFocus={!supplier} />
+              <Input id="sp-name" value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="e.g. Makola, Auntie Akos" autoFocus={!supplier} />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="grid gap-1.5">

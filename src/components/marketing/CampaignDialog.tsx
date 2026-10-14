@@ -89,7 +89,7 @@ export default function CampaignDialog({ campaign, open, onOpenChange, onSaved }
           title: form.title.trim() || undefined,
           content: form.content.trim(),
         });
-        toast.success(isSocial ? 'Campaign saved as a draft' : 'Draft saved — open it to launch when you’re ready');
+        toast.success(isSocial ? 'Campaign saved as a draft' : 'Draft saved. Open it to launch when you’re ready');
       }
       onSaved();
       onOpenChange(false);
@@ -170,7 +170,7 @@ export default function CampaignDialog({ campaign, open, onOpenChange, onSaved }
           <div className="grid gap-4">
             <div className="grid gap-1.5">
               <Label htmlFor="cp-title">{form.channel === 'email' ? 'Subject' : 'Title'}</Label>
-              <Input id="cp-title" value={form.title} onChange={(e) => set({ title: e.target.value })} placeholder={`Optional — defaults to the campaign name`} />
+              <Input id="cp-title" value={form.title} onChange={(e) => set({ title: e.target.value })} placeholder="Optional. Defaults to the campaign name" />
             </div>
             <div className="grid gap-1.5">
               <Label htmlFor="cp-content">{isSocial ? 'Post copy' : 'Message'}</Label>
@@ -179,12 +179,12 @@ export default function CampaignDialog({ campaign, open, onOpenChange, onSaved }
                 rows={3}
                 value={form.content}
                 onChange={(e) => set({ content: e.target.value })}
-                placeholder="e.g. Fresh tomatoes and peppers are in — 10% off this weekend only."
+                placeholder="e.g. Fresh tomatoes and peppers are in. 10% off this weekend only."
               />
               {form.channel === 'sms' && (
                 <p className={cn('text-xs', smsLength > 160 ? 'text-amber-700' : 'text-muted-foreground')}>
                   {smsLength} characters as sent
-                  {smsLength > 160 ? ` — ${Math.ceil(smsLength / 153)} SMS parts per customer` : ''}
+                  {smsLength > 160 ? `, so ${Math.ceil(smsLength / 153)} SMS parts per customer` : ''}
                 </p>
               )}
             </div>
@@ -243,7 +243,7 @@ export default function CampaignDialog({ campaign, open, onOpenChange, onSaved }
             )}
             <div className={cn('grid gap-1.5', editing && 'sm:col-span-2')}>
               <Label htmlFor="cp-desc">Internal notes</Label>
-              <Input id="cp-desc" value={form.description} onChange={(e) => set({ description: e.target.value })} placeholder="Optional — only admins see this" />
+              <Input id="cp-desc" value={form.description} onChange={(e) => set({ description: e.target.value })} placeholder="Optional. Only admins see this" />
             </div>
           </div>
         </div>

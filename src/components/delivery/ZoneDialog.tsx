@@ -58,7 +58,7 @@ export default function ZoneDialog({ zone, open, onOpenChange, onSaved }: ZoneDi
           ...geometry,
           deliveryFee: feeNum,
         });
-        toast.success(`${name.trim()} created — deliveries there are live`);
+        toast.success(`${name.trim()} created. Deliveries there are live`);
       }
       onSaved();
       onOpenChange(false);
@@ -93,7 +93,7 @@ export default function ZoneDialog({ zone, open, onOpenChange, onSaved }: ZoneDi
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="z-desc">Description</Label>
-            <Input id="z-desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Optional — e.g. neighbourhoods it covers" />
+            <Input id="z-desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Optional, e.g. neighbourhoods it covers" />
           </div>
           <ZoneShapeEditor initialShape={initialShape} onChange={setShape} />
         </div>

@@ -54,7 +54,7 @@ function BulkReceive({ rows, onDone }: { rows: InventoryRow[]; onDone: () => voi
     const ok = results.filter((r) => r.status === 'fulfilled').length;
     results.forEach((r, i) => r.status === 'rejected' && logger.error('Bulk receive failed for', rows[i].productId, r.reason));
     if (ok === rows.length) toast.success(`Received ${n} each for ${ok} product${ok === 1 ? '' : 's'}`);
-    else toast.error(`Received for ${ok} of ${rows.length}; the rest failed — try them again.`);
+    else toast.error(`Received for ${ok} of ${rows.length}; the rest failed. Try them again.`);
     setBusy(false);
     onDone();
   };
@@ -128,7 +128,7 @@ export default function InventoryTab() {
       <p className="flex items-start gap-2 rounded-lg border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
         <Info className="mt-0.5 size-4 shrink-0" />
         <span>
-          Warehouse counts track stock you hold. They don’t control what customers can buy — that’s each product’s{' '}
+          Warehouse counts track stock you hold. They don’t control what customers can buy; that’s each product’s{' '}
           <strong className="text-foreground">stock status</strong> in Catalog.
         </span>
       </p>

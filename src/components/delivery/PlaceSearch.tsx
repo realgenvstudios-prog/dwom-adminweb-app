@@ -53,7 +53,7 @@ export default function PlaceSearch({ id, placeholder = 'Start typing… e.g. "E
           setProblem(`Couldn’t find “${q}”. Try a more specific name or a nearby landmark.`);
         }
       } catch {
-        if (latest.current === q) setProblem('Search failed — check your connection.');
+        if (latest.current === q) setProblem('Search failed. Check your connection.');
       } finally {
         if (latest.current === q) setBusy(false);
       }

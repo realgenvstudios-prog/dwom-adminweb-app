@@ -34,7 +34,7 @@ export function buildInventoryColumns(onAction: (row: InventoryRow, action: Stoc
             <div className="min-w-0">
               <p className="truncate font-medium">{p?.nameEnglish ?? `Product #${row.original.productId}`}</p>
               <p className="truncate text-xs text-muted-foreground">
-                {archived ? 'Archived product' : (p?.Category?.name ?? '—')}
+                {archived ? 'Archived product' : (p?.Category?.name ?? 'None')}
               </p>
             </div>
           </div>

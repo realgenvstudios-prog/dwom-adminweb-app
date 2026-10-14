@@ -77,7 +77,7 @@ export default function SettingsPage() {
 
   const setOpen = (open: boolean) => {
     if (!open && !message.trim()) return toast.error('Write the message customers will see first.');
-    void save('status', { isServiceClosed: !open, ...(open ? {} : { serviceClosedMessage: message.trim() }) }, open ? 'Open — customers can order again' : 'Closed — new orders are paused');
+    void save('status', { isServiceClosed: !open, ...(open ? {} : { serviceClosedMessage: message.trim() }) }, open ? 'Open. Customers can order again' : 'Closed. New orders are paused');
   };
 
   if (error) {

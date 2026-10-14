@@ -87,7 +87,7 @@ export default function OverviewTab({ order, details, detailsLoading }: Overview
                   <Phone className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                   <p>
                     <span className="text-muted-foreground">Hand to </span>
-                    {details.recipient.name || '—'}
+                    {details.recipient.name || 'None'}
                     {details.recipient.phone && <span className="tabular-nums"> · {details.recipient.phone}</span>}
                   </p>
                 </div>

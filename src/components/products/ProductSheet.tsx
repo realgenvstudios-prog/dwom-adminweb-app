@@ -156,7 +156,7 @@ export default function ProductSheet({ product, intent, open, onOpenChange, cate
             ) : (
               <div className="grid gap-6">
                 <dl className="divide-y rounded-lg border">
-                  <Row label="Category">{categoryNameOf(product, categories) || '—'}</Row>
+                  <Row label="Category">{categoryNameOf(product, categories) || 'None'}</Row>
                   <Row label="Price">
                     {discount > 0 ? (
                       <span className="tabular-nums">
@@ -185,7 +185,7 @@ export default function ProductSheet({ product, intent, open, onOpenChange, cate
                 <section className="grid gap-2">
                   <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Variations</h3>
                   {variations.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">None — sold at the base price.</p>
+                    <p className="text-sm text-muted-foreground">None. Sold at the base price.</p>
                   ) : (
                     <div className="grid gap-3">
                       {variations.map((g) => (

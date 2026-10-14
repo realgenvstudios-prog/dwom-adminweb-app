@@ -151,7 +151,7 @@ const FounderLedgerTab: React.FC = () => {
         cell: ({ row }) => (
           <div className="flex max-w-[280px] items-center gap-2">
             <span className="truncate text-muted-foreground">
-              {[row.original.notes, row.original.approvedBy && `approved by ${row.original.approvedBy}`].filter(Boolean).join(' · ') || '—'}
+              {[row.original.notes, row.original.approvedBy && `approved by ${row.original.approvedBy}`].filter(Boolean).join(' · ') || 'None'}
             </span>
             {row.original.receiptUrl && (
               <a href={row.original.receiptUrl} target="_blank" rel="noreferrer" className="shrink-0 text-muted-foreground hover:text-foreground" aria-label="Open receipt">

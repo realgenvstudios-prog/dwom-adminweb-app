@@ -135,7 +135,7 @@ export default function SuppliersTab() {
               {row.original.location}
             </span>
           ) : (
-            <span className="text-muted-foreground">—</span>
+            <span className="text-muted-foreground">None</span>
           ),
         meta: { title: 'Location' },
       },
@@ -264,7 +264,7 @@ export default function SuppliersTab() {
           },
         ]}
         onRowClick={(s) => openSheet(s)}
-        emptyMessage={suppliers.length === 0 ? 'No suppliers yet — add who you buy from.' : 'No suppliers match these filters.'}
+        emptyMessage={suppliers.length === 0 ? 'No suppliers yet. Add who you buy from.' : 'No suppliers match these filters.'}
         toolbarActions={
           <Button size="sm" className="h-8" onClick={() => openSheet(null)}>
             <Plus />
@@ -282,7 +282,7 @@ export default function SuppliersTab() {
           <AlertDialogHeader>
             <AlertDialogTitle>Remove {toRemove?.name}?</AlertDialogTitle>
             <AlertDialogDescription>
-              If you’ve logged purchases or costs from them, they’re deactivated so that history stays intact — you can reactivate them
+              If you’ve logged purchases or costs from them, they’re deactivated so that history stays intact. You can reactivate them
               later. If not, they’re deleted for good.
             </AlertDialogDescription>
           </AlertDialogHeader>

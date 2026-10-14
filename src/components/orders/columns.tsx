@@ -72,7 +72,7 @@ export function buildOrderColumns({ onView, onAssignRider, onAssignPicker }: Ord
             <TooltipContent className="max-w-xs">{row.original.address}</TooltipContent>
           </Tooltip>
         ) : (
-          <span className="text-muted-foreground">—</span>
+          <span className="text-muted-foreground">None</span>
         ),
       meta: { title: 'Delivery address' },
     },

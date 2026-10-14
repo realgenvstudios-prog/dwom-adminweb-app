@@ -40,7 +40,7 @@ export const customerColumns: ColumnDef<Customer>[] = [
     enableGlobalFilter: false,
     cell: ({ row }) => (
       <div className="min-w-0">
-        <p className="tabular-nums">{row.original.phone || '—'}</p>
+        <p className="tabular-nums">{row.original.phone || 'None'}</p>
         <p className="max-w-[200px] truncate text-xs text-muted-foreground">{row.original.email || 'No email'}</p>
       </div>
     ),
@@ -76,7 +76,7 @@ export const customerColumns: ColumnDef<Customer>[] = [
           <TooltipContent>{formatDate(row.original.lastOrder)}</TooltipContent>
         </Tooltip>
       ) : (
-        <span className="text-muted-foreground">—</span>
+        <span className="text-muted-foreground">None</span>
       ),
     meta: { title: 'Last order' },
   },

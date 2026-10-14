@@ -182,7 +182,7 @@ const ExpensesTab: React.FC = () => {
         accessorFn: (e) => e.paidBy ?? '',
         header: 'Paid by',
         enableSorting: false,
-        cell: ({ row }) => <span className="text-muted-foreground">{row.original.paidBy || '—'}</span>,
+        cell: ({ row }) => <span className="text-muted-foreground">{row.original.paidBy || 'None'}</span>,
         meta: { title: 'Paid by' },
       },
       {
@@ -202,7 +202,7 @@ const ExpensesTab: React.FC = () => {
         enableSorting: false,
         cell: ({ row }) => (
           <div className="flex max-w-[260px] items-center gap-2">
-            <span className="truncate text-muted-foreground">{row.original.notes || '—'}</span>
+            <span className="truncate text-muted-foreground">{row.original.notes || 'None'}</span>
             {row.original.receiptUrl && (
               <a href={row.original.receiptUrl} target="_blank" rel="noreferrer" className="shrink-0 text-muted-foreground hover:text-foreground" aria-label="Open receipt">
                 <Receipt className="size-3.5" />
@@ -268,7 +268,7 @@ const ExpensesTab: React.FC = () => {
           loading={loading}
           failed={!!error}
         />
-        <StatCard label="Biggest category" value={top ? top[0] : '—'} hint={top ? `${formatGhs(top[1])} this month` : 'Nothing this month yet'} icon={Tag} tint="bg-amber-500/10 text-amber-600" loading={loading} failed={!!error} />
+        <StatCard label="Biggest category" value={top ? top[0] : 'None'} hint={top ? `${formatGhs(top[1])} this month` : 'Nothing this month yet'} icon={Tag} tint="bg-amber-500/10 text-amber-600" loading={loading} failed={!!error} />
         <StatCard
           label="Recurring this month"
           value={formatGhs(recurring)}

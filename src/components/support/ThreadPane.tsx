@@ -70,11 +70,11 @@ export default function ThreadPane({ userId, refreshKey, onBack, onChanged }: Th
       setSending(true);
       const r = await supportService.reply(userId, text);
       setDraft('');
-      if (!r.notified) toast.message('Reply sent', { description: 'They don’t have push notifications on — they’ll see it next time they open Support in the app.' });
+      if (!r.notified) toast.message('Reply sent', { description: 'They don’t have push notifications on, so they’ll see it next time they open Support in the app.' });
       await load();
       onChanged();
     } catch {
-      toast.error('Couldn’t send the reply. It wasn’t delivered — try again.');
+      toast.error('Couldn’t send the reply. It wasn’t delivered. Try again.');
     } finally {
       setSending(false);
     }

@@ -82,7 +82,7 @@ export default function CampaignSheet({ campaign: c, zones, open, onOpenChange, 
     try {
       setBusy('launch');
       const r = await marketingService.launchCampaign(c.id);
-      if (c.channel === 'social') toast.success('Campaign is live — record its results here as they come in');
+      if (c.channel === 'social') toast.success('Campaign is live. Record its results here as they come in');
       else
         toast.success(`Sent to ${r.successCount.toLocaleString()} of ${r.totalRecipients.toLocaleString()} customers`, {
           description: r.failureCount ? `${r.failureCount.toLocaleString()} couldn’t be reached (no app, phone or email).` : undefined,
@@ -168,10 +168,10 @@ export default function CampaignSheet({ campaign: c, zones, open, onOpenChange, 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 <Metric label={c.channel === 'social' ? 'Reach' : 'Delivered'} value={c.impressions.toLocaleString()} />
                 <Metric label="Orders" value={c.conversions.toLocaleString()} hint={c.metricsAreEstimate ? 'Entered by hand' : 'Paid, credited automatically'} />
-                <Metric label="Revenue" value={c.metricsAreEstimate ? '—' : formatGhs(c.revenue)} />
+                <Metric label="Revenue" value={c.metricsAreEstimate ? 'Not tracked' : formatGhs(c.revenue)} />
                 <Metric label="Spend" value={formatGhs(spend)} />
-                <Metric label="Cost per order" value={c.conversions > 0 && spend > 0 ? formatGhs(spend / c.conversions) : '—'} />
-                <Metric label="Return on spend" value={!c.metricsAreEstimate && spend > 0 ? `${(c.revenue / spend).toFixed(1)}×` : '—'} />
+                <Metric label="Cost per order" value={c.conversions > 0 && spend > 0 ? formatGhs(spend / c.conversions) : 'None'} />
+                <Metric label="Return on spend" value={!c.metricsAreEstimate && spend > 0 ? `${(c.revenue / spend).toFixed(1)}×` : 'None'} />
               </div>
               {c.Coupon && c.Coupon.length > 0 && (
                 <p className="text-sm text-muted-foreground">
@@ -345,7 +345,7 @@ export default function CampaignSheet({ campaign: c, zones, open, onOpenChange, 
                 <AlertDialogTitle>{c.channel === 'social' ? 'Mark as live?' : `Send “${c.name}” now?`}</AlertDialogTitle>
                 <AlertDialogDescription>
                   {c.channel === 'social'
-                    ? 'Nothing is sent — this just starts tracking it. Post it on your social channels yourself.'
+                    ? 'Nothing is sent. This just starts tracking it; post it on your social channels yourself.'
                     : `This sends a ${channel.label.toLowerCase()} message right now to ${audience?.toLowerCase()} in ${zoneNames === 'Every zone' ? 'every zone' : zoneNames}. It can’t be undone.`}
                 </AlertDialogDescription>
               </AlertDialogHeader>

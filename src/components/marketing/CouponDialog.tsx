@@ -239,12 +239,12 @@ export default function CouponDialog({ coupon, campaigns, campaignId, open, onOp
                 })}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">Every paid order using this code is credited to the campaign — the way to measure SMS, email and social.</p>
+            <p className="text-xs text-muted-foreground">Every paid order using this code is credited to the campaign. This is how SMS, email and social get measured.</p>
           </div>
 
           <div className="grid gap-1.5">
             <Label htmlFor="cc-desc">Internal note</Label>
-            <Input id="cc-desc" value={form.description} onChange={(e) => set({ description: e.target.value })} placeholder="Optional — e.g. Flyers at Madina market" />
+            <Input id="cc-desc" value={form.description} onChange={(e) => set({ description: e.target.value })} placeholder="Optional, e.g. Flyers at Madina market" />
           </div>
         </div>
 

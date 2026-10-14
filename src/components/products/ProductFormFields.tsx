@@ -118,7 +118,7 @@ export default function ProductFormFields({ value, onChange, errors, categories,
 
       <section className="grid gap-4">
         <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Details</h3>
-        <Field id="pf-desc" label="Description" hint="Optional — shown on the product page in the app.">
+        <Field id="pf-desc" label="Description" hint="Optional. Shown on the product page in the app.">
           <Textarea id="pf-desc" rows={3} value={value.description} onChange={(e) => onChange({ description: e.target.value })} />
         </Field>
         <ImageUpload label="Photo" value={value.imageUrl} onChange={(url) => onChange({ imageUrl: url })} />

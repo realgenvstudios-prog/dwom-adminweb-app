@@ -78,10 +78,10 @@ export default function AnalyticsPage() {
         <div className="flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-900">
           <FlaskConical className="mt-0.5 size-4 shrink-0" />
           <div>
-            <p className="font-medium">You’re looking at sample data — none of these numbers are real.</p>
+            <p className="font-medium">You’re looking at sample data. None of these numbers are real.</p>
             <p className="text-amber-900/80">
               {hasReal
-                ? 'Real data is available — turn off “Sample data” to see it.'
+                ? 'Real data is available. Turn off “Sample data” to see it.'
                 : (failed.insights && activeTab === 'overview') || (failed.orders && activeTab === 'orders')
                   ? 'The server doesn’t provide these insights yet (deploy the latest backend). Real numbers replace this automatically.'
                   : activeTab === 'orders'

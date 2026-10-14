@@ -81,7 +81,7 @@ const CustomersPage: React.FC = () => {
           setSelectedId(c.id);
           setSheetOpen(true);
         }}
-        emptyMessage={customers.length === 0 ? 'No customers yet — they’ll appear here as people sign up.' : 'No customers match these filters.'}
+        emptyMessage={customers.length === 0 ? 'No customers yet. They’ll appear here as people sign up.' : 'No customers match these filters.'}
       />
 
       {selected && (

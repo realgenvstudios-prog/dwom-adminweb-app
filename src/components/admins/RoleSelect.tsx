@@ -21,7 +21,7 @@ export default function RoleSelect({ id, value, onChange }: { id?: string; value
       </Select>
       <div className="rounded-md bg-muted px-3 py-2 text-xs">
         <p className="text-foreground">{ROLE_BLURB[value]}</p>
-        <p className="mt-1 text-muted-foreground">Can open: {(ROLE_PAGES[value] ?? []).join(', ') || '—'}</p>
+        <p className="mt-1 text-muted-foreground">Can open: {(ROLE_PAGES[value] ?? []).join(', ') || 'None'}</p>
       </div>
     </div>
   );

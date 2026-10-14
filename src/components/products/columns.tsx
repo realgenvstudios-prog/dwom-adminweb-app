@@ -59,7 +59,7 @@ export function buildProductColumns(a: ProductActions): ColumnDef<Product>[] {
       sortingFn: (x, y) => categoryNameOf(x.original, a.categories).localeCompare(categoryNameOf(y.original, a.categories)),
       filterFn: facetedFilterFn,
       enableGlobalFilter: false,
-      cell: ({ row }) => <span className="text-muted-foreground">{categoryNameOf(row.original, a.categories) || '—'}</span>,
+      cell: ({ row }) => <span className="text-muted-foreground">{categoryNameOf(row.original, a.categories) || 'None'}</span>,
       meta: { title: 'Category' },
     },
     {

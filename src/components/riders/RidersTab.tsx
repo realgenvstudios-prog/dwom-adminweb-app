@@ -131,7 +131,7 @@ export default function RidersTab() {
           setViewId(r.id);
           setViewOpen(true);
         }}
-        emptyMessage={riders.length === 0 ? 'No riders yet — add your first one.' : 'No riders match these filters.'}
+        emptyMessage={riders.length === 0 ? 'No riders yet. Add your first one.' : 'No riders match these filters.'}
         toolbarActions={
           <Button size="sm" className="h-8" onClick={() => setCreateOpen(true)}>
             <Plus />

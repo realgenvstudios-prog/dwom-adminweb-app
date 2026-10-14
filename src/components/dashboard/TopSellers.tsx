@@ -35,7 +35,7 @@ export default function TopSellers({ refreshKey }: { refreshKey: number }) {
             ))}
           </div>
         ) : products.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No sales yet — top products will show up once orders come in.</p>
+          <p className="text-sm text-muted-foreground">No sales yet. Top products show up once orders come in.</p>
         ) : (
           <ol className="space-y-4">
             {products.map((p, i) => (

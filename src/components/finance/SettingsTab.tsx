@@ -151,7 +151,7 @@ const SettingsTab: React.FC = () => {
       setSaving(true);
       await settingsService.updateSettings(payload);
       setSaved(form);
-      toast.success(changed.some((k) => ['minimumOrderValue', 'maxSmallOrderFee', 'defaultServiceFee', 'defaultDeliveryFee'].includes(k)) ? 'Saved — checkout uses the new fees now' : 'Settings saved');
+      toast.success(changed.some((k) => ['minimumOrderValue', 'maxSmallOrderFee', 'defaultServiceFee', 'defaultDeliveryFee'].includes(k)) ? 'Saved. Checkout uses the new fees now' : 'Settings saved');
     } catch (err) {
       logger.error('Failed to save finance settings:', err);
       toast.error('Couldn’t save the settings.');

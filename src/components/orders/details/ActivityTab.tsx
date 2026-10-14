@@ -84,7 +84,7 @@ export default function ActivityTab({ orderId, history, historyLoading }: Activi
         <StatusTimeline history={history} loading={historyLoading} />
       </Section>
 
-      <Section title="Fulfilment log" hint="Staff only — never shown to the customer.">
+      <Section title="Fulfilment log" hint="Staff only. Never shown to the customer.">
         {loading ? (
           <Skeleton className="h-16 w-full" />
         ) : events.length === 0 ? (

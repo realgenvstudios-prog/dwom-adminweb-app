@@ -128,8 +128,8 @@ export default function ExpenseDialog({ expense, open, onOpenChange, onSaved }: 
 
           <div className="grid grid-cols-2 gap-2 rounded-lg border p-1">
             {[
-              { capex: false, title: 'Operating cost', hint: 'Rent, fees, supplies — counts in the P&L' },
-              { capex: true, title: 'Capital spend', hint: 'Equipment, assets — kept out of the P&L' },
+              { capex: false, title: 'Operating cost', hint: 'Rent, fees, supplies. Counts in the P&L' },
+              { capex: true, title: 'Capital spend', hint: 'Equipment, assets. Kept out of the P&L' },
             ].map((o) => (
               <button
                 key={String(o.capex)}

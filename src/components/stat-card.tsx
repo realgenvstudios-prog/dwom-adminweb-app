@@ -49,7 +49,7 @@ export function StatCard({ label, value, hint, icon: Icon, tint, loading, failed
             <Skeleton className="h-8 w-20" />
           ) : (
             <p className={cn('truncate text-2xl font-semibold tracking-tight tabular-nums', failed && 'text-muted-foreground')}>
-              {failed ? '—' : value}
+              {failed ? 'Unavailable' : value}
             </p>
           )}
           <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">

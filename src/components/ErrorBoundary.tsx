@@ -30,8 +30,8 @@ class ErrorBoundary extends React.Component<Props, State> {
           <div className="w-full max-w-lg rounded-xl border bg-card p-8 text-card-foreground shadow-sm">
             <h1 className="text-xl font-bold text-red-600 mb-2">Something went wrong</h1>
             <p className="mb-4 text-sm text-muted-foreground">
-              This page hit an unexpected error. Reloading usually fixes a transient issue —
-              if it keeps happening, the detail below is what's actually failing.
+              This page hit an unexpected error. Reloading usually fixes a temporary issue.
+              If it keeps happening, the detail below shows what's failing.
             </p>
             <pre className="overflow-x-auto rounded-md bg-muted p-3 text-xs whitespace-pre-wrap text-destructive">
               {this.state.error.message}

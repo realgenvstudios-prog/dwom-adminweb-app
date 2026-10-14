@@ -392,7 +392,7 @@ export default function AdminsPage() {
                 if (!resetLink) return;
                 navigator.clipboard.writeText(resetLink.url).then(
                   () => toast.success('Link copied'),
-                  () => toast.error('Couldn’t copy — select the link and copy it'),
+                  () => toast.error('Couldn’t copy. Select the link and copy it'),
                 );
               }}
             >

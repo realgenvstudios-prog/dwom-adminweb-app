@@ -74,10 +74,10 @@ export default function RiderSheet({ rider, open, onOpenChange, onAssignZone, on
 
           <dl className="divide-y rounded-lg border text-sm">
             {[
-              ['Phone', rider.phone || '—'],
-              ['Email', rider.email || '—'],
+              ['Phone', rider.phone || 'None'],
+              ['Email', rider.email || 'None'],
               ['Zone', rider.zoneId != null ? rider.zone : 'Not assigned'],
-              ['Licence', rider.licenseNumber || '—'],
+              ['Licence', rider.licenseNumber || 'None'],
               ['Payout account name', rider.accountName || 'Not provided'],
               ['Rider since', formatDate(rider.createdAt)],
             ].map(([label, value]) => (

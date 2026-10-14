@@ -58,7 +58,7 @@ export default function NotesTrackingTab({ data, loading, failed }: { data: Note
               <CircleHelp className="size-4 text-amber-600" />
               Unsure matches
             </CardTitle>
-            <CardDescription>Words matched to a product with low confidence — often a local name or spelling worth adding to that product’s names.</CardDescription>
+            <CardDescription>Words matched to a product with low confidence. Often a local name or spelling worth adding to that product’s names.</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -112,7 +112,7 @@ export default function NotesTrackingTab({ data, loading, failed }: { data: Note
       <Card>
         <CardHeader>
           <CardTitle>Most common notes</CardTitle>
-          <CardDescription>Shopping lists customers write most often — candidates for a ready-made bundle.</CardDescription>
+          <CardDescription>Shopping lists customers write most often. Good candidates for a ready-made bundle.</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (

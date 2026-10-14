@@ -7,7 +7,7 @@ export const EXPENSE_METHODS = [
 ];
 
 export function methodLabel(value: string | null | undefined): string {
-  if (!value) return '—';
+  if (!value) return 'None';
   return EXPENSE_METHODS.find((m) => m.value === value)?.label ?? value;
 }
 

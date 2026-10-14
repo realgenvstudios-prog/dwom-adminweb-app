@@ -197,7 +197,7 @@ export default function OverviewTab({ data, loading, failed }: { data: Analytics
               <SearchX className="size-4 text-red-600" />
               Searched for, but not found
             </CardTitle>
-            <CardDescription>Searches that returned nothing — products customers want that the catalog doesn’t match</CardDescription>
+            <CardDescription>Searches that returned nothing: products customers want that the catalog doesn’t match</CardDescription>
           </CardHeader>
           <CardContent>
             {loading || !data ? (

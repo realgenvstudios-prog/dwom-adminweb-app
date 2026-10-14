@@ -16,7 +16,7 @@ export const CHANNELS: { value: Campaign['channel']; label: string; icon: Lucide
     value: 'in_app',
     label: 'In-app',
     icon: Smartphone,
-    hint: 'Appears in the app’s notification inbox only — no phone alert. Free.',
+    hint: 'Appears in the app’s notification inbox only, with no phone alert. Free.',
     credit: 'Orders placed within 3 days of opening it in the inbox are credited (app update required).',
   },
   {
@@ -24,20 +24,20 @@ export const CHANNELS: { value: Campaign['channel']; label: string; icon: Lucide
     label: 'SMS',
     icon: MessageSquare,
     hint: 'A text to every matching customer’s phone. Uses SMS credit.',
-    credit: 'Put a discount code linked to this campaign in the message — orders using it are credited.',
+    credit: 'Put a discount code linked to this campaign in the message. Orders using it are credited.',
   },
   {
     value: 'email',
     label: 'Email',
     icon: Mail,
     hint: 'To matching customers who added an email address.',
-    credit: 'Put a discount code linked to this campaign in the message — orders using it are credited.',
+    credit: 'Put a discount code linked to this campaign in the message. Orders using it are credited.',
   },
   {
     value: 'social',
     label: 'Social',
     icon: Megaphone,
-    hint: 'You post it yourself. Nothing is sent from here — use it to track spend and results.',
+    hint: 'You post it yourself. Nothing is sent from here; use it to track spend and results.',
     credit: 'Link a discount code to credit orders automatically; anything else you enter by hand.',
   },
 ];

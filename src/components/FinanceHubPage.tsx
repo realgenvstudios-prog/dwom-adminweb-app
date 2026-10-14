@@ -28,7 +28,7 @@ const FinanceHubPage: React.FC = () => {
     <div className="flex flex-col gap-6">
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">Finance</h1>
-        <p className="text-sm text-muted-foreground">Revenue, real costs, and profitability — and the settings that drive them.</p>
+        <p className="text-sm text-muted-foreground">Revenue, real costs and profitability, plus the settings behind them.</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabKey)} className="gap-6">

@@ -134,7 +134,7 @@ export default function SubscriptionsPage() {
         enableGlobalFilter: false,
         cell: ({ row }) => {
           const s = row.original;
-          if (s.status !== 'active') return <span className="text-muted-foreground">—</span>;
+          if (s.status !== 'active') return <span className="text-muted-foreground">None</span>;
           const t = new Date(s.nextBillingDate).getTime();
           const soon = t - now < 2 * DAY;
           return <span className={cn('whitespace-nowrap', soon ? 'font-medium' : 'text-muted-foreground')}>{t - now < DAY && t - now > -DAY ? 'Today' : formatDate(s.nextBillingDate)}</span>;

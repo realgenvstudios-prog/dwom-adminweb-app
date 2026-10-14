@@ -121,7 +121,7 @@ export default function ProductsTab({ products, categories, loading, error, refr
     });
     const label = stockMeta(stockStatus).label.toLowerCase();
     if (ok === rows.length) toast.success(`${ok} product${ok === 1 ? '' : 's'} marked ${label}`);
-    else toast.error(`${ok} of ${rows.length} marked ${label}; the rest failed — try them again.`);
+    else toast.error(`${ok} of ${rows.length} marked ${label}; the rest failed. Try them again.`);
     clear();
   };
 
@@ -166,7 +166,7 @@ export default function ProductsTab({ products, categories, loading, error, refr
           setSheet({ id: String(p.id), intent: 'view', token: Date.now() });
           setSheetOpen(true);
         }}
-        emptyMessage={products.length === 0 ? 'No products yet — add your first one.' : 'No products match these filters.'}
+        emptyMessage={products.length === 0 ? 'No products yet. Add your first one.' : 'No products match these filters.'}
         toolbarActions={
           <>
             <Button variant="outline" size="sm" className="h-8" onClick={() => setArchivedKey(Date.now())}>

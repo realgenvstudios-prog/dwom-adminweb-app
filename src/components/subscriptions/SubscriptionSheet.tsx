@@ -56,7 +56,7 @@ export default function SubscriptionSheet({ subscription: row, open, onOpenChang
     try {
       setBusy(next);
       setDetail(await subscriptionsService.setStatus(s.id, next));
-      toast.success(next === 'paused' ? 'Paused — no charges until resumed' : next === 'active' ? 'Resumed' : 'Cancelled', {
+      toast.success(next === 'paused' ? 'Paused. No charges until resumed' : next === 'active' ? 'Resumed' : 'Cancelled', {
         description: 'The customer was notified in the app.',
       });
       onChanged();
@@ -71,7 +71,7 @@ export default function SubscriptionSheet({ subscription: row, open, onOpenChang
   const items = s.SubscriptionItem ?? [];
   const billings = detail?.SubscriptionBilling ?? [];
   const failing = paymentFailing(s);
-  const address = s.Address ? `${s.Address.label} — ${s.Address.addressText}` : null;
+  const address = s.Address ? `${s.Address.label}, ${s.Address.addressText}` : null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -156,7 +156,7 @@ export default function SubscriptionSheet({ subscription: row, open, onOpenChang
             <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Schedule</h3>
             <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-sm">
               <dt className="text-muted-foreground">Next billing</dt>
-              <dd>{s.status === 'active' ? formatDate(s.nextBillingDate) : '—'}</dd>
+              <dd>{s.status === 'active' ? formatDate(s.nextBillingDate) : 'None'}</dd>
               <dt className="text-muted-foreground">Payment</dt>
               <dd className="capitalize">{s.autoCharge === false ? 'Manual' : (s.paymentMethod?.replace('_', ' ') ?? 'Auto-charge')}</dd>
               <dt className="text-muted-foreground">Deliveries</dt>
@@ -233,7 +233,7 @@ export default function SubscriptionSheet({ subscription: row, open, onOpenChang
           <AlertDialogHeader>
             <AlertDialogTitle>Cancel this subscription?</AlertDialogTitle>
             <AlertDialogDescription>
-              {customerName(s)} won’t be charged or receive deliveries again, and gets a notification. A cancelled subscription can’t be restarted — they’d need to
+              {customerName(s)} won’t be charged or receive deliveries again, and gets a notification. A cancelled subscription can’t be restarted; they’d need to
               create a new one. Pausing is reversible.
             </AlertDialogDescription>
           </AlertDialogHeader>

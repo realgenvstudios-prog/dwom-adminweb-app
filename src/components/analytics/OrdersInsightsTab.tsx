@@ -147,7 +147,7 @@ export default function OrdersInsightsTab({ data, loading, failed }: { data: Ord
       <Card>
         <CardHeader>
           <CardTitle>When orders come in</CardTitle>
-          <CardDescription>Day × hour. Darker means more orders — useful for picker and rider shifts.</CardDescription>
+          <CardDescription>Day × hour. Darker means more orders. Useful for planning picker and rider shifts.</CardDescription>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           {loading ? (

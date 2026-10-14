@@ -21,7 +21,7 @@ const STAGES: Record<Stage, { label: string; className: string }> = {
   check: { label: 'Check identity', className: 'border-amber-500/20 bg-amber-500/10 text-amber-700' },
   approve: { label: 'Ready to approve', className: 'border-sky-500/20 bg-sky-500/10 text-sky-700' },
   waiting: { label: 'Waiting period', className: 'border-violet-500/20 bg-violet-500/10 text-violet-700' },
-  due: { label: 'Due — erase', className: 'border-red-500/20 bg-red-500/10 text-red-700' },
+  due: { label: 'Due to erase', className: 'border-red-500/20 bg-red-500/10 text-red-700' },
   erased: { label: 'Erased', className: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-700' },
   rejected: { label: 'Rejected / cancelled', className: 'text-muted-foreground' },
 };
@@ -41,7 +41,7 @@ function stageOf(r: DeletionRequest, now: number): Stage {
   }
 }
 
-const fmt = (iso?: string | null) => (iso ? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
+const fmt = (iso?: string | null) => (iso ? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'None');
 const daysUntil = (iso: string, now: number) => Math.ceil((new Date(iso).getTime() - now) / 86400000);
 // In-app requests without an email get a placeholder "<digits>@dwom.app" — not a real address.
 const realEmail = (e: string) => (e && !e.endsWith('@dwom.app') ? e : null);
@@ -110,7 +110,7 @@ export default function DataDeletionRequestsPage() {
       setSaving(true);
       const updated = await deletionRequestsService.act(request.id, action, notes.trim() || undefined);
       toast.success(
-        action === 'verify' ? 'Marked verified' : action === 'approve' ? `Approved — can be erased from ${fmt(updated.scheduledDeletionDate)}` : action === 'complete' ? 'Customer erased' : 'Request rejected',
+        action === 'verify' ? 'Marked verified' : action === 'approve' ? `Approved. Can be erased from ${fmt(updated.scheduledDeletionDate)}` : action === 'complete' ? 'Customer erased' : 'Request rejected',
         action === 'complete' && updated.notes ? { description: updated.notes } : undefined,
       );
       setPending(null);
@@ -170,7 +170,7 @@ export default function DataDeletionRequestsPage() {
         cell: ({ row }) => {
           const r = row.original;
           if (r.status === 'COMPLETED') return <span className="whitespace-nowrap text-muted-foreground">Erased {fmt(r.completedAt)}</span>;
-          if (r.status !== 'APPROVED' || !r.scheduledDeletionDate) return <span className="text-muted-foreground">—</span>;
+          if (r.status !== 'APPROVED' || !r.scheduledDeletionDate) return <span className="text-muted-foreground">None</span>;
           const d = daysUntil(r.scheduledDeletionDate, now);
           return d > 0 ? (
             <span className="whitespace-nowrap text-muted-foreground">

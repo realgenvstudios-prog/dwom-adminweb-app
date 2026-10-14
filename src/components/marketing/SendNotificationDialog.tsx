@@ -64,7 +64,7 @@ export default function SendNotificationDialog({ templates, templateId, open, on
         sendSms: form.sendSms,
         sendEmail: form.sendEmail,
       });
-      if (r.status === 'failed') throw new Error('Delivery failed — check the history for details.');
+      if (r.status === 'failed') throw new Error('Delivery failed. Check the history for details.');
       toast.success(`Sent to ${r.totalRecipients.toLocaleString()} customers`, {
         description: r.failureCount ? `${r.failureCount.toLocaleString()} deliveries failed (no app, phone or email).` : undefined,
       });

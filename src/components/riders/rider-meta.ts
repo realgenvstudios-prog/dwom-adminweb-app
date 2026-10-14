@@ -18,7 +18,7 @@ export const VEHICLES: { value: string; label: string; icon: LucideIcon }[] = [
 ];
 
 export function vehicleMeta(value: string) {
-  return VEHICLES.find((v) => v.value === value?.toLowerCase()) ?? { value, label: value || '—', icon: Bike };
+  return VEHICLES.find((v) => v.value === value?.toLowerCase()) ?? { value, label: value || 'None', icon: Bike };
 }
 
 /** Prisma Decimals (e.g. totalEarnings) arrive as strings. */
