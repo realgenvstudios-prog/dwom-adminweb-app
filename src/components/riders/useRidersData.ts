@@ -1,95 +1,38 @@
-import { useEffect, useState } from "react";
-import ridersService from "../../services/ridersService";
-import type { RiderData, Zone } from "../../services/ridersService";
+import { useCallback, useEffect, useState } from 'react';
+import ridersService, { type RiderData, type Zone } from '../../services/ridersService';
 import { logger } from '../../utils/logger';
 
-// Fetches riders + zones, and owns the status/deactivate/reactivate
-// actions. Split out of the former monolithic RidersPage.
+/** Riders + zones. zoneId is nullable on the API (riders can be unzoned). */
+export type Rider = Omit<RiderData, 'zoneId'> & { zoneId: number | null };
+
 export function useRidersData() {
-  const [riders, setRiders] = useState<RiderData[]>([]);
+  const [riders, setRiders] = useState<Rider[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  const load = useCallback(async () => {
     try {
-      setLoading(true);
       setError(null);
-      logger.log("🚴 [RidersPage] Fetching riders and zones");
-
-      const [ridersData, zonesData] = await Promise.all([
-        ridersService.getAllRiders(),
-        ridersService.getAllZones(),
-      ]);
-
-      logger.log("✅ [RidersPage] Data loaded");
-      setRiders(ridersData || []);
-      setZones(zonesData || []);
-    } catch (err: any) {
-      logger.error("❌ [RidersPage] Failed to fetch data:", err);
-      setError(err.message || "Failed to load riders data");
+      const [r, z] = await Promise.all([ridersService.getAllRiders(), ridersService.getAllZones()]);
+      setRiders((r ?? []) as Rider[]);
+      setZones(z ?? []);
+    } catch (err) {
+      logger.error('❌ [RidersTab] Failed to fetch riders:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load riders');
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchData();
   }, []);
 
-  const handleStatusChange = async (rider: RiderData, newStatus: string) => {
-    try {
-      await ridersService.updateRiderStatus(rider.id, newStatus);
-      setRiders(
-        riders.map((r) =>
-          r.id === rider.id ? { ...r, status: newStatus as any } : r
-        )
-      );
-    } catch (err: any) {
-      logger.error("Failed to update status:", err);
-      alert("Failed to update rider status");
-    }
-  };
+  useEffect(() => {
+    const t = setTimeout(() => void load(), 0);
+    return () => clearTimeout(t);
+  }, [load]);
 
-  const handleDeactivate = async (rider: RiderData) => {
-    if (
-      !window.confirm(`Are you sure you want to deactivate ${rider.name}?`)
-    ) {
-      return;
-    }
+  const patchRider = useCallback((id: number, patch: Partial<Rider>) => {
+    setRiders((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  }, []);
 
-    try {
-      await ridersService.deactivateRider(rider.id);
-      setRiders(
-        riders.map((r) =>
-          r.id === rider.id ? { ...r, isActive: false, status: "offline" } : r
-        )
-      );
-    } catch (err: any) {
-      logger.error("Failed to deactivate rider:", err);
-      alert("Failed to deactivate rider");
-    }
-  };
-
-  const handleReactivate = async (rider: RiderData) => {
-    if (
-      !window.confirm(`Are you sure you want to reactivate ${rider.name}?`)
-    ) {
-      return;
-    }
-
-    try {
-      await ridersService.reactivateRider(rider.id);
-      setRiders(
-        riders.map((r) =>
-          r.id === rider.id ? { ...r, isActive: true, status: "available" } : r
-        )
-      );
-    } catch (err: any) {
-      logger.error("Failed to reactivate rider:", err);
-      alert("Failed to reactivate rider");
-    }
-  };
-
-  return { riders, zones, loading, error, fetchData, handleStatusChange, handleDeactivate, handleReactivate };
+  return { riders, zones, loading, error, refresh: load, patchRider };
 }

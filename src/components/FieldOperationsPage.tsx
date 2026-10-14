@@ -1,54 +1,41 @@
-import React from "react";
-import { useTabParam } from "@/hooks/use-tab-param";
-import RidersTab from "./riders/RidersTab";
-import PickersTab from "./workers/PickersTab";
-import ZonesTab from "./workforce/ZonesTab";
+import React from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTabParam } from '@/hooks/use-tab-param';
+import RidersTab from './riders/RidersTab';
+import PickersTab from './workers/PickersTab';
+import ZonesTab from './workforce/ZonesTab';
 
-// Riders, Pickers, and Zones — everyone and everything operating outside
-// the building, in one place. Riders and Pickers are the same kind of
-// entity (someone the business assigns street-level work to and pays per
-// task); Zones is the geography/delivery-fee structure riders operate
-// within, not a person, but belongs here rather than Warehouse (which is
-// a stock/sourcing concern, unrelated to delivery). This unifies
-// navigation only — Rider/Worker/Zone stay separate, differently-shaped
-// data models.
+const TABS = ['riders', 'pickers', 'zones'] as const;
+
+// Everyone and everything working outside the building: riders deliver,
+// pickers buy from suppliers, zones define where (and for how much) DWOM
+// delivers. Navigation only — Rider, Worker, and Zone stay separate models.
 const FieldOperationsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useTabParam(["riders", "pickers", "zones"] as const, "riders");
+  const [activeTab, setActiveTab] = useTabParam(TABS, 'riders');
 
   return (
-    <div className="bg-gray-50 min-h-screen py-10 px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6 flex gap-2">
-          <button
-            onClick={() => setActiveTab("riders")}
-            className={`px-4 py-2 rounded-lg font-semibold transition ${
-              activeTab === "riders" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-          >
-            Riders
-          </button>
-          <button
-            onClick={() => setActiveTab("pickers")}
-            className={`px-4 py-2 rounded-lg font-semibold transition ${
-              activeTab === "pickers" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-          >
-            Pickers
-          </button>
-          <button
-            onClick={() => setActiveTab("zones")}
-            className={`px-4 py-2 rounded-lg font-semibold transition ${
-              activeTab === "zones" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-          >
-            Delivery Zones
-          </button>
-        </div>
-
-        {activeTab === "riders" && <RidersTab />}
-        {activeTab === "pickers" && <PickersTab />}
-        {activeTab === "zones" && <ZonesTab />}
+    <div className="flex flex-col gap-6">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Field Operations</h1>
+        <p className="text-sm text-muted-foreground">Riders, pickers, and the zones DWOM delivers to.</p>
       </div>
+
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as (typeof TABS)[number])} className="gap-6">
+        <TabsList>
+          <TabsTrigger value="riders">Riders</TabsTrigger>
+          <TabsTrigger value="pickers">Pickers</TabsTrigger>
+          <TabsTrigger value="zones">Delivery Zones</TabsTrigger>
+        </TabsList>
+        <TabsContent value="riders">
+          <RidersTab />
+        </TabsContent>
+        <TabsContent value="pickers">
+          <PickersTab />
+        </TabsContent>
+        <TabsContent value="zones">
+          <ZonesTab />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
