@@ -1,6 +1,31 @@
 import { API_CONFIG } from '../config/apiConfig';
 import { logger } from '../utils/logger';
 
+/** An API failure carrying the server's own message (NestJS: { message: string | string[] }). */
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
+// Used to throw "HTTP 400: Bad Request" for everything, discarding the
+// server's explanation ("You can't suspend yourself", "That code is
+// already taken"…), so screens could only show vague errors.
+async function apiError(response: Response): Promise<ApiError> {
+  let message = '';
+  try {
+    const body = await response.clone().json();
+    const m = body?.message;
+    message = Array.isArray(m) ? m.join('. ') : typeof m === 'string' ? m : '';
+  } catch {
+    /* not JSON */
+  }
+  return new ApiError(message || `HTTP ${response.status}: ${response.statusText}`, response.status);
+}
+
 class AdminApiClient {
   private baseURL: string;
   private token: string | null = null;
@@ -85,7 +110,7 @@ class AdminApiClient {
             window.location.href = '/login';
           }
         }
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw await apiError(response);
       }
 
       const data = await response.json();
@@ -119,7 +144,7 @@ class AdminApiClient {
             window.location.href = '/login';
           }
         }
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw await apiError(response);
       }
 
       const responseData = await response.json();
@@ -196,7 +221,7 @@ class AdminApiClient {
             window.location.href = '/login';
           }
         }
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw await apiError(response);
       }
 
       const responseData = await response.json();
@@ -230,7 +255,7 @@ class AdminApiClient {
             window.location.href = '/login';
           }
         }
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw await apiError(response);
       }
 
       const responseData = await response.json();
@@ -263,7 +288,7 @@ class AdminApiClient {
             window.location.href = '/login';
           }
         }
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw await apiError(response);
       }
 
       const data = await response.json();
