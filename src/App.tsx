@@ -12,7 +12,7 @@ import ProductsPage from './components/ProductsPage';
 import BundlesPage from './components/BundlesPage';
 import SeasonalProductsPage from './components/SeasonalProductsPage';
 import SubscriptionsPage from './components/SubscriptionsPage';
-import RidersPage from './components/RidersPage';
+import WorkforcePage from './components/WorkforcePage';
 import FinanceHubPage from './components/FinanceHubPage';
 import MarketingPage from './components/MarketingPage';
 import CustomersPage from './components/CustomersPage';
@@ -22,8 +22,6 @@ import SupportPage from './components/SupportPage';
 import DataDeletionRequestsPage from './components/DataDeletionRequestsPage';
 import DeliveryZonesPage from './components/DeliveryZonesPage';
 import CouponsPage from './components/CouponsPage';
-import SuppliersPage from './components/SuppliersPage';
-import WorkersPage from './components/WorkersPage';
 import AnalyticsPage from './components/AnalyticsPage';
 import './App.css';
 
@@ -72,23 +70,15 @@ const App: React.FC = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/suppliers"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <SuppliersPage />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/suppliers" element={<Navigate to="/warehouse" replace />} />
       <Route path="/expenses" element={<Navigate to="/finance" replace />} />
+      <Route path="/workers" element={<Navigate to="/workforce" replace />} />
       <Route
-        path="/workers"
+        path="/workforce"
         element={
           <ProtectedRoute>
             <Layout>
-              <WorkersPage />
+              <WorkforcePage />
             </Layout>
           </ProtectedRoute>
         }
@@ -135,16 +125,7 @@ const App: React.FC = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/riders"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <RidersPage />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/riders" element={<Navigate to="/workforce" replace />} />
       <Route
         path="/analytics"
         element={

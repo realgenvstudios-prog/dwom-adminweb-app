@@ -6,6 +6,7 @@ import EditThresholdsModal from "./warehouse/EditThresholdsModal";
 import BulkInventoryActions from "./products/BulkInventoryActions";
 import ProductsTable from "./products/ProductsTable";
 import ProductDetailsPanel from "./products/ProductDetailsPanel";
+import SuppliersTab from "./warehouse/SuppliersTab";
 import inventoryService from "../services/inventoryService";
 import productsService from "../services/productsService";
 import categoriesService from "../services/categoriesService";
@@ -14,6 +15,7 @@ import type { Product, ProductCategory } from "./products/ProductTypes";
 import { logger } from '../utils/logger';
 
 const WarehouseOperationsPage: React.FC = () => {
+  const [activeTopTab, setActiveTopTab] = useState<"operations" | "suppliers">("operations");
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [stats, setStats] = useState<InventoryStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -159,9 +161,32 @@ const WarehouseOperationsPage: React.FC = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Warehouse Operations</h1>
-          <p className="text-gray-600 mt-1">Manage inventory and track stock movements</p>
+          <p className="text-gray-600 mt-1">Manage inventory, stock movements, and what you actually pay suppliers</p>
         </div>
 
+        <div className="mb-6 flex gap-2">
+          <button
+            onClick={() => setActiveTopTab("operations")}
+            className={`px-4 py-2 rounded-lg font-semibold transition ${
+              activeTopTab === "operations" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            Operations
+          </button>
+          <button
+            onClick={() => setActiveTopTab("suppliers")}
+            className={`px-4 py-2 rounded-lg font-semibold transition ${
+              activeTopTab === "suppliers" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            Suppliers & Purchases
+          </button>
+        </div>
+
+        {activeTopTab === "suppliers" && <SuppliersTab />}
+
+        {activeTopTab === "operations" && (
+        <>
         {/* KPI Cards */}
         {loading ? (
           <div className="flex items-center justify-center py-12">
@@ -175,7 +200,7 @@ const WarehouseOperationsPage: React.FC = () => {
           <div className="p-4 rounded-lg bg-red-50 text-red-700 mb-6">{error}</div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
               <div className="bg-white rounded-xl shadow p-6">
                 <p className="text-sm text-gray-600 mb-2">Total Quantity</p>
                 <p className="text-4xl font-bold text-blue-600">{stats?.totalUnits || 0}</p>
@@ -194,7 +219,12 @@ const WarehouseOperationsPage: React.FC = () => {
               <div className="bg-white rounded-xl shadow p-6">
                 <p className="text-sm text-gray-600 mb-2">Inventory Value</p>
                 <p className="text-4xl font-bold text-green-600">GH₵ {(stats?.totalInventoryValue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                <p className="text-xs text-gray-500 mt-2">Total value</p>
+                <p className="text-xs text-gray-500 mt-2">At sell price</p>
+              </div>
+              <div className="bg-white rounded-xl shadow p-6">
+                <p className="text-sm text-gray-600 mb-2">Inventory Cost Basis</p>
+                <p className="text-4xl font-bold text-purple-600">GH₵ {(stats?.totalInventoryCostBasis || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                <p className="text-xs text-gray-500 mt-2">What this stock actually cost</p>
               </div>
             </div>
 
@@ -348,6 +378,8 @@ const WarehouseOperationsPage: React.FC = () => {
               </>
             )}
           </>
+        )}
+        </>
         )}
       </div>
 

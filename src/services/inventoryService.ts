@@ -21,6 +21,7 @@ export interface InventoryStats {
   lowStockItems: number;
   outOfStockItems: number;
   totalInventoryValue: number;
+  totalInventoryCostBasis: number;
 }
 
 export interface MovementRecord {

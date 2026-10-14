@@ -171,6 +171,16 @@ const ProductsPage: React.FC = () => {
     }
   };
 
+  const handleStockStatusChange = async (productId: number, stockStatus: string) => {
+    try {
+      await productsService.update(productId, { stockStatus });
+      setProducts(products.map(p => p.id === productId ? { ...p, stockStatus } : p));
+    } catch (err: any) {
+      logger.error('❌ Failed to update stock status:', err);
+      setError('Failed to update stock status');
+    }
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
       <div className="max-w-screen-2xl mx-auto">
@@ -263,6 +273,7 @@ const ProductsPage: React.FC = () => {
               onPageChange={setPage}
               onDiscountChange={handleDiscountChange}
               discountUpdating={discountUpdating}
+              onStockStatusChange={handleStockStatusChange}
             />
           </>
         )}

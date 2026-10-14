@@ -23,6 +23,7 @@ export interface Product {
   seasonal?: boolean;
   imageUrl?: string;
   standardCost?: number | null;
+  stockStatus?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -55,6 +56,7 @@ export interface UpdateProductDto {
   showPreparationOptions?: boolean;
   variationGroups?: VariationGroup[];
   standardCost?: number;
+  stockStatus?: string;
 }
 
 export const productsService = {

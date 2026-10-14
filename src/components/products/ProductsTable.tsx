@@ -15,6 +15,7 @@ interface ProductsTableProps {
   onSelectionChange?: (productIds: string[]) => void;
   onDiscountChange?: (productId: number, discount: number) => void;
   discountUpdating?: boolean;
+  onStockStatusChange?: (productId: number, stockStatus: string) => void;
 }
 
 const ProductsTable: React.FC<ProductsTableProps> = ({ 
@@ -31,6 +32,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
   onSelectionChange,
   onDiscountChange,
   discountUpdating,
+  onStockStatusChange,
 }) => {
   const handleProductCheck = (productId: string) => {
     if (!onSelectionChange) return;
@@ -75,7 +77,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
             <th className="px-4 py-3 text-left">Unit</th>
             <th className="px-4 py-3 text-left cursor-pointer" onClick={() => onSort("pricePerUnit")}>Price (GHS) {sortBy === "pricePerUnit" && (sortDir === "asc" ? "▲" : "▼")}</th>
             <th className="px-4 py-3 text-left">Discount %</th>
-            <th className="px-4 py-3 text-left">Inventory</th>
+            <th className="px-4 py-3 text-left">Stock Status</th>
             <th className="px-4 py-3 text-left">Active</th>
             <th className="px-4 py-3 text-left">Actions</th>
           </tr>
@@ -118,8 +120,22 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
                   placeholder="0"
                 />
               </td>
-              <td className="px-4 py-3 cursor-pointer" onClick={() => onRowClick(product)}>
-                <span className={`px-2 py-1 rounded text-xs font-semibold ${product.inventoryStatus === "In stock" ? "bg-green-100 text-green-700" : product.inventoryStatus === "Low" ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}>{product.inventoryStatus}</span>
+              <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                <select
+                  value={product.stockStatus || "in_stock"}
+                  onChange={(e) => onStockStatusChange?.(product.id as number, e.target.value)}
+                  className={`px-2 py-1 rounded text-xs font-semibold border-0 outline-none cursor-pointer ${
+                    product.stockStatus === "out_of_stock"
+                      ? "bg-red-100 text-red-700"
+                      : product.stockStatus === "low_stock"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-green-100 text-green-700"
+                  }`}
+                >
+                  <option value="in_stock">In Stock</option>
+                  <option value="low_stock">Low Stock</option>
+                  <option value="out_of_stock">Out of Stock</option>
+                </select>
               </td>
               <td className="px-4 py-3 cursor-pointer" onClick={() => onRowClick(product)}>
                 {product.active ? <span className="px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs font-semibold">Active</span> : <span className="px-2 py-1 rounded bg-gray-200 text-gray-600 text-xs font-semibold">Inactive</span>}
