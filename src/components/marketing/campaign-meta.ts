@@ -2,7 +2,7 @@ import { Bell, Mail, Megaphone, MessageSquare, Smartphone, type LucideIcon } fro
 import type { Campaign } from '../../services/marketingService';
 
 // `credit` says how orders get attributed — verified against the app:
-// a push tap is captured (72h window); an inbox item tap isn't; dwom://
+// a push tap or opening the inbox message is captured (72h window); dwom://
 // links aren't tappable in SMS/most email apps, so those rely on a code.
 export const CHANNELS: { value: Campaign['channel']; label: string; icon: LucideIcon; hint: string; credit: string }[] = [
   {
@@ -17,7 +17,7 @@ export const CHANNELS: { value: Campaign['channel']; label: string; icon: Lucide
     label: 'In-app',
     icon: Smartphone,
     hint: 'Appears in the app’s notification inbox only — no phone alert. Free.',
-    credit: 'Taps in the inbox aren’t tracked, so orders are only credited through a linked discount code.',
+    credit: 'Orders placed within 3 days of opening it in the inbox are credited (app update required).',
   },
   {
     value: 'sms',
