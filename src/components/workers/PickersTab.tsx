@@ -1,182 +1,239 @@
-import React, { useState, useEffect, useCallback } from "react";
-import workersService, { type Worker, type Trip } from "../../services/workersService";
-import CreatePickerModal from "./CreatePickerModal";
-import PickersHeader from "./PickersHeader";
-import { logger } from "../../utils/logger";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AlertCircle, CalendarDays, Info, Plus, RotateCw, ShoppingBasket, Users, Wallet } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DataTable } from '@/components/data-table';
+import { StatCard } from '@/components/stat-card';
+import adminAuthService from '../../services/authService';
+import settingsService from '../../services/settingsService';
+import workersService, { type Trip, type Worker } from '../../services/workersService';
+import { canAccessRoute, resolveUiRole } from '../../config/permissions';
+import { logger } from '../../utils/logger';
+import { formatGhs } from '../orders/order-status';
+import CreatePickerDialog from './CreatePickerDialog';
+import { buildRosterColumns, buildTripColumns } from './columns';
+import { PICKER_TYPES, buildPickerRows, dayKey, tripPay, type PickerRow } from './picker-meta';
 
-// Split out of the former standalone WorkersPage — now a tab on the
-// unified Workforce page, alongside Riders. Picker creation now mirrors
-// Riders' header-button + modal pattern instead of a buried inline form.
-const PickersTab: React.FC = () => {
-  const [activeSubTab, setActiveSubTab] = useState<"trips" | "workers">("workers");
-  const [createModalOpen, setCreateModalOpen] = useState(false);
+interface PayRule {
+  rate: number;
+  minimum: number;
+  threshold: number;
+}
 
+export default function PickersTab() {
   const [workers, setWorkers] = useState<Worker[]>([]);
-  const [loadingWorkers, setLoadingWorkers] = useState(false);
-
   const [trips, setTrips] = useState<Trip[]>([]);
-  const [loadingTrips, setLoadingTrips] = useState(false);
+  const [rule, setRule] = useState<PayRule | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [toggleFor, setToggleFor] = useState<PickerRow | null>(null);
+  const [removeTrip, setRemoveTrip] = useState<Trip | null>(null);
+  const canOpenOrders = canAccessRoute(resolveUiRole(adminAuthService.getCurrentAdmin()), '/orders');
 
-  const loadWorkers = useCallback(async () => {
+  const load = useCallback(async () => {
     try {
-      setLoadingWorkers(true);
-      setWorkers(await workersService.getAll());
+      setError(null);
+      // includeInactive: otherwise a deactivated picker vanishes and can never be reactivated.
+      const [w, t] = await Promise.all([workersService.getAll(true), workersService.getTrips()]);
+      setWorkers(w ?? []);
+      setTrips(t ?? []);
     } catch (err) {
-      logger.error("Failed to load workers:", err);
+      logger.error('Failed to load pickers:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load pickers');
     } finally {
-      setLoadingWorkers(false);
-    }
-  }, []);
-
-  const loadTrips = useCallback(async () => {
-    try {
-      setLoadingTrips(true);
-      setTrips(await workersService.getTrips());
-    } catch (err) {
-      logger.error("Failed to load trips:", err);
-    } finally {
-      setLoadingTrips(false);
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadWorkers();
-    loadTrips();
-  }, [loadWorkers, loadTrips]);
+    const t = setTimeout(() => {
+      void load();
+      settingsService
+        .getSettings()
+        .then((s) => setRule({ rate: Number(s.pickerRatePerOrder), minimum: Number(s.pickerDailyMinimumPay), threshold: Number(s.pickerDailyThreshold) }))
+        .catch((err) => logger.error('Failed to load picker pay settings:', err));
+    }, 0);
+    return () => clearTimeout(t);
+  }, [load]);
 
-  const handleToggleActive = async (worker: Worker) => {
+  const [today] = useState(() => dayKey(new Date()));
+  const [weekStart] = useState(() => dayKey(new Date(Date.now() - 6 * 86_400_000)));
+  const rows = useMemo(() => buildPickerRows(workers, trips, weekStart), [workers, trips, weekStart]);
+  const todayTrips = trips.filter((t) => dayKey(t.date) === today);
+  const weekTrips = trips.filter((t) => dayKey(t.date) >= weekStart);
+
+  const rosterColumns = useMemo(() => buildRosterColumns((w) => setToggleFor(w)), []);
+  const tripColumns = useMemo(() => buildTripColumns((t) => setRemoveTrip(t), canOpenOrders), [canOpenOrders]);
+
+  const confirmToggle = async () => {
+    const w = toggleFor;
+    if (!w) return;
     try {
-      await workersService.update(worker.id, { active: !worker.active });
-      await loadWorkers();
+      await workersService.update(w.id, { active: !w.active });
+      toast.success(w.active ? `${w.name} deactivated` : `${w.name} reactivated`);
+      await load();
     } catch (err) {
-      logger.error("Failed to update worker:", err);
+      logger.error('Failed to update picker:', err);
+      toast.error(`Couldn't update ${w.name}.`);
+    } finally {
+      setToggleFor(null);
     }
   };
 
-  const handleDeleteTrip = async (id: number) => {
-    if (!window.confirm("Remove this order from the picker's trip? This rebalances their pay for that day.")) return;
+  const confirmRemoveTrip = async () => {
+    const t = removeTrip;
+    if (!t) return;
     try {
-      await workersService.deleteTrip(id);
-      await loadTrips();
+      await workersService.deleteTrip(t.id);
+      toast.success('Trip removed and that day’s pay recalculated');
+      await load();
     } catch (err) {
-      logger.error("Failed to delete trip:", err);
+      logger.error('Failed to delete trip:', err);
+      toast.error('Couldn’t remove the trip.');
+    } finally {
+      setRemoveTrip(null);
     }
   };
+
+  const errorBanner = error && (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
+      <div className="flex items-center gap-2 text-destructive">
+        <AlertCircle className="size-4" />
+        Couldn’t load pickers: {error}
+      </div>
+      <Button variant="outline" size="sm" onClick={() => void load()}>
+        <RotateCw />
+        Retry
+      </Button>
+    </div>
+  );
 
   return (
-    <>
-      <PickersHeader onCreatePicker={() => setCreateModalOpen(true)} activeCount={workers.filter((w) => w.active).length} />
-
-      <div className="mb-6 flex gap-2">
-        <button
-          onClick={() => setActiveSubTab("workers")}
-          className={`px-4 py-2 rounded-lg font-semibold transition ${
-            activeSubTab === "workers" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-          }`}
-        >
-          Roster ({workers.length})
-        </button>
-        <button
-          onClick={() => setActiveSubTab("trips")}
-          className={`px-4 py-2 rounded-lg font-semibold transition ${
-            activeSubTab === "trips" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-          }`}
-        >
-          Trip History
-        </button>
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard label="Active pickers" value={String(workers.filter((w) => w.active).length)} hint={`${workers.length} on the roster`} icon={Users} tint="bg-sky-500/10 text-sky-600" loading={loading} failed={!!error} />
+        <StatCard label="Orders picked today" value={String(todayTrips.reduce((s, t) => s + t.TripOrder.length, 0))} hint={`${new Set(todayTrips.map((t) => t.workerId)).size} pickers working`} icon={ShoppingBasket} tint="bg-emerald-500/10 text-emerald-600" loading={loading} failed={!!error} />
+        <StatCard label="Picker pay today" value={formatGhs(todayTrips.reduce((s, t) => s + tripPay(t), 0))} hint="For today’s trips" icon={Wallet} tint="bg-amber-500/10 text-amber-600" loading={loading} failed={!!error} />
+        <StatCard label="Pay, last 7 days" value={formatGhs(weekTrips.reduce((s, t) => s + tripPay(t), 0))} hint={`${weekTrips.reduce((s, t) => s + t.TripOrder.length, 0)} orders`} icon={CalendarDays} tint="bg-violet-500/10 text-violet-600" loading={loading} failed={!!error} />
       </div>
 
-      {activeSubTab === "workers" ? (
-        <div className="bg-white shadow-xs rounded-xl border border-gray-100 p-6">
-          <h2 className="text-lg font-semibold mb-4">Roster</h2>
-          {loadingWorkers ? (
-            <p className="text-gray-500 text-sm py-8 text-center">Loading...</p>
-          ) : workers.length === 0 ? (
-            <p className="text-gray-500 text-sm py-8 text-center">No pickers added yet.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-gray-500 border-b border-gray-100">
-                    <th className="py-2 pr-4">Name</th>
-                    <th className="py-2 pr-4">Type</th>
-                    <th className="py-2 pr-4">Phone</th>
-                    <th className="py-2 pr-4">Status</th>
-                    <th className="py-2"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {workers.map((w) => (
-                    <tr key={w.id} className="border-b border-gray-50">
-                      <td className="py-2 pr-4 font-medium">{w.name}</td>
-                      <td className="py-2 pr-4 capitalize">{w.type}</td>
-                      <td className="py-2 pr-4">{w.phone || "—"}</td>
-                      <td className="py-2 pr-4">
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${w.active ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                          {w.active ? "Active" : "Inactive"}
-                        </span>
-                      </td>
-                      <td className="py-2 text-right">
-                        <button onClick={() => handleToggleActive(w)} className="text-blue-600 hover:text-blue-800 text-xs">
-                          {w.active ? "Deactivate" : "Reactivate"}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="bg-white shadow-xs rounded-xl border border-gray-100 p-6">
-          <h2 className="text-lg font-semibold mb-4">Trip history</h2>
-          {loadingTrips ? (
-            <p className="text-gray-500 text-sm py-8 text-center">Loading...</p>
-          ) : trips.length === 0 ? (
-            <p className="text-gray-500 text-sm py-8 text-center">
-              No trips yet — assign a picker to an order to create one.
-            </p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-gray-500 border-b border-gray-100">
-                    <th className="py-2 pr-4">Date</th>
-                    <th className="py-2 pr-4">Worker</th>
-                    <th className="py-2 pr-4">This trip's pay</th>
-                    <th className="py-2 pr-4">Orders</th>
-                    <th className="py-2"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {trips.map((t) => (
-                    <tr key={t.id} className="border-b border-gray-50">
-                      <td className="py-2 pr-4">{new Date(t.date).toISOString().split("T")[0]}</td>
-                      <td className="py-2 pr-4">{t.Worker?.name}</td>
-                      <td className="py-2 pr-4 font-medium">GHS {t.totalCost.toLocaleString()}</td>
-                      <td className="py-2 pr-4 text-gray-500">{t.TripOrder.map((o) => `#${o.orderId}`).join(", ")}</td>
-                      <td className="py-2 text-right">
-                        <button onClick={() => handleDeleteTrip(t.id)} className="text-red-500 hover:text-red-700 text-xs">
-                          Remove
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+      {rule && (
+        <p className="flex items-start gap-2 rounded-lg border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+          <Info className="mt-0.5 size-4 shrink-0" />
+          <span>
+            Pay is worked out per picker, per day: <strong className="text-foreground">{rule.threshold}+ orders</strong> earns{' '}
+            <strong className="text-foreground">{formatGhs(rule.rate)} per order</strong>; fewer earns a{' '}
+            <strong className="text-foreground">{formatGhs(rule.minimum)}</strong> minimum for the day, split across those orders. Change it in Finance › Settings.
+          </span>
+        </p>
       )}
 
-      <CreatePickerModal
-        isOpen={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        onSuccess={loadWorkers}
-      />
-    </>
-  );
-};
+      {errorBanner}
 
-export default PickersTab;
+      <Tabs defaultValue="roster" className="gap-4">
+        <TabsList>
+          <TabsTrigger value="roster">
+            Roster
+            <span className="ml-1 text-xs text-muted-foreground tabular-nums">{workers.length}</span>
+          </TabsTrigger>
+          <TabsTrigger value="trips">
+            Trips
+            <span className="ml-1 text-xs text-muted-foreground tabular-nums">{trips.length}</span>
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="roster">
+          <DataTable
+            columns={rosterColumns}
+            data={rows}
+            isLoading={loading}
+            getRowId={(w) => String(w.id)}
+            initialSorting={[{ id: 'picker', desc: false }]}
+            searchPlaceholder="Search pickers…"
+            filters={[
+              { columnId: 'type', title: 'Type', options: PICKER_TYPES },
+              {
+                columnId: 'status',
+                title: 'Status',
+                options: [
+                  { value: 'active', label: 'Active' },
+                  { value: 'inactive', label: 'Inactive' },
+                ],
+              },
+            ]}
+            emptyMessage={workers.length === 0 ? 'No pickers yet — add your first one.' : 'No pickers match these filters.'}
+            toolbarActions={
+              <Button size="sm" className="h-8" onClick={() => setCreateOpen(true)}>
+                <Plus />
+                Add picker
+              </Button>
+            }
+          />
+        </TabsContent>
+        <TabsContent value="trips">
+          <DataTable
+            columns={tripColumns}
+            data={trips}
+            isLoading={loading}
+            getRowId={(t) => String(t.id)}
+            initialSorting={[{ id: 'date', desc: true }]}
+            searchPlaceholder="Search order #…"
+            filters={[{ columnId: 'picker', title: 'Picker', options: workers.map((w) => ({ value: String(w.id), label: w.name })) }]}
+            emptyMessage={trips.length === 0 ? 'No trips yet — they’re created when you assign a picker to an order.' : 'No trips match these filters.'}
+          />
+        </TabsContent>
+      </Tabs>
+
+      <CreatePickerDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={() => void load()} />
+
+      <AlertDialog open={!!toggleFor} onOpenChange={(o) => !o && setToggleFor(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{toggleFor?.active ? `Deactivate ${toggleFor?.name}?` : `Reactivate ${toggleFor?.name}?`}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {toggleFor?.active
+                ? 'They won’t appear when assigning pickers to orders. Past trips and pay are kept.'
+                : 'They’ll be available to assign to orders again.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction variant={toggleFor?.active ? 'destructive' : 'default'} onClick={() => void confirmToggle()}>
+              {toggleFor?.active ? 'Deactivate' : 'Reactivate'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!removeTrip} onOpenChange={(o) => !o && setRemoveTrip(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove this trip?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This unassigns {removeTrip?.Worker?.name ?? 'the picker'} from{' '}
+              {removeTrip?.TripOrder.length === 1 ? `order #${removeTrip.TripOrder[0].orderId}` : `all ${removeTrip?.TripOrder.length} orders on it (${removeTrip?.TripOrder.map((o) => `#${o.orderId}`).join(', ')})`}
+              , and recalculates their pay for that day.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep trip</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={() => void confirmRemoveTrip()}>
+              Remove trip
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
