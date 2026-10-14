@@ -14,6 +14,7 @@ interface OrderStatusHeaderProps {
   onUpdateStatus: (status: string) => void;
   onUpdatePaymentStatus: (status: string) => void;
   onOpenRiderModal: () => void;
+  onOpenPickerModal: () => void;
 }
 
 // The drawer's sticky header: order id/customer, status pills, and the
@@ -32,6 +33,7 @@ export default function OrderStatusHeader({
   onUpdateStatus,
   onUpdatePaymentStatus,
   onOpenRiderModal,
+  onOpenPickerModal,
 }: OrderStatusHeaderProps) {
   return (
     <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
@@ -120,6 +122,15 @@ export default function OrderStatusHeader({
           className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 disabled:opacity-50 transition-colors"
         >
           🚴 {order.rider ? 'Reassign' : 'Assign'} Rider
+        </button>
+
+        {/* Assign/Reassign Picker */}
+        <button
+          disabled={loading}
+          onClick={onOpenPickerModal}
+          className="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700 disabled:opacity-50 transition-colors"
+        >
+          🧺 {order.picker ? 'Reassign' : 'Assign'} Picker
         </button>
       </div>
     </div>

@@ -135,6 +135,21 @@ export const ordersService = {
   },
 
   /**
+   * Assign picker (kayayie/worker) to order
+   */
+  async assignPicker(orderId: number, workerId: number): Promise<unknown> {
+    try {
+      const response = await adminApiClient.post(`/orders/${orderId}/assign-picker`, {
+        workerId,
+      });
+      return response;
+    } catch (error) {
+      logger.error(`❌ [OrdersService] Failed to assign picker:`, error);
+      throw error;
+    }
+  },
+
+  /**
    * Update payment status
    */
   async updatePaymentStatus(id: number, paymentStatus: string): Promise<unknown> {

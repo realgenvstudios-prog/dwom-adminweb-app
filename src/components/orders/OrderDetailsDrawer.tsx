@@ -4,6 +4,7 @@ import { useOrderDetailsData } from "./orderDetails/useOrderDetailsData";
 import { useOrderEvents } from "./orderDetails/useOrderEvents";
 import { useOrderStatusActions } from "./orderDetails/useOrderStatusActions";
 import { useRiderAssignment } from "./orderDetails/useRiderAssignment";
+import { useWorkerAssignment } from "./orderDetails/useWorkerAssignment";
 import OrderStatusHeader from "./orderDetails/OrderStatusHeader";
 import CustomerDeliveryCard from "./orderDetails/CustomerDeliveryCard";
 import OrderItemsList from "./orderDetails/OrderItemsList";
@@ -11,6 +12,7 @@ import PaymentInfoCard from "./orderDetails/PaymentInfoCard";
 import RatingsSection from "./orderDetails/RatingsSection";
 import InternalTimelineSection from "./orderDetails/InternalTimelineSection";
 import RiderAssignmentModal from "./orderDetails/RiderAssignmentModal";
+import WorkerAssignmentModal from "./orderDetails/WorkerAssignmentModal";
 import OrderEconomicsCard from "./orderDetails/OrderEconomicsCard";
 
 interface Props {
@@ -59,6 +61,16 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
     openRiderModal,
     handleAssignRider,
   } = useRiderAssignment(order, onOrderUpdated, setLoading);
+  const {
+    pickerModalOpen,
+    setPickerModalOpen,
+    availableWorkers,
+    workersLoading,
+    selectedWorkerId,
+    setSelectedWorkerId,
+    openPickerModal,
+    handleAssignWorker,
+  } = useWorkerAssignment(order, onOrderUpdated, setLoading);
 
   if (!open || !order) return null;
 
@@ -81,6 +93,7 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
           onUpdateStatus={handleUpdateStatus}
           onUpdatePaymentStatus={handleUpdatePaymentStatus}
           onOpenRiderModal={openRiderModal}
+          onOpenPickerModal={openPickerModal}
         />
 
         {/* Content */}
@@ -122,6 +135,20 @@ const OrderDetailsDrawer: React.FC<Props> = ({ open, order, onClose, onOrderUpda
             setSelectedRiderId={setSelectedRiderId}
             loading={loading}
             onAssign={handleAssignRider}
+          />
+        )}
+
+        {/* Picker Assignment Modal */}
+        {pickerModalOpen && (
+          <WorkerAssignmentModal
+            order={order}
+            onClose={() => setPickerModalOpen(false)}
+            workersLoading={workersLoading}
+            availableWorkers={availableWorkers}
+            selectedWorkerId={selectedWorkerId}
+            setSelectedWorkerId={setSelectedWorkerId}
+            loading={loading}
+            onAssign={handleAssignWorker}
           />
         )}
       </div>

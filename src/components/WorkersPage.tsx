@@ -2,10 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import workersService, { type Worker, type Trip } from "../services/workersService";
 import { logger } from "../utils/logger";
 
-const today = () => new Date().toISOString().split("T")[0];
-
 const emptyWorkerForm = { name: "", phone: "", type: "kayayie" };
-const emptyTripForm = { workerId: "", date: today(), orderIds: "", notes: "" };
 
 const WorkersPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"trips" | "workers">("trips");
@@ -18,10 +15,6 @@ const WorkersPage: React.FC = () => {
 
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loadingTrips, setLoadingTrips] = useState(false);
-  const [tripForm, setTripForm] = useState(emptyTripForm);
-  const [savingTrip, setSavingTrip] = useState(false);
-  const [tripError, setTripError] = useState<string | null>(null);
-  const [lastDaySummary, setLastDaySummary] = useState<string | null>(null);
 
   const loadWorkers = useCallback(async () => {
     try {
@@ -83,61 +76,8 @@ const WorkersPage: React.FC = () => {
     }
   };
 
-  const handleSaveTrip = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const workerId = parseInt(tripForm.workerId, 10);
-    if (!workerId) {
-      setTripError("Select a worker");
-      return;
-    }
-    const orderIds = tripForm.orderIds
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .map((s) => parseInt(s, 10))
-      .filter((n) => !isNaN(n));
-    if (orderIds.length === 0) {
-      setTripError("Enter at least one order ID this trip covered");
-      return;
-    }
-    try {
-      setSavingTrip(true);
-      setTripError(null);
-      setLastDaySummary(null);
-      await workersService.createTrip({
-        workerId,
-        date: tripForm.date,
-        orderIds,
-        notes: tripForm.notes || undefined,
-      });
-      const updatedTrips = await workersService.getTrips();
-      setTrips(updatedTrips);
-
-      // Pay is computed per worker per day, across every trip that day —
-      // summarize the day's total so the admin can see the formula land,
-      // not just this one trip's slice of it.
-      const dayKey = tripForm.date;
-      const sameDay = updatedTrips.filter(
-        (t) => t.workerId === workerId && new Date(t.date).toISOString().split("T")[0] === dayKey,
-      );
-      const dayOrderCount = sameDay.reduce((sum, t) => sum + t.TripOrder.length, 0);
-      const dayTotal = sameDay.reduce((sum, t) => sum + t.totalCost, 0);
-      const workerName = workers.find((w) => w.id === workerId)?.name || "This worker";
-      setLastDaySummary(
-        `${workerName} has handled ${dayOrderCount} order${dayOrderCount === 1 ? "" : "s"} on ${dayKey} — GHS ${dayTotal.toFixed(2)} total for the day, split across those orders.`,
-      );
-
-      setTripForm(emptyTripForm);
-    } catch (err) {
-      logger.error("Failed to save trip:", err);
-      setTripError("Failed to save trip");
-    } finally {
-      setSavingTrip(false);
-    }
-  };
-
   const handleDeleteTrip = async (id: number) => {
-    if (!window.confirm("Delete this trip?")) return;
+    if (!window.confirm("Remove this order from the picker's trip? This rebalances their pay for that day.")) return;
     try {
       await workersService.deleteTrip(id);
       await loadTrips();
@@ -152,8 +92,8 @@ const WorkersPage: React.FC = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Workers & Trips</h1>
           <p className="text-gray-600 mt-1">
-            Kayayie/picker roster and market-run logging. Pay is computed automatically per worker per day — GHS per order once they
-            hit the daily threshold, otherwise a flat daily minimum. Configure the rates on the Finance page's Settings tab.
+            Kayayie/picker roster. Trips are created automatically when you assign a picker to an order — same as assigning a rider,
+            right there on the order itself. Pay is computed per worker per day; configure the rates on the Finance page's Settings tab.
           </p>
         </div>
 
@@ -164,7 +104,7 @@ const WorkersPage: React.FC = () => {
               activeTab === "trips" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >
-            Log Trip
+            Trip History
           </button>
           <button
             onClick={() => setActiveTab("workers")}
@@ -177,107 +117,47 @@ const WorkersPage: React.FC = () => {
         </div>
 
         {activeTab === "trips" ? (
-          <>
-            <form onSubmit={handleSaveTrip} className="bg-white shadow-sm rounded-xl border border-gray-100 p-6 mb-8">
-              <h2 className="text-lg font-semibold mb-4">Log a trip</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">Worker</label>
-                  <select
-                    value={tripForm.workerId}
-                    onChange={(e) => setTripForm({ ...tripForm, workerId: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2"
-                    required
-                  >
-                    <option value="">Select worker...</option>
-                    {workers.filter((w) => w.active).map((w) => (
-                      <option key={w.id} value={w.id}>{w.name} ({w.type})</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">Date</label>
-                  <input
-                    type="date"
-                    value={tripForm.date}
-                    onChange={(e) => setTripForm({ ...tripForm, date: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">Order ID(s) covered</label>
-                  <input
-                    type="text"
-                    value={tripForm.orderIds}
-                    onChange={(e) => setTripForm({ ...tripForm, orderIds: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2"
-                    placeholder="e.g. 1042, 1043"
-                    required
-                  />
-                </div>
-                <div className="md:col-span-3">
-                  <label className="block text-sm text-gray-600 mb-1">Notes</label>
-                  <input
-                    type="text"
-                    value={tripForm.notes}
-                    onChange={(e) => setTripForm({ ...tripForm, notes: e.target.value })}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2"
-                  />
-                </div>
-              </div>
-              {tripError && <p className="text-red-600 text-sm mt-3">⚠️ {tripError}</p>}
-              {lastDaySummary && <p className="text-green-700 text-sm mt-3">✅ {lastDaySummary}</p>}
-              <button
-                type="submit"
-                disabled={savingTrip}
-                className="mt-4 bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold disabled:opacity-50"
-              >
-                {savingTrip ? "Saving..." : "Log Trip"}
-              </button>
-            </form>
-
-            <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-6">
-              <h2 className="text-lg font-semibold mb-4">Trip history</h2>
-              {loadingTrips ? (
-                <p className="text-gray-500 text-sm py-8 text-center">Loading...</p>
-              ) : trips.length === 0 ? (
-                <p className="text-gray-500 text-sm py-8 text-center">No trips logged yet.</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-left text-gray-500 border-b border-gray-100">
-                        <th className="py-2 pr-4">Date</th>
-                        <th className="py-2 pr-4">Worker</th>
-                        <th className="py-2 pr-4">This trip's pay</th>
-                        <th className="py-2 pr-4">Orders</th>
-                        <th className="py-2 pr-4">Notes</th>
-                        <th className="py-2"></th>
+          <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-6">
+            <h2 className="text-lg font-semibold mb-4">Trip history</h2>
+            {loadingTrips ? (
+              <p className="text-gray-500 text-sm py-8 text-center">Loading...</p>
+            ) : trips.length === 0 ? (
+              <p className="text-gray-500 text-sm py-8 text-center">
+                No trips yet — assign a picker to an order to create one.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-gray-500 border-b border-gray-100">
+                      <th className="py-2 pr-4">Date</th>
+                      <th className="py-2 pr-4">Worker</th>
+                      <th className="py-2 pr-4">This trip's pay</th>
+                      <th className="py-2 pr-4">Orders</th>
+                      <th className="py-2"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {trips.map((t) => (
+                      <tr key={t.id} className="border-b border-gray-50">
+                        <td className="py-2 pr-4">{new Date(t.date).toISOString().split("T")[0]}</td>
+                        <td className="py-2 pr-4">{t.Worker?.name}</td>
+                        <td className="py-2 pr-4 font-medium">GHS {t.totalCost.toLocaleString()}</td>
+                        <td className="py-2 pr-4 text-gray-500">
+                          {t.TripOrder.map((o) => `#${o.orderId}`).join(", ")}
+                        </td>
+                        <td className="py-2 text-right">
+                          <button onClick={() => handleDeleteTrip(t.id)} className="text-red-500 hover:text-red-700 text-xs">
+                            Remove
+                          </button>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {trips.map((t) => (
-                        <tr key={t.id} className="border-b border-gray-50">
-                          <td className="py-2 pr-4">{new Date(t.date).toISOString().split("T")[0]}</td>
-                          <td className="py-2 pr-4">{t.Worker?.name}</td>
-                          <td className="py-2 pr-4 font-medium">GHS {t.totalCost.toLocaleString()}</td>
-                          <td className="py-2 pr-4 text-gray-500">
-                            {t.TripOrder.map((o) => `#${o.orderId}`).join(", ")}
-                          </td>
-                          <td className="py-2 pr-4 text-gray-500">{t.notes || "—"}</td>
-                          <td className="py-2 text-right">
-                            <button onClick={() => handleDeleteTrip(t.id)} className="text-red-500 hover:text-red-700 text-xs">
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         ) : (
           <>
             <form onSubmit={handleSaveWorker} className="bg-white shadow-sm rounded-xl border border-gray-100 p-6 mb-8">

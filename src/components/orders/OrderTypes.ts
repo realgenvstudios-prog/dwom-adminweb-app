@@ -26,6 +26,7 @@ export interface Order {
   address: string;
   zone: string;
   rider: RiderSummary | null;
+  picker: RiderSummary | null;
   items: OrderItem[];
   itemsCount?: number;
   total: number;

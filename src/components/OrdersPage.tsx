@@ -105,6 +105,12 @@ const OrdersPage: React.FC = () => {
                 name: order.Rider.User?.name || order.Rider.name || `Rider ${order.Rider.id}`,
               }
             : null,
+          picker: order.TripOrder?.[0]?.Trip?.Worker
+            ? {
+                id: order.TripOrder[0].Trip.Worker.id.toString(),
+                name: order.TripOrder[0].Trip.Worker.name,
+              }
+            : null,
           // Admin list endpoint is optimized and does NOT include item arrays (only _count)
           // Items are fetched on-demand in the details drawer.
           items: [],
