@@ -47,7 +47,7 @@ export default function PurchaseHistoryTable({ purchases, purchasesTotal, loadin
                   <td className="py-3 px-4">{p.quantity}</td>
                   <td className="py-3 px-4">GH₵ {p.unitCost.toFixed(2)}</td>
                   <td className="py-3 px-4 font-semibold">GH₵ {p.totalCost.toFixed(2)}</td>
-                  <td className="py-3 px-4 text-gray-500">{p.purchasedBy || "-"}</td>
+                  <td className="py-3 px-4 text-gray-500">{p.Worker?.name || p.purchasedBy || "-"}</td>
                 </tr>
               ))
             )}

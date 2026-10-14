@@ -27,6 +27,8 @@ const SuppliersPage: React.FC = () => {
   const {
     products,
     loadProducts,
+    workers,
+    loadWorkers,
     purchaseTrip,
     setPurchaseTrip,
     purchaseItems,
@@ -43,6 +45,7 @@ const SuppliersPage: React.FC = () => {
   useEffect(() => {
     loadSuppliers();
     loadProducts();
+    loadWorkers();
     loadPurchases();
   }, []);
 
@@ -80,6 +83,7 @@ const SuppliersPage: React.FC = () => {
             <RecordPurchaseForm
               suppliers={suppliers}
               products={products}
+              workers={workers}
               purchaseTrip={purchaseTrip}
               setPurchaseTrip={setPurchaseTrip}
               purchaseItems={purchaseItems}

@@ -10,6 +10,8 @@ export interface ProcurementRecord {
   totalCost: number;
   purchasedAt: string;
   purchasedBy?: string;
+  workerId?: number | null;
+  Worker?: { id: number; name: string } | null;
   notes?: string;
   Product: { id: number; nameEnglish: string; nameLocal: string; unitType: string };
   Supplier: { id: number; name: string };
@@ -19,6 +21,7 @@ export interface CreateProcurementDto {
   productId: number;
   supplierId: number;
   orderId?: number;
+  workerId?: number;
   quantity: number;
   unitCost: number;
   purchasedBy?: string;
@@ -34,6 +37,7 @@ export interface BatchProcurementItemDto {
 export interface CreateBatchProcurementDto {
   supplierId: number;
   orderId?: number;
+  workerId?: number;
   items: BatchProcurementItemDto[];
   purchasedBy?: string;
   notes?: string;

@@ -1,12 +1,14 @@
 import type { FormEvent } from "react";
 import type { Supplier } from "../../services/suppliersService";
+import type { Worker } from "../../services/workersService";
 import type { PurchaseLineItem } from "./usePurchaseForm";
 
 interface RecordPurchaseFormProps {
   suppliers: Supplier[];
   products: any[];
-  purchaseTrip: { supplierId: string; purchasedBy: string; notes: string };
-  setPurchaseTrip: (trip: { supplierId: string; purchasedBy: string; notes: string }) => void;
+  workers: Worker[];
+  purchaseTrip: { supplierId: string; workerId: string; purchasedBy: string; notes: string };
+  setPurchaseTrip: (trip: { supplierId: string; workerId: string; purchasedBy: string; notes: string }) => void;
   purchaseItems: PurchaseLineItem[];
   updateLineItem: (index: number, field: keyof PurchaseLineItem, value: string) => void;
   addLineItem: () => void;
@@ -23,6 +25,7 @@ interface RecordPurchaseFormProps {
 export default function RecordPurchaseForm({
   suppliers,
   products,
+  workers,
   purchaseTrip,
   setPurchaseTrip,
   purchaseItems,
@@ -65,14 +68,26 @@ export default function RecordPurchaseForm({
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Purchased By (optional)</label>
-            <input
-              type="text"
-              value={purchaseTrip.purchasedBy}
-              onChange={(e) => setPurchaseTrip({ ...purchaseTrip, purchasedBy: e.target.value })}
+            <label className="block text-sm font-medium text-gray-700 mb-1">Picker / Buyer (optional)</label>
+            <select
+              value={purchaseTrip.workerId}
+              onChange={(e) => setPurchaseTrip({ ...purchaseTrip, workerId: e.target.value, purchasedBy: "" })}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g. Ama"
-            />
+            >
+              <option value="">Not on roster / other</option>
+              {workers.filter((w) => w.active).map((w) => (
+                <option key={w.id} value={w.id}>{w.name}</option>
+              ))}
+            </select>
+            {!purchaseTrip.workerId && (
+              <input
+                type="text"
+                value={purchaseTrip.purchasedBy}
+                onChange={(e) => setPurchaseTrip({ ...purchaseTrip, purchasedBy: e.target.value })}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Or type a name, e.g. Ama"
+              />
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Trip Notes (optional)</label>

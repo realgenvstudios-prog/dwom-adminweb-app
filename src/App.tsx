@@ -9,7 +9,6 @@ import AdminsPage from './components/AdminsPage';
 import OrdersPage from './components/OrdersPage';
 import WarehouseOperationsPage from './components/WarehouseOperationsPage';
 import ProductsPage from './components/ProductsPage';
-import CategoriesPage from './components/CategoriesPage';
 import BundlesPage from './components/BundlesPage';
 import SeasonalProductsPage from './components/SeasonalProductsPage';
 import SubscriptionsPage from './components/SubscriptionsPage';
@@ -105,16 +104,7 @@ const App: React.FC = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/categories"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <CategoriesPage />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/categories" element={<Navigate to="/products" replace />} />
       <Route
         path="/bundles"
         element={

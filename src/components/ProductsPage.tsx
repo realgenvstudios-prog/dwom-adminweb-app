@@ -3,6 +3,7 @@ import ProductsFilterBar from "./products/ProductsFilterBar";
 import ProductsTable from "./products/ProductsTable";
 import ProductDetailsPanel from "./products/ProductDetailsPanel";
 import CreateProductModal from "./products/CreateProductModal";
+import CategoriesTab from "./products/CategoriesTab";
 import productsService from "../services/productsService";
 import categoriesService from "../services/categoriesService";
 import type { Product, ProductCategory, InventoryStatus } from "./products/ProductTypes";
@@ -17,6 +18,7 @@ const mockCategories: ProductCategory[] = [
 ];
 
 const ProductsPage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<"products" | "categories">("products");
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<ProductCategory[]>(mockCategories);
   const [filters, setFilters] = useState({ category: "All", status: "All", stock: "All", search: "" });
@@ -77,6 +79,19 @@ const ProductsPage: React.FC = () => {
 
     fetchData();
   }, []);
+
+  // Re-fetches categories so the Products filter dropdown reflects an
+  // edit/delete made in the Categories tab without a full page reload.
+  const refreshCategories = async () => {
+    try {
+      const categoriesData = await categoriesService.getAll();
+      if (categoriesData) {
+        setCategories(categoriesData.map((cat: any) => ({ id: cat.id.toString(), name: cat.name })));
+      }
+    } catch (err) {
+      logger.error('❌ [ProductsPage] Failed to refresh categories:', err);
+    }
+  };
 
   // Refresh products list
   const refreshProducts = async () => {
@@ -165,17 +180,42 @@ const ProductsPage: React.FC = () => {
             <h1 className="text-2xl font-bold text-gray-900">Products</h1>
             <div className="text-sm text-gray-500">Manage all DWOM grocery products</div>
           </div>
-          <div className="flex gap-2 mt-3 sm:mt-0">
-            <button 
-              onClick={() => setCreateModalOpen(true)}
-              className="px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 text-sm"
-            >
-              Add New Product
-            </button>
-            <button className="px-4 py-2 rounded bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 text-sm">Bulk Upload (CSV)</button>
-          </div>
+          {activeTab === "products" && (
+            <div className="flex gap-2 mt-3 sm:mt-0">
+              <button
+                onClick={() => setCreateModalOpen(true)}
+                className="px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 text-sm"
+              >
+                Add New Product
+              </button>
+              <button className="px-4 py-2 rounded bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 text-sm">Bulk Upload (CSV)</button>
+            </div>
+          )}
         </div>
 
+        <div className="mb-6 flex gap-2">
+          <button
+            onClick={() => setActiveTab("products")}
+            className={`px-4 py-2 rounded-lg font-semibold transition ${
+              activeTab === "products" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            Products
+          </button>
+          <button
+            onClick={() => setActiveTab("categories")}
+            className={`px-4 py-2 rounded-lg font-semibold transition ${
+              activeTab === "categories" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            Categories
+          </button>
+        </div>
+
+        {activeTab === "categories" && <CategoriesTab onCategoriesChanged={refreshCategories} />}
+
+        {activeTab === "products" && (
+          <>
         {/* Error Message */}
         {error && (
           <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -224,6 +264,8 @@ const ProductsPage: React.FC = () => {
               onDiscountChange={handleDiscountChange}
               discountUpdating={discountUpdating}
             />
+          </>
+        )}
           </>
         )}
 

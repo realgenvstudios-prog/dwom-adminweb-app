@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import procurementService from "../../services/procurementService";
 import productsService from "../../services/productsService";
 import type { Product } from "../../services/productsService";
+import workersService, { type Worker } from "../../services/workersService";
 import { logger } from '../../utils/logger';
 
 // A purchase is one trip to one supplier that can cover several products —
@@ -9,7 +10,10 @@ import { logger } from '../../utils/logger';
 // while each product gets its own line item.
 export type PurchaseLineItem = { productId: string; quantity: string; unitCost: string };
 const emptyLineItem: PurchaseLineItem = { productId: "", quantity: "", unitCost: "" };
-const emptyPurchaseTrip = { supplierId: "", purchasedBy: "", notes: "" };
+// workerId links this purchase to the same Worker roster Workers & Trips
+// uses for pay — purchasedBy stays as a free-text fallback for a buyer not
+// on that roster (e.g. the admin themselves, a one-off helper).
+const emptyPurchaseTrip = { supplierId: "", workerId: "", purchasedBy: "", notes: "" };
 
 // The "Record a Purchase" form: product picker data, trip + line-item
 // state, and submission. Split out of the former monolithic
@@ -17,6 +21,7 @@ const emptyPurchaseTrip = { supplierId: "", purchasedBy: "", notes: "" };
 // successful record needs to refresh that table.
 export function usePurchaseForm(loadPurchases: () => Promise<void>) {
   const [products, setProducts] = useState<Product[]>([]);
+  const [workers, setWorkers] = useState<Worker[]>([]);
   const [purchaseTrip, setPurchaseTrip] = useState(emptyPurchaseTrip);
   const [purchaseItems, setPurchaseItems] = useState<PurchaseLineItem[]>([{ ...emptyLineItem }]);
   const [recordingPurchase, setRecordingPurchase] = useState(false);
@@ -29,6 +34,14 @@ export function usePurchaseForm(loadPurchases: () => Promise<void>) {
       setProducts(data);
     } catch (err) {
       logger.error("❌ [SuppliersPage] Failed to load products:", err);
+    }
+  };
+
+  const loadWorkers = async () => {
+    try {
+      setWorkers(await workersService.getAll());
+    } catch (err) {
+      logger.error("❌ [SuppliersPage] Failed to load workers:", err);
     }
   };
 
@@ -66,10 +79,13 @@ export function usePurchaseForm(loadPurchases: () => Promise<void>) {
 
     try {
       setRecordingPurchase(true);
+      const workerId = purchaseTrip.workerId ? parseInt(purchaseTrip.workerId, 10) : undefined;
       await procurementService.recordBatchPurchase({
         supplierId,
         items: parsedItems,
-        purchasedBy: purchaseTrip.purchasedBy || undefined,
+        workerId,
+        // Free-text fallback only applies when no roster worker was picked.
+        purchasedBy: workerId ? undefined : purchaseTrip.purchasedBy || undefined,
         notes: purchaseTrip.notes || undefined,
       });
       setPurchaseSuccess(
@@ -94,6 +110,8 @@ export function usePurchaseForm(loadPurchases: () => Promise<void>) {
   return {
     products,
     loadProducts,
+    workers,
+    loadWorkers,
     purchaseTrip,
     setPurchaseTrip,
     purchaseItems,
