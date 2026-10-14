@@ -11,6 +11,8 @@ export interface OrderItem {
   quantity: number;
   price: number;
   originalPrice?: number;
+  /** Chosen options, e.g. ["Half crate", "Boiled"]. */
+  variations?: string[];
   notes?: string;
   isBundle?: boolean;
 }

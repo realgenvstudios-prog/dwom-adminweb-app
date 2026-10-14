@@ -34,6 +34,15 @@ export default function ItemsTab({ items, loading, error }: ItemsTabProps) {
               </span>
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium">{item.name}</p>
+                {item.variations && item.variations.length > 0 && (
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {item.variations.map((v) => (
+                      <Badge key={v} variant="outline" className="border-sky-500/20 bg-sky-500/10 font-normal text-sky-700">
+                        {v}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
                 {item.isBundle && (
                   <Badge variant="secondary" className="mt-1 gap-1 font-normal">
                     <Package className="size-3" />
@@ -43,8 +52,11 @@ export default function ItemsTab({ items, loading, error }: ItemsTabProps) {
               </div>
             </div>
             <div className="shrink-0 text-right text-sm tabular-nums">
-              {item.originalPrice && <div className="text-xs text-muted-foreground line-through">{formatGhs(item.originalPrice)}</div>}
-              <div className="font-medium">{formatGhs(item.price)}</div>
+              <div className="font-medium">{formatGhs(item.price * item.quantity)}</div>
+              <div className="text-xs text-muted-foreground">
+                {item.originalPrice && <span className="mr-1 line-through">{formatGhs(item.originalPrice)}</span>}
+                {formatGhs(item.price)} each
+              </div>
             </div>
           </div>
           {item.notes && (
