@@ -30,6 +30,7 @@ import DeliveryCheckCard from '../delivery/DeliveryCheckCard';
 import ZoneDialog from '../delivery/ZoneDialog';
 import { formatGhs } from '../orders/order-status';
 import { num } from '../riders/rider-meta';
+import { formatArea, zoneAreaKm2 } from '../delivery/zone-shape';
 
 // Zone coverage is a rider-logistics concern, so zones live on Field
 // Operations next to Riders and Pickers.
@@ -106,9 +107,9 @@ export default function ZonesTab() {
         <StatCard label="Delivery fees" value={feeRange} hint="Across active zones" icon={Wallet} tint="bg-amber-500/10 text-amber-600" loading={loading} failed={!!error} />
         <StatCard label="Riders covering" value={String(riders)} hint="Active riders assigned to a zone" icon={Bike} tint="bg-sky-500/10 text-sky-600" loading={loading} failed={!!error} />
         <StatCard
-          label="Largest radius"
-          value={zones.length ? `${Math.max(...zones.map((z) => z.radius))} km` : '—'}
-          hint="From a zone’s centre"
+          label="Coverage"
+          value={active.length ? formatArea(active.reduce((sum, z) => sum + zoneAreaKm2(z), 0)) : '—'}
+          hint="Active zones combined (overlaps count twice)"
           icon={MapPin}
           tint="bg-violet-500/10 text-violet-600"
           loading={loading}
@@ -208,8 +209,8 @@ export default function ZonesTab() {
                       <dd className="font-semibold tabular-nums">{formatGhs(num(z.deliveryFee))}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs text-muted-foreground">Radius</dt>
-                      <dd className="font-semibold tabular-nums">{z.radius} km</dd>
+                      <dt className="text-xs text-muted-foreground">{z.polygon && z.polygon.length >= 3 ? 'Area' : 'Area (circle)'}</dt>
+                      <dd className="font-semibold tabular-nums">{formatArea(zoneAreaKm2(z))}</dd>
                     </div>
                     <div>
                       <dt className="text-xs text-muted-foreground">Riders</dt>

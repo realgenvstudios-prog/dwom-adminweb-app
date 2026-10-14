@@ -7,7 +7,9 @@ export interface DeliveryZone {
   description?: string;
   lat: number;
   lng: number;
-  radius: number; // in km
+  radius: number; // in km (derived from the corners when polygon is set)
+  /** Free-form boundary; when present it defines the zone instead of the circle. */
+  polygon?: { lat: number; lng: number }[] | null;
   deliveryFee: number;
   isActive: boolean;
   createdAt: string;

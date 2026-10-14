@@ -81,7 +81,7 @@ class RidersService {
   /**
    * Create a new zone
    */
-  async createZone(dto: { name: string; description?: string; lat: number; lng: number; radius: number; deliveryFee?: number }): Promise<Zone> {
+  async createZone(dto: { name: string; description?: string; lat: number; lng: number; radius: number; deliveryFee?: number; polygon?: { lat: number; lng: number }[] }): Promise<Zone> {
     try {
       return await adminApiClient.post<Zone>('/riders/zones', dto);
     } catch (error) {
