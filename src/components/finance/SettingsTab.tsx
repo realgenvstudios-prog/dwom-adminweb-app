@@ -94,9 +94,7 @@ function UnitInput({ field, value, disabled, onChange }: { field: Field; value: 
         onChange={(e) => onChange(e.target.value)}
         className={`tabular-nums ${field.unit === '₵' ? 'pl-7' : ''} ${field.unit !== '₵' ? 'pr-16' : ''}`}
       />
-      {field.unit !== '₵' && (
-        <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-muted-foreground">{field.unit}</span>
-      )}
+      {field.unit !== '₵' && <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-muted-foreground">{field.unit}</span>}
     </div>
   );
 }
@@ -151,7 +149,11 @@ const SettingsTab: React.FC = () => {
       setSaving(true);
       await settingsService.updateSettings(payload);
       setSaved(form);
-      toast.success(changed.some((k) => ['minimumOrderValue', 'maxSmallOrderFee', 'defaultServiceFee', 'defaultDeliveryFee'].includes(k)) ? 'Saved. Checkout uses the new fees now' : 'Settings saved');
+      toast.success(
+        changed.some((k) => ['minimumOrderValue', 'maxSmallOrderFee', 'defaultServiceFee', 'defaultDeliveryFee'].includes(k))
+          ? 'Saved. Checkout uses the new fees now'
+          : 'Settings saved',
+      );
     } catch (err) {
       logger.error('Failed to save finance settings:', err);
       toast.error('Couldn’t save the settings.');
@@ -218,8 +220,7 @@ const SettingsTab: React.FC = () => {
               </div>
               {section.title === 'Small-order fee' && !unavailable('minimumOrderValue') && n('minimumOrderValue') > 0 && (
                 <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
-                  Example: a {formatGhs(sampleBasket)} basket is charged a{' '}
-                  <span className="font-medium text-foreground">{formatGhs(sampleFee)}</span> small-order fee.
+                  Example: a {formatGhs(sampleBasket)} basket is charged a <span className="font-medium text-foreground">{formatGhs(sampleFee)}</span> small-order fee.
                 </p>
               )}
               {section.title === 'Picker pay' && !unavailable('pickerDailyThreshold') && (
@@ -235,8 +236,7 @@ const SettingsTab: React.FC = () => {
               )}
               {section.title === 'Picker pay' && !unavailable('pickerDailyThreshold') && busyDay * n('pickerRatePerOrder') < n('pickerDailyMinimumPay') && (
                 <p className="flex items-start gap-2 rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-800">
-                  <AlertCircle className="mt-px size-3.5 shrink-0" />
-                  A picker who reaches the threshold earns less than the daily minimum. Raise the pay per order to at least{' '}
+                  <AlertCircle className="mt-px size-3.5 shrink-0" />A picker who reaches the threshold earns less than the daily minimum. Raise the pay per order to at least{' '}
                   {formatGhs(Math.ceil((n('pickerDailyMinimumPay') / busyDay) * 100) / 100)}.
                 </p>
               )}

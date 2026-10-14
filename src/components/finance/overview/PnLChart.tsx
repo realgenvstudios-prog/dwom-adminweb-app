@@ -7,16 +7,9 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import financeService, { type PnLBucket } from '../../../services/financeService';
 import { formatGhs } from '../../orders/order-status';
+import { bucketFor, type Range } from './period';
 
 type Period = 'daily' | 'weekly' | 'monthly';
-
-// The API defaults every period to the last 30 days; ask for a span that
-// suits each one instead.
-const SPAN: Record<Period, { days: number; label: string }> = {
-  daily: { days: 30, label: 'Last 30 days' },
-  weekly: { days: 7 * 12, label: 'Last 12 weeks' },
-  monthly: { days: 365, label: 'Last 12 months' },
-};
 
 const config: ChartConfig = {
   contribution: { label: 'Contribution', color: 'var(--chart-1)' },
@@ -30,39 +23,50 @@ function bucketLabel(period: Period, key: string) {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 }
 
-export default function PnLChart() {
-  const [period, setPeriod] = useState<Period>('weekly');
+/** Profit & loss for the overview's period. Mount with `key` = the range so the bucket size resets when it changes. */
+export default function PnLChart({ range }: { range: Range }) {
+  const [period, setPeriod] = useState<Period>(() => bucketFor(range));
   const [rows, setRows] = useState<{ period: Period; data: PnLBucket[] } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    const start = new Date(Date.now() - SPAN[period].days * 86_400_000).toISOString();
-    financeService.getPeriodPnL(period, start).then((data) => !cancelled && setRows({ period, data: data ?? [] }));
+    const start = range.start ? `${range.start}T00:00:00.000Z` : new Date(0).toISOString();
+    const end = `${range.end}T23:59:59.999Z`;
+    financeService
+      .getPeriodPnL(period, start, end)
+      .then((data) => !cancelled && setRows({ period, data: data ?? [] }))
+      .catch(() => !cancelled && setRows({ period, data: [] }));
     return () => {
       cancelled = true;
     };
-  }, [period]);
+  }, [period, range.start, range.end]);
 
   const loading = rows?.period !== period;
   const data = (rows?.data ?? []).map((b) => ({ ...b, opex: -b.opex, label: bucketLabel(period, b.period) }));
-  const total = (rows?.data ?? []).reduce(
-    (t, b) => ({ revenue: t.revenue + b.revenue, cogs: t.cogs + b.cogs, opex: t.opex + b.opex, result: t.result + b.operatingResult }),
-    { revenue: 0, cogs: 0, opex: 0, result: 0 },
-  );
+  const total = (rows?.data ?? []).reduce((t, b) => ({ revenue: t.revenue + b.revenue, cogs: t.cogs + b.cogs, opex: t.opex + b.opex, result: t.result + b.operatingResult }), {
+    revenue: 0,
+    cogs: 0,
+    opex: 0,
+    result: 0,
+  });
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Profit & loss</CardTitle>
-        <CardDescription>
-          {SPAN[period].label} · paid orders only. Contribution = revenue − cost of goods; operating result also subtracts operating costs.
-        </CardDescription>
+        <CardDescription>{range.label} · paid orders only. Contribution = revenue − cost of goods; operating result also subtracts operating costs.</CardDescription>
         <CardAction>
           <Tabs value={period} onValueChange={(v) => setPeriod(v as Period)}>
             <TabsList className="h-8">
-              <TabsTrigger value="daily" className="px-2.5 text-xs">Daily</TabsTrigger>
-              <TabsTrigger value="weekly" className="px-2.5 text-xs">Weekly</TabsTrigger>
-              <TabsTrigger value="monthly" className="px-2.5 text-xs">Monthly</TabsTrigger>
+              <TabsTrigger value="daily" className="px-2.5 text-xs">
+                Daily
+              </TabsTrigger>
+              <TabsTrigger value="weekly" className="px-2.5 text-xs">
+                Weekly
+              </TabsTrigger>
+              <TabsTrigger value="monthly" className="px-2.5 text-xs">
+                Monthly
+              </TabsTrigger>
             </TabsList>
           </Tabs>
         </CardAction>
@@ -77,12 +81,7 @@ export default function PnLChart() {
           ].map((s) => (
             <div key={s.label} className="rounded-lg border p-3">
               <dt className="text-xs text-muted-foreground">{s.label}</dt>
-              <dd
-                className={cn(
-                  'mt-0.5 text-lg font-semibold tabular-nums',
-                  s.emphasise && (s.value >= 0 ? 'text-emerald-600' : 'text-red-600'),
-                )}
-              >
+              <dd className={cn('mt-0.5 text-lg font-semibold tabular-nums', s.emphasise && (s.value >= 0 ? 'text-emerald-600' : 'text-red-600'))}>
                 {loading ? <Skeleton className="h-6 w-20" /> : formatGhs(s.value)}
               </dd>
             </div>

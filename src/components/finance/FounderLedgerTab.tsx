@@ -15,13 +15,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DataTable, DataTableColumnHeader, facetedFilterFn } from '@/components/data-table';
 import { StatCard } from '@/components/stat-card';
 import { cn } from '@/lib/utils';
@@ -89,7 +83,9 @@ const FounderLedgerTab: React.FC = () => {
         accessorFn: (e) => new Date(e.date).getTime(),
         header: ({ column }) => <DataTableColumnHeader column={column} title="Date" />,
         enableGlobalFilter: false,
-        cell: ({ row }) => <span className="whitespace-nowrap">{new Date(row.original.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })}</span>,
+        cell: ({ row }) => (
+          <span className="whitespace-nowrap">{new Date(row.original.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })}</span>
+        ),
         meta: { title: 'Date' },
       },
       {
@@ -195,13 +191,27 @@ const FounderLedgerTab: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <p className="text-sm text-muted-foreground">
-        Money founders put into DWOM and what’s been paid back. Kept fully separate from business revenue, expenses, and the P&L.
-      </p>
+      <p className="text-sm text-muted-foreground">Money founders put into DWOM and what’s been paid back. Kept fully separate from business revenue, expenses, and the P&L.</p>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard label="Put in by founders" value={formatGhs(balance?.totalContributions)} hint="All contributions" icon={ArrowDownLeft} tint="bg-emerald-500/10 text-emerald-600" loading={loading} failed={!!error} />
-        <StatCard label="Paid back" value={formatGhs(balance?.totalReimbursements)} hint="All reimbursements" icon={ArrowUpRight} tint="bg-amber-500/10 text-amber-600" loading={loading} failed={!!error} />
+        <StatCard
+          label="Put in by founders"
+          value={formatGhs(balance?.totalContributions)}
+          hint="All contributions"
+          icon={ArrowDownLeft}
+          tint="bg-emerald-500/10 text-emerald-600"
+          loading={loading}
+          failed={!!error}
+        />
+        <StatCard
+          label="Paid back"
+          value={formatGhs(balance?.totalReimbursements)}
+          hint="All reimbursements"
+          icon={ArrowUpRight}
+          tint="bg-amber-500/10 text-amber-600"
+          loading={loading}
+          failed={!!error}
+        />
         <StatCard
           label="DWOM still owes"
           value={formatGhs(balance?.balance)}

@@ -1,79 +1,59 @@
 import { useCallback, useEffect, useState } from 'react';
 import apiClient from '../../../services/apiClient';
-import financeService, { type FailedPayment, type FinanceKPIs, type RevenueByZone } from '../../../services/financeService';
 import { logger } from '../../../utils/logger';
+import type { Range } from './period';
 
-export interface DayPoint {
-  date: string;
+export interface PeriodFigures {
+  gmv: number;
+  netRevenue: number;
+  orders: number;
+  paidOrders: number;
+  failedOrders: number;
+  grossProfit: number;
+  grossProfitIsEstimate: boolean;
+  avgOrderValue: number;
+  failedPaymentRate: number;
+  newCustomers: number;
+}
+
+export interface SeriesPoint {
+  key: string;
   gmv: number;
   paid: number;
   orders: number;
 }
 
-export interface TopCustomer {
-  id: number;
-  name: string;
-  phone: string;
-  totalOrders: number;
-  totalSpend: number;
+/** GET /admin/finance/summary: everything the overview shows, for one period. */
+export interface FinanceSummary {
+  range: { start: string | null; end: string };
+  previousRange: { start: string; end: string } | null;
+  current: PeriodFigures;
+  previous: PeriodFigures | null;
+  mrr: number;
+  activeSubscriptions: number;
+  grossProfitMargin: number;
+  granularity: 'day' | 'week' | 'month';
+  series: SeriesPoint[];
+  zones: { zoneId: number | null; zoneName: string; revenue: number; orders: number }[];
+  topCustomers: { id: number; name: string; phone: string; paidOrders: number; spend: number }[];
+  failedPayments: { orderId: number; customer: string; amount: number; method: string; createdAt: string }[];
 }
 
-export interface FinanceOverviewData {
-  kpis: FinanceKPIs | null;
-  days: DayPoint[] | null;
-  zones: RevenueByZone[] | null;
-  customers: TopCustomer[] | null;
-  failed: FailedPayment[] | null;
-}
-
-function settled<T>(r: PromiseSettledResult<T>, label: string): T | null {
-  if (r.status === 'fulfilled') return r.value;
-  logger.error(`❌ [Finance] Failed to load ${label}:`, r.reason);
-  return null;
-}
-
-// The trends endpoint only returns days that had orders; fill the gaps.
-function fillDays(raw: { date: string; gmv: number; net: number; orders: number }[], count: number): DayPoint[] {
-  const byDate = new Map(raw.map((d) => [d.date, d]));
-  return Array.from({ length: count }, (_, i) => {
-    const d = new Date();
-    d.setUTCDate(d.getUTCDate() - (count - 1 - i));
-    const key = d.toISOString().slice(0, 10);
-    const hit = byDate.get(key);
-    return { date: key, gmv: hit?.gmv ?? 0, paid: hit?.net ?? 0, orders: hit?.orders ?? 0 };
-  });
-}
-
-export function useFinanceOverview() {
-  const [data, setData] = useState<FinanceOverviewData | null>(null);
+export function useFinanceOverview(range: Range) {
+  const [state, setState] = useState<{ key: string; data: FinanceSummary | null; error: string | null } | null>(null);
+  const query = new URLSearchParams(
+    Object.entries({ start: range.start, end: range.end, compareStart: range.compareStart, compareEnd: range.compareEnd }).filter((e): e is [string, string] => !!e[1]),
+  ).toString();
 
   const load = useCallback(async () => {
-    const [kpis, trends, zones, customers, failed] = await Promise.allSettled([
-      apiClient.get<FinanceKPIs>('/admin/finance/kpis'),
-      // Called directly: financeService.getRevenueTrends drops the order count.
-      apiClient.get<{ date: string; gmv: number; net: number; orders: number }[]>('/admin/finance/revenue-trends?days=29'),
-      financeService.getRevenueByZone(),
-      // Accurate all-time paid spend per customer (financeService's version
-      // only sees the 50 newest orders and counts unpaid ones).
-      apiClient.get<Array<{ id: number; name?: string; phone?: string; totalOrders?: number; totalSpend?: number }>>('/users/admin/customers'),
-      financeService.getFailedPayments(6),
-    ]);
-    const trendRows = settled(trends, 'revenue trends');
-    const customerRows = settled(customers, 'customers');
-    setData({
-      kpis: settled(kpis, 'KPIs'),
-      days: Array.isArray(trendRows) ? fillDays(trendRows, 30) : null,
-      zones: settled(zones, 'revenue by zone'),
-      customers: Array.isArray(customerRows)
-        ? customerRows
-            .map((c) => ({ id: c.id, name: c.name || 'Unnamed customer', phone: c.phone ?? '', totalOrders: c.totalOrders ?? 0, totalSpend: c.totalSpend ?? 0 }))
-            .filter((c) => c.totalSpend > 0)
-            .sort((a, b) => b.totalSpend - a.totalSpend)
-            .slice(0, 6)
-        : null,
-      failed: settled(failed, 'failed payments'),
-    });
-  }, []);
+    try {
+      const data = await apiClient.get<FinanceSummary>(`/admin/finance/summary?${query}`);
+      setState({ key: query, data, error: null });
+    } catch (err) {
+      logger.error('❌ [Finance] Failed to load summary:', err);
+      setState((prev) => ({ key: query, data: prev?.key === query ? prev.data : null, error: err instanceof Error ? err.message : 'Couldn’t load finance figures' }));
+    }
+  }, [query]);
 
   useEffect(() => {
     const t = setTimeout(() => void load(), 0);
@@ -84,5 +64,6 @@ export function useFinanceOverview() {
     };
   }, [load]);
 
-  return { data, loading: data === null, refresh: load };
+  const current = state?.key === query ? state : null;
+  return { data: current?.data ?? null, error: current?.error ?? null, loading: !current, refresh: load };
 }

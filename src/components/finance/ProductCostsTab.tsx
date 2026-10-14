@@ -103,7 +103,11 @@ function buildColumns(categories: ProductCategory[], onSave: (p: Product, cost: 
       cell: ({ row }) => (
         <div className="flex min-w-[180px] items-center gap-3">
           <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted">
-            {row.original.imageUrl ? <img src={row.original.imageUrl} alt="" className="size-full object-cover" loading="lazy" /> : <ImageOff className="size-3.5 text-muted-foreground" />}
+            {row.original.imageUrl ? (
+              <img src={row.original.imageUrl} alt="" className="size-full object-cover" loading="lazy" />
+            ) : (
+              <ImageOff className="size-3.5 text-muted-foreground" />
+            )}
           </div>
           <div className="min-w-0">
             <p className="truncate font-medium">{row.original.nameEnglish}</p>
@@ -211,15 +215,47 @@ const ProductCostsTab: React.FC = () => {
   return (
     <div className="flex flex-col gap-6">
       <p className="text-sm text-muted-foreground">
-        What you currently pay for each product. It’s used for profit and P&L whenever no actual purchase price has been logged, so
-        products without a cost make those numbers less accurate.
+        What you currently pay for each product. It’s used for profit and P&L whenever no actual purchase price has been logged, so products without a cost make those numbers less
+        accurate.
       </p>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Costs set" value={`${costed.length} / ${products.length}`} hint="Live products" icon={CircleDollarSign} tint="bg-sky-500/10 text-sky-600" loading={loading} failed={!!error} />
-        <StatCard label="Missing a cost" value={String(products.length - costed.length)} hint="Profit falls back to an estimate" icon={PackageX} tint="bg-amber-500/10 text-amber-600" loading={loading} failed={!!error} />
-        <StatCard label="Average margin" value={costed.length ? `${avgPct.toFixed(1)}%` : 'None'} hint="Across costed products, at today’s prices" icon={Percent} tint="bg-emerald-500/10 text-emerald-600" loading={loading} failed={!!error} />
-        <StatCard label="Selling below cost" value={String(losses)} hint={losses ? 'Each sale loses money' : 'None'} icon={TrendingDown} tint="bg-red-500/10 text-red-600" loading={loading} failed={!!error} />
+        <StatCard
+          label="Costs set"
+          value={`${costed.length} / ${products.length}`}
+          hint="Live products"
+          icon={CircleDollarSign}
+          tint="bg-sky-500/10 text-sky-600"
+          loading={loading}
+          failed={!!error}
+        />
+        <StatCard
+          label="Missing a cost"
+          value={String(products.length - costed.length)}
+          hint="Profit falls back to an estimate"
+          icon={PackageX}
+          tint="bg-amber-500/10 text-amber-600"
+          loading={loading}
+          failed={!!error}
+        />
+        <StatCard
+          label="Average margin"
+          value={costed.length ? `${avgPct.toFixed(1)}%` : 'None'}
+          hint="Across costed products, at today’s prices"
+          icon={Percent}
+          tint="bg-emerald-500/10 text-emerald-600"
+          loading={loading}
+          failed={!!error}
+        />
+        <StatCard
+          label="Selling below cost"
+          value={String(losses)}
+          hint={losses ? 'Each sale loses money' : 'None'}
+          icon={TrendingDown}
+          tint="bg-red-500/10 text-red-600"
+          loading={loading}
+          failed={!!error}
+        />
       </div>
 
       {error && (

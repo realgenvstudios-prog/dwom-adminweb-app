@@ -42,9 +42,10 @@ export default function ExpenseDialog({ expense, open, onOpenChange, onSaved }: 
   const set = (patch: Partial<typeof form>) => setForm((f) => ({ ...f, ...patch }));
   // Keep any legacy category / method an old entry used selectable.
   const categories = EXPENSE_CATEGORIES.includes(form.category) ? EXPENSE_CATEGORIES : [form.category, ...EXPENSE_CATEGORIES];
-  const methods = form.paymentMethod === NONE || EXPENSE_METHODS.some((m) => m.value === form.paymentMethod)
-    ? EXPENSE_METHODS
-    : [{ value: form.paymentMethod, label: form.paymentMethod }, ...EXPENSE_METHODS];
+  const methods =
+    form.paymentMethod === NONE || EXPENSE_METHODS.some((m) => m.value === form.paymentMethod)
+      ? EXPENSE_METHODS
+      : [{ value: form.paymentMethod, label: form.paymentMethod }, ...EXPENSE_METHODS];
 
   const save = async () => {
     const amount = Number.parseFloat(form.amount);
@@ -102,7 +103,16 @@ export default function ExpenseDialog({ expense, open, onOpenChange, onSaved }: 
               <Label htmlFor="ex-amount">Amount</Label>
               <div className="relative">
                 <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">₵</span>
-                <Input id="ex-amount" type="number" min={0} step="0.01" value={form.amount} onChange={(e) => set({ amount: e.target.value })} className="pl-7 tabular-nums" autoFocus />
+                <Input
+                  id="ex-amount"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={form.amount}
+                  onChange={(e) => set({ amount: e.target.value })}
+                  className="pl-7 tabular-nums"
+                  autoFocus
+                />
               </div>
             </div>
             <div className="grid gap-1.5">

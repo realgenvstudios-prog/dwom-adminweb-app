@@ -14,13 +14,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DataTable, DataTableColumnHeader, facetedFilterFn } from '@/components/data-table';
 import { StatCard } from '@/components/stat-card';
@@ -144,9 +138,7 @@ const ExpensesTab: React.FC = () => {
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <span className="font-medium">{row.original.category}</span>
-            {row.original.recurring && (
-              <Repeat className="size-3.5 text-muted-foreground" aria-label="Recurring" />
-            )}
+            {row.original.recurring && <Repeat className="size-3.5 text-muted-foreground" aria-label="Recurring" />}
           </div>
         ),
         meta: { title: 'Category' },
@@ -268,7 +260,15 @@ const ExpensesTab: React.FC = () => {
           loading={loading}
           failed={!!error}
         />
-        <StatCard label="Biggest category" value={top ? top[0] : 'None'} hint={top ? `${formatGhs(top[1])} this month` : 'Nothing this month yet'} icon={Tag} tint="bg-amber-500/10 text-amber-600" loading={loading} failed={!!error} />
+        <StatCard
+          label="Biggest category"
+          value={top ? top[0] : 'None'}
+          hint={top ? `${formatGhs(top[1])} this month` : 'Nothing this month yet'}
+          icon={Tag}
+          tint="bg-amber-500/10 text-amber-600"
+          loading={loading}
+          failed={!!error}
+        />
         <StatCard
           label="Recurring this month"
           value={formatGhs(recurring)}
@@ -278,7 +278,15 @@ const ExpensesTab: React.FC = () => {
           loading={loading}
           failed={!!error}
         />
-        <StatCard label={`Capital spend ${now.getUTCFullYear()}`} value={formatGhs(capexYear)} hint="Not counted in the P&L" icon={Receipt} tint="bg-violet-500/10 text-violet-600" loading={loading} failed={!!error} />
+        <StatCard
+          label={`Capital spend ${now.getUTCFullYear()}`}
+          value={formatGhs(capexYear)}
+          hint="Not counted in the P&L"
+          icon={Receipt}
+          tint="bg-violet-500/10 text-violet-600"
+          loading={loading}
+          failed={!!error}
+        />
       </div>
 
       {error && (
