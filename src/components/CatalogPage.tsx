@@ -42,7 +42,7 @@ const CatalogPage: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        logger.log('📦 [ProductsPage] Fetching products and categories from backend');
+        logger.log('📦 [CatalogPage] Fetching products and categories from backend');
         
         // Fetch both in parallel
         const [productsData, categoriesData] = await Promise.all([
@@ -50,8 +50,8 @@ const CatalogPage: React.FC = () => {
           categoriesService.getAll(),
         ]);
         
-        logger.log('✅ [ProductsPage] Products loaded:', productsData.length);
-        logger.log('✅ [ProductsPage] Categories loaded:', categoriesData.length);
+        logger.log('✅ [CatalogPage] Products loaded:', productsData.length);
+        logger.log('✅ [CatalogPage] Categories loaded:', categoriesData.length);
         
         // Enrich products with inventory status
         const enrichedProducts = (productsData || []).map((prod: any) => ({
@@ -73,7 +73,7 @@ const CatalogPage: React.FC = () => {
           setCategories(mappedCategories);
         }
       } catch (err: any) {
-        logger.error('❌ [ProductsPage] Failed to fetch products:', err);
+        logger.error('❌ [CatalogPage] Failed to fetch products:', err);
         setError(err.message || 'Failed to load products');
       } finally {
         setLoading(false);
@@ -92,7 +92,7 @@ const CatalogPage: React.FC = () => {
         setCategories(categoriesData.map((cat: any) => ({ id: cat.id.toString(), name: cat.name })));
       }
     } catch (err) {
-      logger.error('❌ [ProductsPage] Failed to refresh categories:', err);
+      logger.error('❌ [CatalogPage] Failed to refresh categories:', err);
     }
   };
 
@@ -113,9 +113,9 @@ const CatalogPage: React.FC = () => {
       }));
       
       setProducts(enrichedProducts);
-      logger.log('✅ [ProductsPage] Products refreshed');
+      logger.log('✅ [CatalogPage] Products refreshed');
     } catch (err) {
-      logger.error('❌ [ProductsPage] Failed to refresh products:', err);
+      logger.error('❌ [CatalogPage] Failed to refresh products:', err);
     } finally {
       setLoading(false);
     }
@@ -311,12 +311,12 @@ const CatalogPage: React.FC = () => {
           open={detailsOpen} 
           onClose={() => setDetailsOpen(false)}
           onProductDeleted={() => {
-            logger.log('✅ [ProductsPage] Product deleted, refreshing list');
+            logger.log('✅ [CatalogPage] Product deleted, refreshing list');
             refreshProducts();
             setSelectedProduct(null);
           }}
           onProductUpdated={() => {
-            logger.log('✅ [ProductsPage] Product updated, refreshing list');
+            logger.log('✅ [CatalogPage] Product updated, refreshing list');
             refreshProducts();
           }}
           categories={categories}
@@ -327,7 +327,7 @@ const CatalogPage: React.FC = () => {
           open={createModalOpen}
           onClose={() => setCreateModalOpen(false)}
           onProductCreated={() => {
-            logger.log('✅ [ProductsPage] New product created, refreshing list');
+            logger.log('✅ [CatalogPage] New product created, refreshing list');
             setCreateModalOpen(false);
             refreshProducts();
           }}
