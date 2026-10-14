@@ -6,7 +6,7 @@ import MovementHistoryModal from "./warehouse/MovementHistoryModal";
 import EditThresholdsModal from "./warehouse/EditThresholdsModal";
 import BulkInventoryActions from "./products/BulkInventoryActions";
 import ProductsTable from "./products/ProductsTable";
-import ProductDetailsPanel from "./products/ProductDetailsPanel";
+import ProductSheet from "./products/ProductSheet";
 import SuppliersTab from "./warehouse/SuppliersTab";
 import inventoryService from "../services/inventoryService";
 import productsService from "../services/productsService";
@@ -385,19 +385,21 @@ const WarehouseOperationsPage: React.FC = () => {
       </div>
 
       {/* Product Details Panel */}
-      <ProductDetailsPanel
-        product={selectedProduct}
-        open={detailsOpen}
-        onClose={() => setDetailsOpen(false)}
-        onProductDeleted={() => {
-          fetchData();
-          setSelectedProduct(null);
-        }}
-        onProductUpdated={() => {
-          fetchData();
-        }}
-        categories={categories}
-      />
+      {selectedProduct && (
+        <ProductSheet
+          key={String(selectedProduct.id)}
+          product={selectedProduct}
+          intent="view"
+          open={detailsOpen}
+          onOpenChange={setDetailsOpen}
+          categories={categories}
+          onSaved={() => fetchData()}
+          onArchived={() => {
+            fetchData();
+            setSelectedProduct(null);
+          }}
+        />
+      )}
 
       {/* Modals */}
       <UpdateStockModal

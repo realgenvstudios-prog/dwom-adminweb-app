@@ -1,343 +1,70 @@
-import React, { useState, useEffect } from "react";
-import { useTabParam } from "@/hooks/use-tab-param";
-import ProductsFilterBar from "./products/ProductsFilterBar";
-import ProductsTable from "./products/ProductsTable";
-import ProductDetailsPanel from "./products/ProductDetailsPanel";
-import CreateProductModal from "./products/CreateProductModal";
-import CategoriesTab from "./products/CategoriesTab";
-import BundlesTab from "./products/BundlesTab";
-import SeasonalRotationPanel from "./products/SeasonalRotationPanel";
-import productsService from "../services/productsService";
-import categoriesService from "../services/categoriesService";
-import seasonalService from "../services/seasonalService";
-import type { Product, ProductCategory, InventoryStatus } from "./products/ProductTypes";
-import { logger } from '../utils/logger';
+import React, { useState } from 'react';
+import { Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTabParam } from '@/hooks/use-tab-param';
+import ProductsTab from './products/ProductsTab';
+import CreateProductDialog from './products/CreateProductDialog';
+import CategoriesTab from './products/CategoriesTab';
+import BundlesTab from './products/BundlesTab';
+import { useCatalogData } from './products/useCatalogData';
 
-// Mock data - Keep for fallback
-const mockCategories: ProductCategory[] = [
-  { id: "cat1", name: "Vegetables" },
-  { id: "cat2", name: "Grains" },
-  { id: "cat3", name: "Spices" },
-  { id: "cat4", name: "Bundles" },
-];
+const TABS = ['products', 'categories', 'bundles'] as const;
 
 const CatalogPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useTabParam(["products", "categories", "bundles"] as const, "products");
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<ProductCategory[]>(mockCategories);
-  const [filters, setFilters] = useState({ category: "All", status: "All", stock: "All", search: "" });
-  const [sortBy, setSortBy] = useState("nameEnglish");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
-  const [page, setPage] = useState(1);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [detailsOpen, setDetailsOpen] = useState(false);
-  const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [discountUpdating, setDiscountUpdating] = useState(false);
-  const pageSize = 10;
-
-  // Fetch products and categories on mount
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        logger.log('📦 [CatalogPage] Fetching products and categories from backend');
-        
-        // Fetch both in parallel
-        const [productsData, categoriesData] = await Promise.all([
-          productsService.getAll(),
-          categoriesService.getAll(),
-        ]);
-        
-        logger.log('✅ [CatalogPage] Products loaded:', productsData.length);
-        logger.log('✅ [CatalogPage] Categories loaded:', categoriesData.length);
-        
-        // Enrich products with inventory status
-        const enrichedProducts = (productsData || []).map((prod: any) => ({
-          ...prod,
-          inventoryStatus: prod.inventory ? (
-            prod.inventory.quantity === 0 ? 'Out of stock' : 
-            prod.inventory.status === 'low_stock' ? 'Low' :
-            'In stock'
-          ) : 'Unknown'
-        }));
-        
-        setProducts(enrichedProducts);
-        if (categoriesData && categoriesData.length > 0) {
-          // Map backend categories to ProductCategory type
-          const mappedCategories: ProductCategory[] = categoriesData.map((cat: any) => ({
-            id: cat.id.toString(),
-            name: cat.name,
-          }));
-          setCategories(mappedCategories);
-        }
-      } catch (err: any) {
-        logger.error('❌ [CatalogPage] Failed to fetch products:', err);
-        setError(err.message || 'Failed to load products');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  // Re-fetches categories so the Products filter dropdown reflects an
-  // edit/delete made in the Categories tab without a full page reload.
-  const refreshCategories = async () => {
-    try {
-      const categoriesData = await categoriesService.getAll();
-      if (categoriesData) {
-        setCategories(categoriesData.map((cat: any) => ({ id: cat.id.toString(), name: cat.name })));
-      }
-    } catch (err) {
-      logger.error('❌ [CatalogPage] Failed to refresh categories:', err);
-    }
-  };
-
-  // Refresh products list
-  const refreshProducts = async () => {
-    try {
-      setLoading(true);
-      const productsData = await productsService.getAll();
-      
-      // Enrich products with inventory status
-      const enrichedProducts = (productsData || []).map((prod: any) => ({
-        ...prod,
-        inventoryStatus: prod.inventory ? (
-          prod.inventory.quantity === 0 ? 'Out of stock' : 
-          prod.inventory.status === 'low_stock' ? 'Low' :
-          'In stock'
-        ) : 'Unknown'
-      }));
-      
-      setProducts(enrichedProducts);
-      logger.log('✅ [CatalogPage] Products refreshed');
-    } catch (err) {
-      logger.error('❌ [CatalogPage] Failed to refresh products:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Filter logic
-  let filtered = products.filter(p => {
-    // Category filter - get product category ID from any possible field
-    let categoryMatch = filters.category === "All";
-    if (!categoryMatch) {
-      const prod = p as any;
-      const productCatId = String(prod.categoryId || prod.Category?.id || '');
-      categoryMatch = productCatId === filters.category;
-    }
-    
-    const statusMatch = filters.status === "All" || (filters.status === "Active" ? p.active : !p.active);
-    
-    // Stock filter
-    let stockMatch = filters.stock === "All";
-    if (!stockMatch) {
-      stockMatch = p.inventoryStatus === filters.stock;
-    }
-    
-    const searchMatch = p.nameEnglish.toLowerCase().includes(filters.search.toLowerCase()) ||
-      p.nameLocal.toLowerCase().includes(filters.search.toLowerCase());
-    
-    return categoryMatch && statusMatch && stockMatch && searchMatch;
-  });
-  
-  // Sort logic
-  filtered = filtered.sort((a, b) => {
-    if (sortBy === "nameEnglish") {
-      return sortDir === "asc"
-        ? a.nameEnglish.localeCompare(b.nameEnglish)
-        : b.nameEnglish.localeCompare(a.nameEnglish);
-    }
-    if (sortBy === "pricePerUnit") {
-      const priceA = typeof a.pricePerUnit === 'string' ? parseFloat(a.pricePerUnit) : a.pricePerUnit;
-      const priceB = typeof b.pricePerUnit === 'string' ? parseFloat(b.pricePerUnit) : b.pricePerUnit;
-      return sortDir === "asc" ? priceA - priceB : priceB - priceA;
-    }
-    return 0;
-  });
-  const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
-
-  const handleDiscountChange = async (productId: number, discount: number) => {
-    try {
-      setDiscountUpdating(true);
-      await productsService.update(productId, { discount });
-      setProducts(products.map(p => p.id === productId ? { ...p, discount } : p));
-    } catch (err: any) {
-      logger.error('❌ Failed to update discount:', err);
-      setError('Failed to update discount');
-    } finally {
-      setDiscountUpdating(false);
-    }
-  };
-
-  const handleStockStatusChange = async (productId: number, stockStatus: string) => {
-    try {
-      await productsService.update(productId, { stockStatus });
-      setProducts(products.map(p => p.id === productId ? { ...p, stockStatus } : p));
-    } catch (err: any) {
-      logger.error('❌ Failed to update stock status:', err);
-      setError('Failed to update stock status');
-    }
-  };
-
-  const handleSeasonalToggle = async (productId: number, seasonal: boolean) => {
-    try {
-      await seasonalService.toggleSeasonalStatus(productId, seasonal);
-      setProducts(products.map(p => p.id === productId ? { ...p, seasonal } : p));
-    } catch (err: any) {
-      logger.error('❌ Failed to toggle seasonal status:', err);
-      setError('Failed to update seasonal status');
-    }
-  };
+  const [activeTab, setActiveTab] = useTabParam(TABS, 'products');
+  const { products, categories, loading, error, refreshProducts, refreshCategories, patchProduct } = useCatalogData();
+  const [createOpen, setCreateOpen] = useState(false);
 
   return (
-    <div className="bg-gray-50 min-h-screen py-10 px-4">
-      <div className="max-w-(--breakpoint-2xl) mx-auto">
-        {/* Header Row */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Catalog</h1>
-            <div className="text-sm text-gray-500">Products, bundles, and categories — everything DWOM sells</div>
-          </div>
-          {activeTab === "products" && (
-            <div className="flex gap-2 mt-3 sm:mt-0">
-              <button
-                onClick={() => setCreateModalOpen(true)}
-                className="px-4 py-2 rounded-sm bg-blue-600 text-white font-semibold hover:bg-blue-700 text-sm"
-              >
-                Add New Product
-              </button>
-              <button className="px-4 py-2 rounded-sm bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 text-sm">Bulk Upload (CSV)</button>
-            </div>
-          )}
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">Catalog</h1>
+          <p className="text-sm text-muted-foreground">Products, categories, and bundles — everything DWOM sells.</p>
         </div>
-
-        <div className="mb-6 flex gap-2">
-          <button
-            onClick={() => setActiveTab("products")}
-            className={`px-4 py-2 rounded-lg font-semibold transition ${
-              activeTab === "products" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-          >
-            Products
-          </button>
-          <button
-            onClick={() => setActiveTab("categories")}
-            className={`px-4 py-2 rounded-lg font-semibold transition ${
-              activeTab === "categories" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-          >
-            Categories
-          </button>
-          <button
-            onClick={() => setActiveTab("bundles")}
-            className={`px-4 py-2 rounded-lg font-semibold transition ${
-              activeTab === "bundles" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-          >
-            Bundles
-          </button>
-        </div>
-
-        {activeTab === "categories" && <CategoriesTab onCategoriesChanged={refreshCategories} />}
-        {activeTab === "bundles" && <BundlesTab />}
-
-        {activeTab === "products" && (
-          <>
-        {/* Error Message */}
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700 font-medium">❌ {error}</p>
-          </div>
+        {activeTab === 'products' && (
+          <Button onClick={() => setCreateOpen(true)}>
+            <Plus />
+            Add product
+          </Button>
         )}
-
-        {/* Loading State */}
-        {loading && (
-          <div className="flex items-center justify-center py-12">
-            <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p className="ml-3 text-gray-600">Loading products...</p>
-          </div>
-        )}
-
-        {/* Content */}
-        {!loading && (
-          <>
-            <SeasonalRotationPanel seasonalProducts={products.filter(p => p.seasonal)} />
-
-            {/* Filter Bar */}
-            <ProductsFilterBar
-              categories={categories}
-              category={filters.category}
-              status={filters.status}
-              stock={filters.stock as InventoryStatus | "All"}
-              search={filters.search}
-              onChange={f => { setFilters({ category: f.category, status: f.status, stock: f.stock, search: f.search }); setPage(1); }}
-            />
-            
-            {/* Table */}
-            <ProductsTable
-              products={paged}
-              onRowClick={product => { setSelectedProduct(product); setDetailsOpen(true); }}
-              sortBy={sortBy}
-              sortDir={sortDir}
-              onSort={col => {
-                if (sortBy === col) setSortDir(sortDir === "asc" ? "desc" : "asc");
-                else { setSortBy(col); setSortDir("asc"); }
-              }}
-              page={page}
-              pageSize={pageSize}
-              total={filtered.length}
-              onPageChange={setPage}
-              onDiscountChange={handleDiscountChange}
-              discountUpdating={discountUpdating}
-              onStockStatusChange={handleStockStatusChange}
-              onSeasonalToggle={handleSeasonalToggle}
-            />
-          </>
-        )}
-          </>
-        )}
-
-        {/* Details Panel */}
-        <ProductDetailsPanel 
-          product={selectedProduct} 
-          open={detailsOpen} 
-          onClose={() => setDetailsOpen(false)}
-          onProductDeleted={() => {
-            logger.log('✅ [CatalogPage] Product deleted, refreshing list');
-            refreshProducts();
-            setSelectedProduct(null);
-          }}
-          onProductUpdated={() => {
-            logger.log('✅ [CatalogPage] Product updated, refreshing list');
-            refreshProducts();
-          }}
-          categories={categories}
-        />
-
-        {/* Create Product Modal */}
-        <CreateProductModal 
-          open={createModalOpen}
-          onClose={() => setCreateModalOpen(false)}
-          onProductCreated={() => {
-            logger.log('✅ [CatalogPage] New product created, refreshing list');
-            setCreateModalOpen(false);
-            refreshProducts();
-          }}
-          categories={categories}
-        />
       </div>
+
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as (typeof TABS)[number])} className="gap-6">
+        <TabsList>
+          <TabsTrigger value="products">
+            Products
+            {!loading && <span className="ml-1 text-xs text-muted-foreground tabular-nums">{products.length}</span>}
+          </TabsTrigger>
+          <TabsTrigger value="categories">
+            Categories
+            {categories.length > 0 && <span className="ml-1 text-xs text-muted-foreground tabular-nums">{categories.length}</span>}
+          </TabsTrigger>
+          <TabsTrigger value="bundles">Bundles</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="products">
+          <ProductsTab
+            products={products}
+            categories={categories}
+            loading={loading}
+            error={error}
+            refresh={refreshProducts}
+            patchProduct={patchProduct}
+          />
+        </TabsContent>
+        <TabsContent value="categories">
+          <CategoriesTab onCategoriesChanged={refreshCategories} />
+        </TabsContent>
+        <TabsContent value="bundles">
+          <BundlesTab />
+        </TabsContent>
+      </Tabs>
+
+      <CreateProductDialog open={createOpen} onOpenChange={setCreateOpen} categories={categories} onCreated={() => void refreshProducts()} />
     </div>
   );
 };
 
 export default CatalogPage;
-
