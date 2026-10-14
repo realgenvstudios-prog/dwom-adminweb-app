@@ -1,209 +1,79 @@
 import adminApiClient from './apiClient';
 import { logger } from '../utils/logger';
 
-export interface SubscriptionMetrics {
-  totalActive: number;
-  totalPaused: number;
-  totalCancelled: number;
-  totalFailed: number;
-  mrr: number;
-  churnRate: number;
-  failedRenewalsCount: number;
+// Stored values (lower-case). A subscription stays 'active' while its
+// payments fail — failures live on its billing attempts.
+export type SubscriptionStatus = 'active' | 'paused' | 'cancelled';
+export type SubscriptionFrequency = 'weekly' | 'biweekly' | 'monthly';
+
+/** SubscriptionBilling.status values written by the billing scheduler. */
+export type BillingStatus = 'pending' | 'charged' | 'failed' | 'pending_retry' | string;
+
+export interface SubscriptionBilling {
+  id: number;
+  billingDate: string;
+  amount: number | string;
+  status: BillingStatus;
+  paymentRef?: string | null;
+  failureReason?: string | null;
+  retryCount: number;
+  maxRetries: number;
+  nextRetryDate?: string | null;
+}
+
+export interface SubscriptionItem {
+  id: number;
+  productId: number;
+  quantity: number;
+  unitPrice: number | string;
+  Product?: { id?: number; nameEnglish: string; pricePerUnit?: number | string; imageUrl?: string | null; active?: boolean } | null;
 }
 
 export interface Subscription {
   id: number;
   userId: number;
-  status: string;
-  frequency: 'Weekly' | 'Biweekly' | 'Monthly';
+  name?: string | null;
+  status: SubscriptionStatus | string;
+  frequency: SubscriptionFrequency | string;
+  dayOfWeek?: number | null;
+  dayOfMonth?: number | null;
   nextBillingDate: string;
-  lastChargeDate?: string;
-  lastChargeAmount: number;
-  totalSpent: number;
+  autoCharge?: boolean;
+  paymentMethod?: string | null;
+  lastChargeDate?: string | null;
+  lastChargeAmount?: number | string | null;
+  totalCharges?: number;
+  totalSpent: number | string;
   createdAt: string;
   updatedAt: string;
-  User?: {
-    id: number;
-    name: string;
-    email: string;
-    phoneNumber: string;
-  };
-  SubscriptionItem?: Array<{
-    id: number;
-    productId: number;
-    quantity: number;
-    unitPrice: number;
-    Product?: {
-      nameEnglish: string;
-      pricePerUnit: number;
-    };
-  }>;
-}
-
-export interface SubscriptionTrend {
-  date: string;
-  active: number;
-  paused: number;
-  cancelled: number;
-  failed: number;
+  User?: { id: number; name: string | null; email?: string | null; phoneNumber: string | null } | null;
+  SubscriptionItem?: SubscriptionItem[];
+  /** Admin list: latest attempt only. Admin detail: last 20. */
+  SubscriptionBilling?: SubscriptionBilling[];
+  Address?: { label: string; addressText: string; recipientName?: string | null } | null;
 }
 
 class SubscriptionsService {
-  /**
-   * Get subscription metrics for admin dashboard
-   */
-  async getMetrics(): Promise<SubscriptionMetrics> {
-    try {
-      const metrics = await adminApiClient.get<SubscriptionMetrics>('/subscriptions/admin/dashboard/metrics');
-      return metrics;
-    } catch (error) {
-      logger.error('❌ [SubscriptionsService] Failed to fetch metrics:', (error as Error).message);
-      throw error;
-    }
-  }
-
-  /**
-   * Get all active subscriptions
-   */
-  async getActiveSubscriptions(): Promise<Subscription[]> {
-    try {
-      const subscriptions = await adminApiClient.get<Subscription[]>('/subscriptions/admin/dashboard/active');
-      return subscriptions || [];
-    } catch (error) {
-      logger.error('❌ [SubscriptionsService] Failed to fetch active subscriptions:', (error as Error).message);
-      return [];
-    }
-  }
-
-  /**
-   * Get all subscriptions (active, paused, cancelled, failed)
-   */
   async getAllSubscriptions(): Promise<Subscription[]> {
     try {
       const subscriptions = await adminApiClient.get<Subscription[]>('/subscriptions/admin/dashboard/all');
-      return subscriptions || [];
+      return Array.isArray(subscriptions) ? subscriptions : [];
     } catch (error) {
       logger.error('❌ [SubscriptionsService] Failed to fetch subscriptions:', (error as Error).message);
-      return [];
-    }
-  }
-
-  /**
-   * Get subscriptions due for billing today
-   */
-  async getSubscriptionsDueToday(): Promise<Subscription[]> {
-    try {
-      const subscriptions = await adminApiClient.get<Subscription[]>('/subscriptions/admin/dashboard/due-today');
-      return subscriptions || [];
-    } catch (error) {
-      logger.error('❌ [SubscriptionsService] Failed to fetch due subscriptions:', (error as Error).message);
-      return [];
-    }
-  }
-
-  /**
-   * Get subscription by ID
-   */
-  async getSubscriptionById(id: number): Promise<Subscription | null> {
-    try {
-      const subscription = await adminApiClient.get<Subscription>(`/subscriptions/${id}`);
-      return subscription;
-    } catch (error) {
-      logger.error('❌ [SubscriptionsService] Failed to fetch subscription:', (error as Error).message);
-      return null;
-    }
-  }
-
-  /**
-   * Update subscription status
-   */
-  async updateSubscriptionStatus(id: number, status: string): Promise<Subscription | null> {
-    try {
-      const subscription = await adminApiClient.patch<Subscription>(`/subscriptions/${id}/status`, { status });
-      return subscription;
-    } catch (error) {
-      logger.error('❌ [SubscriptionsService] Failed to update subscription:', (error as Error).message);
       throw error;
     }
   }
 
-  /**
-   * Get subscriptions with applied filters
-   */
-  async getFilteredSubscriptions(
-    status?: string,
-    frequency?: string,
-    search?: string,
-  ): Promise<Subscription[]> {
-    try {
-      const allSubs = await this.getAllSubscriptions();
-
-      return allSubs.filter((sub) => {
-        const statusMatch =
-          !status || status === 'All' || (sub.status || '').toLowerCase() === status.toLowerCase();
-        const frequencyMatch =
-          !frequency || frequency === 'All' || sub.frequency === frequency;
-        
-        // Search by customer name or product names
-        const productNames = (sub.SubscriptionItem || [])
-          .map(item => item.Product?.nameEnglish || '')
-          .join(' ')
-          .toLowerCase();
-        
-        const searchMatch =
-          !search ||
-          (sub.User?.name || '').toLowerCase().includes(search.toLowerCase()) ||
-          productNames.includes(search.toLowerCase());
-
-        return statusMatch && frequencyMatch && searchMatch;
-      });
-    } catch (error) {
-      logger.error('❌ [SubscriptionsService] Failed to filter subscriptions:', (error as Error).message);
-      return [];
-    }
+  async getSubscription(id: number): Promise<Subscription> {
+    return adminApiClient.get<Subscription>(`/subscriptions/admin/dashboard/${id}`);
   }
 
-  /**
-   * Get summary stats
-   */
-  async getSummaryStats(): Promise<{
-    active: number;
-    paused: number;
-    cancelled: number;
-    failed: number;
-    mrr: number;
-    churnRate: number;
-    failedRenewals: number;
-  }> {
+  async setStatus(id: number, status: SubscriptionStatus): Promise<Subscription> {
     try {
-      const metrics = await this.getMetrics();
-      const allSubs = await this.getAllSubscriptions();
-
-      // Calculate MRR (assume monthly subscriptions at average price)
-      const monthlyCount = allSubs.filter((s) => s.frequency === 'Monthly').length;
-      const avgPrice = monthlyCount > 0 ? 250 : 0; // Average monthly subscription price
-      const mrr = monthlyCount * avgPrice;
-
-      return {
-        active: metrics.totalActive,
-        paused: metrics.totalPaused,
-        cancelled: metrics.totalCancelled,
-        failed: metrics.totalFailed,
-        mrr,
-        churnRate: metrics.churnRate,
-        failedRenewals: metrics.failedRenewalsCount,
-      };
+      return await adminApiClient.patch<Subscription>(`/subscriptions/admin/dashboard/${id}/status`, { status });
     } catch (error) {
-      logger.error('❌ [SubscriptionsService] Failed to get summary stats:', (error as Error).message);
-      return {
-        active: 0,
-        paused: 0,
-        cancelled: 0,
-        failed: 0,
-        mrr: 0,
-        churnRate: 0,
-        failedRenewals: 0,
-      };
+      logger.error('❌ [SubscriptionsService] Failed to update subscription:', (error as Error).message);
+      throw error;
     }
   }
 }
