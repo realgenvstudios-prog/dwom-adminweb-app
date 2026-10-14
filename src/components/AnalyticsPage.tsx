@@ -1,194 +1,114 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { CalendarDays, FlaskConical } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTabParam } from '@/hooks/use-tab-param';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import analyticsService from '../services/analyticsService';
-import type { EventCount } from '../services/analyticsService';
-import NotesTrackingTab from './analytics/NotesTrackingTab';
+import analyticsService, { type AnalyticsInsights } from '../services/analyticsService';
+import notesService, { type NotesAnalytics } from '../services/notesService';
 import { logger } from '../utils/logger';
+import NotesTrackingTab from './analytics/NotesTrackingTab';
+import OverviewTab from './analytics/OverviewTab';
+import { SAMPLE_NOTES, sampleInsights } from './analytics/sample-data';
 
-type RangeOption = 7 | 30 | 90;
+const TAB_KEYS = ['overview', 'notes'] as const;
+type TabKey = (typeof TAB_KEYS)[number];
+const RANGES = [7, 30, 90] as const;
+type Range = (typeof RANGES)[number];
 
-// The funnel steps we always want a card for, even at zero — the other
-// events (anything not in this list) still show up in the chart/table below.
-const FUNNEL_EVENTS: Array<{ name: string; label: string; accent: string }> = [
-  { name: 'screen_viewed', label: 'Screen Views', accent: 'border-blue-600 text-blue-600' },
-  { name: 'search_performed', label: 'Searches', accent: 'border-indigo-600 text-indigo-600' },
-  { name: 'cart_item_added', label: 'Cart Adds', accent: 'border-purple-600 text-purple-600' },
-  { name: 'checkout_started', label: 'Checkouts Started', accent: 'border-amber-600 text-amber-600' },
-  { name: 'order_placed', label: 'Orders Placed', accent: 'border-green-600 text-green-600' },
-  { name: 'payment_succeeded', label: 'Payments Succeeded', accent: 'border-emerald-600 text-emerald-600' },
-];
-
-const RANGE_OPTIONS: { value: RangeOption; label: string }[] = [
-  { value: 7, label: 'Last 7 days' },
-  { value: 30, label: 'Last 30 days' },
-  { value: 90, label: 'Last 90 days' },
-];
-
-const AnalyticsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useTabParam(['overview', 'notes'] as const, 'overview');
-  const [events, setEvents] = useState<EventCount[]>([]);
+export default function AnalyticsPage() {
+  const [activeTab, setActiveTab] = useTabParam(TAB_KEYS, 'overview');
+  const [range, setRange] = useState<Range>(30);
+  const [insights, setInsights] = useState<AnalyticsInsights | null>(null);
+  const [notes, setNotes] = useState<NotesAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
-  const [range, setRange] = useState<RangeOption>(7);
+  const [failed, setFailed] = useState({ insights: false, notes: false });
+  // null = automatic: sample data shows only while there's no real data.
+  const [sampleChoice, setSampleChoice] = useState<boolean | null>(null);
 
-  const fetchSummary = useCallback(async (days: RangeOption) => {
-    try {
-      setLoading(true);
-      const to = new Date();
-      const from = new Date(to.getTime() - days * 24 * 60 * 60 * 1000);
-      const data = await analyticsService.getSummary(from, to);
-      setEvents(data);
-    } catch (error) {
-      logger.error('Failed to fetch analytics summary:', error);
-    } finally {
-      setLoading(false);
-    }
+  const load = useCallback(async (days: Range) => {
+    setLoading(true);
+    const to = new Date();
+    const from = new Date(to.getTime() - days * 86400000);
+    const [i, n] = await Promise.allSettled([analyticsService.getInsights(from, to), notesService.getAnalytics()]);
+    if (i.status === 'rejected') logger.error('Failed to load analytics insights:', i.reason);
+    if (n.status === 'rejected') logger.error('Failed to load notes analytics:', n.reason);
+    setInsights(i.status === 'fulfilled' ? i.value : null);
+    setNotes(n.status === 'fulfilled' ? n.value : null);
+    setFailed({ insights: i.status === 'rejected', notes: n.status === 'rejected' });
+    setLoading(false);
   }, []);
 
   useEffect(() => {
-    fetchSummary(range);
-  }, [range, fetchSummary]);
+    const t = setTimeout(() => void load(range), 0);
+    return () => clearTimeout(t);
+  }, [load, range]);
 
-  const countFor = (name: string) => events.find((e) => e.name === name)?.count ?? 0;
-  const totalEvents = events.reduce((sum, e) => sum + e.count, 0);
-
-  const knownNames = new Set(FUNNEL_EVENTS.map((f) => f.name));
-  const otherEvents = events.filter((e) => !knownNames.has(e.name)).sort((a, b) => b.count - a.count);
-
-  const chartData = events
-    .map((e) => ({ name: e.name, count: e.count }))
-    .sort((a, b) => b.count - a.count);
+  const hasReal = activeTab === 'overview' ? (insights?.totals.events ?? 0) > 0 : (notes?.stats.totalNotes ?? 0) > 0;
+  const sample = sampleChoice ?? (!loading && !hasReal);
+  const sampleOverview = useMemo(() => sampleInsights(range), [range]);
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Analytics</h1>
-          <p className="text-gray-600">Product usage across the mobile app, from the event tracking pipeline</p>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
+          <p className="text-sm text-muted-foreground">How customers use the app — from first tap to placed order.</p>
         </div>
-        {activeTab === 'overview' && (
-          <div className="flex gap-2">
-            {RANGE_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setRange(opt.value)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  range === opt.value
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="flex items-center gap-2 rounded-lg border px-3 py-1.5">
+          <Switch id="sample" checked={sample} onCheckedChange={(v) => setSampleChoice(v)} />
+          <Label htmlFor="sample" className="cursor-pointer text-sm font-normal">
+            Sample data
+          </Label>
+        </div>
       </div>
 
-      <div className="mb-8 flex gap-2">
-        <button
-          onClick={() => setActiveTab('overview')}
-          className={`px-4 py-2 rounded-lg font-semibold transition ${
-            activeTab === 'overview' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          Overview
-        </button>
-        <button
-          onClick={() => setActiveTab('notes')}
-          className={`px-4 py-2 rounded-lg font-semibold transition ${
-            activeTab === 'notes' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          Notes & Search
-        </button>
-      </div>
-
-      {activeTab === 'notes' && <NotesTrackingTab />}
-
-      {activeTab === 'overview' && (
-      <>
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-        </div>
-      ) : totalEvents === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-12 text-center">
-          <p className="text-lg font-semibold text-gray-800 mb-2">No events recorded yet</p>
-          <p className="text-gray-600 max-w-md mx-auto">
-            The tracking pipeline is live, but no activity has come in for this range yet. Mobile
-            events start flowing once the app update reaches real devices (an EAS Update or new
-            build); backend events (orders, payments) appear as soon as the next real transaction happens.
-          </p>
-        </div>
-      ) : (
-        <>
-          {/* Funnel step cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-            {FUNNEL_EVENTS.map((step) => (
-              <div key={step.name} className={`bg-white rounded-lg shadow-sm p-6 border-l-4 ${step.accent.split(' ')[0]}`}>
-                <p className="text-gray-600 text-sm">{step.label}</p>
-                <p className={`text-3xl font-bold ${step.accent.split(' ')[1]}`}>
-                  {countFor(step.name).toLocaleString()}
-                </p>
-              </div>
-            ))}
+      {sample && (
+        <div className="flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-900">
+          <FlaskConical className="mt-0.5 size-4 shrink-0" />
+          <div>
+            <p className="font-medium">You’re looking at sample data — none of these numbers are real.</p>
+            <p className="text-amber-900/80">
+              {hasReal
+                ? 'Real data is available — turn off “Sample data” to see it.'
+                : failed.insights && activeTab === 'overview'
+                  ? 'The server doesn’t provide these insights yet (deploy the latest backend). Real numbers replace this automatically.'
+                  : 'No activity has been recorded yet. Real numbers replace this automatically once the app sends events.'}
+            </p>
           </div>
+        </div>
+      )}
 
-          {/* All events chart */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-6 mb-8">
-            <div className="font-semibold text-gray-800 mb-4">Event counts, this range</div>
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 40 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                  <XAxis
-                    dataKey="name"
-                    tick={{ fontSize: 11 }}
-                    angle={-35}
-                    textAnchor="end"
-                    interval={0}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} width={40} />
-                  <Tooltip formatter={(value) => (value ? Number(value).toLocaleString() : '0')} />
-                  <Bar dataKey="count" fill="#2563eb" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Everything else, as a table */}
-          {otherEvents.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
-              <div className="font-semibold text-gray-800 px-6 py-4 border-b border-gray-100">
-                Other events
-              </div>
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-gray-500 text-left">
-                  <tr>
-                    <th className="px-6 py-3 font-medium">Event name</th>
-                    <th className="px-6 py-3 font-medium text-right">Count</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {otherEvents.map((e) => (
-                    <tr key={e.name}>
-                      <td className="px-6 py-3 text-gray-700">{e.name}</td>
-                      <td className="px-6 py-3 text-right font-medium text-gray-900">{e.count.toLocaleString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabKey)} className="gap-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="notes">Shopping notes</TabsTrigger>
+          </TabsList>
+          {activeTab === 'overview' && (
+            <Select value={String(range)} onValueChange={(v) => setRange(Number(v) as Range)}>
+              <SelectTrigger size="sm" className="h-8 w-auto gap-2">
+                <CalendarDays className="size-4 text-muted-foreground" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {RANGES.map((r) => (
+                  <SelectItem key={r} value={String(r)}>
+                    Last {r} days
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
-        </>
-      )}
-      </>
-      )}
+        </div>
+        <TabsContent value="overview">
+          <OverviewTab data={sample ? sampleOverview : insights} loading={loading && !sample} failed={!sample && failed.insights} />
+        </TabsContent>
+        <TabsContent value="notes">
+          <NotesTrackingTab data={sample ? SAMPLE_NOTES : notes} loading={loading && !sample} failed={!sample && failed.notes} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
-};
-
-export default AnalyticsPage;
+}

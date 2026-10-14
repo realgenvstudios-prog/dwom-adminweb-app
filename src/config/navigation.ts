@@ -74,7 +74,7 @@ const SHORT_LABELS: Record<string, string> = {
 const SUB_PAGES: Record<string, { label: string; tab: string; superAdminOnly?: boolean }[]> = {
   '/analytics': [
     { label: 'Overview', tab: 'overview' },
-    { label: 'Notes & Search', tab: 'notes' },
+    { label: 'Shopping notes', tab: 'notes' },
   ],
   '/catalog': [
     { label: 'Products', tab: 'products' },

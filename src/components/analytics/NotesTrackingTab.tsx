@@ -1,306 +1,136 @@
-import React, { useState, useEffect } from 'react';
-import notesService from '../../services/notesService';
+import { CircleHelp, FileText, ShoppingCart, Sparkles, Target } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { StatCard } from '@/components/stat-card';
 import type { NotesAnalytics } from '../../services/notesService';
-import { logger } from '../../utils/logger';
+import { formatDate } from '../customers/CustomerTypes';
 
-// Split out of the former standalone NotesTrackingPage — now a tab on
-// Analytics, since it's the same "how are people using the app" domain,
-// just specifically about the Notes/search-parsing feature's quality
-// (success rate, parsing errors, low-confidence matches) rather than raw
-// event counts.
-const NotesTrackingTab: React.FC = () => {
-  const [analytics, setAnalytics] = useState<NotesAnalytics | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<'overview' | 'searches' | 'errors' | 'low-confidence'>('overview');
+const pct = (a: number, b: number) => (b > 0 ? Math.round((a / b) * 100) : 0);
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, []);
-
-  const fetchAnalytics = async () => {
-    try {
-      setLoading(true);
-      const data = await notesService.getAnalytics();
-      setAnalytics(data);
-    } catch (error) {
-      logger.error('Failed to fetch analytics:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading && !analytics) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (!analytics) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-        Failed to load notes analytics
-      </div>
-    );
-  }
+// Shopping notes: customers type a list ("2 tins tomatoes, onions…") and
+// the app turns it into products. All-time figures from /notes/analytics.
+export default function NotesTrackingTab({ data, loading, failed }: { data: NotesAnalytics | null; loading: boolean; failed: boolean }) {
+  const s = data?.stats;
+  // Notes that were understood and then added to cart move to
+  // 'added_to_cart', so "understood" is both statuses together.
+  const understood = s ? s.processedNotes + s.addedToCart : 0;
 
   return (
-    <>
-      <p className="text-gray-600 mb-6">How users search for products using the Notes feature, and how well it parses them.</p>
+    <div className="flex flex-col gap-6">
+      <p className="text-sm text-muted-foreground">How well the app turns customers’ typed shopping lists into products. All time.</p>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-5 gap-4 mb-8">
-        <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-blue-600">
-          <p className="text-gray-600 text-sm">Total Notes</p>
-          <p className="text-3xl font-bold text-blue-600">{analytics.stats.totalNotes}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-green-600">
-          <p className="text-gray-600 text-sm">Successfully Parsed</p>
-          <p className="text-3xl font-bold text-green-600">{analytics.stats.processedNotes}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-yellow-600">
-          <p className="text-gray-600 text-sm">Parsing Errors</p>
-          <p className="text-3xl font-bold text-yellow-600">{analytics.stats.errorNotes}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-600">
-          <p className="text-gray-600 text-sm">Added to Cart</p>
-          <p className="text-3xl font-bold text-purple-600">{analytics.stats.addedToCart}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-indigo-600">
-          <p className="text-gray-600 text-sm">Avg Confidence</p>
-          <p className="text-3xl font-bold text-indigo-600">{(analytics.stats.avgConfidence * 100).toFixed(0)}%</p>
-        </div>
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard label="Notes written" value={(s?.totalNotes ?? 0).toLocaleString()} icon={FileText} tint="bg-sky-500/10 text-sky-600" loading={loading} failed={failed} />
+        <StatCard
+          label="Understood"
+          value={`${pct(understood, s?.totalNotes ?? 0)}%`}
+          hint={s ? `${understood.toLocaleString()} notes matched to products` : undefined}
+          icon={Sparkles}
+          tint="bg-emerald-500/10 text-emerald-600"
+          loading={loading}
+          failed={failed}
+        />
+        <StatCard
+          label="Turned into a cart"
+          value={(s?.addedToCart ?? 0).toLocaleString()}
+          hint={s ? `${pct(s.addedToCart, understood)}% of understood notes` : undefined}
+          icon={ShoppingCart}
+          tint="bg-violet-500/10 text-violet-600"
+          loading={loading}
+          failed={failed}
+        />
+        <StatCard
+          label="Match confidence"
+          value={`${Math.round((s?.avgConfidence ?? 0) * 100)}%`}
+          hint={s ? `${s.errorNotes.toLocaleString()} notes not understood` : undefined}
+          icon={Target}
+          tint="bg-amber-500/10 text-amber-600"
+          loading={loading}
+          failed={failed}
+        />
       </div>
 
-      {/* Sub-tabs */}
-      <div className="bg-white rounded-lg shadow-sm mb-6">
-        <div className="flex border-b border-gray-200">
-          <button
-            onClick={() => setSelectedTab('overview')}
-            className={`px-6 py-4 font-medium ${
-              selectedTab === 'overview'
-                ? 'border-b-2 border-blue-600 text-blue-600'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Overview
-          </button>
-          <button
-            onClick={() => setSelectedTab('searches')}
-            className={`px-6 py-4 font-medium ${
-              selectedTab === 'searches'
-                ? 'border-b-2 border-blue-600 text-blue-600'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Common Searches ({analytics.commonSearches.length})
-          </button>
-          <button
-            onClick={() => setSelectedTab('errors')}
-            className={`px-6 py-4 font-medium ${
-              selectedTab === 'errors'
-                ? 'border-b-2 border-blue-600 text-blue-600'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Parsing Errors ({analytics.errorNotes.length})
-          </button>
-          <button
-            onClick={() => setSelectedTab('low-confidence')}
-            className={`px-6 py-4 font-medium ${
-              selectedTab === 'low-confidence'
-                ? 'border-b-2 border-blue-600 text-blue-600'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Low Confidence Matches ({analytics.lowConfidenceMatches.length})
-          </button>
-        </div>
-
-        {selectedTab === 'overview' && (
-          <div className="p-6">
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Top Common Searches</h3>
-                <div className="space-y-3">
-                  {analytics.commonSearches.slice(0, 10).map((search, index) => (
-                    <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-sm">
-                      <div>
-                        <p className="font-medium text-gray-900">{search.text}</p>
-                      </div>
-                      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
-                        {search.count}
-                      </span>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CircleHelp className="size-4 text-amber-600" />
+              Unsure matches
+            </CardTitle>
+            <CardDescription>Words matched to a product with low confidence — often a local name or spelling worth adding to that product’s names.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-56 w-full" />
+            ) : !data?.lowConfidenceMatches.length ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">No unsure matches.</p>
+            ) : (
+              <ul className="divide-y rounded-lg border text-sm">
+                {data.lowConfidenceMatches.slice(0, 15).map((m, i) => (
+                  <li key={i} className="flex items-center justify-between gap-3 px-3 py-2">
+                    <div className="min-w-0">
+                      <p>
+                        <span className="font-medium">“{m.originalText}”</span> <span className="text-muted-foreground">→</span> {m.matchedProduct}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">in “{m.searchedAs}”</p>
                     </div>
-                  ))}
-                  {analytics.commonSearches.length === 0 && (
-                    <p className="text-gray-500 text-center py-4">No searches yet</p>
-                  )}
-                </div>
-              </div>
+                    <Badge variant="outline" className={m.confidence < 0.5 ? 'border-red-500/20 bg-red-500/10 text-red-700' : 'border-amber-500/20 bg-amber-500/10 text-amber-700'}>
+                      {Math.round(m.confidence * 100)}%
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
 
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Success Rate</h3>
-                <div className="bg-gray-50 p-6 rounded-lg">
-                  <div className="text-center">
-                    <p className="text-5xl font-bold text-green-600 mb-2">
-                      {analytics.stats.totalNotes > 0
-                        ? ((analytics.stats.processedNotes / analytics.stats.totalNotes) * 100).toFixed(1)
-                        : 0}
-                      %
-                    </p>
-                    <p className="text-gray-600">of notes successfully parsed</p>
-                  </div>
-                  <div className="mt-4">
-                    <div className="w-full bg-gray-200 rounded-full h-3">
-                      <div
-                        className="bg-green-600 h-3 rounded-full"
-                        style={{
-                          width: `${
-                            analytics.stats.totalNotes > 0
-                              ? (analytics.stats.processedNotes / analytics.stats.totalNotes) * 100
-                              : 0
-                          }%`,
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        <Card>
+          <CardHeader>
+            <CardTitle>Not understood</CardTitle>
+            <CardDescription>Notes where no product could be recognised (latest first)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-56 w-full" />
+            ) : !data?.errorNotes.length ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">Every note was understood.</p>
+            ) : (
+              <ul className="divide-y rounded-lg border text-sm">
+                {data.errorNotes.slice(0, 15).map((n) => (
+                  <li key={n.id} className="flex items-center justify-between gap-3 px-3 py-2">
+                    <span className="min-w-0 truncate">“{n.originalText}”</span>
+                    <span className="shrink-0 text-xs text-muted-foreground">{formatDate(n.createdAt)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
-        {selectedTab === 'searches' && (
-          <div className="p-6">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Search Query</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Count</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Frequency %</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {analytics.commonSearches.map((search, index) => (
-                    <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4">{search.text}</td>
-                      <td className="py-3 px-4">
-                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
-                          {search.count}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        {analytics.stats.totalNotes > 0
-                          ? ((search.count / analytics.stats.totalNotes) * 100).toFixed(1)
-                          : 0}
-                        %
-                      </td>
-                    </tr>
-                  ))}
-                  {analytics.commonSearches.length === 0 && (
-                    <tr>
-                      <td colSpan={3} className="text-center py-8 text-gray-500">
-                        No search data available
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {selectedTab === 'errors' && (
-          <div className="p-6">
-            <div className="space-y-4">
-              {analytics.errorNotes.map((error) => (
-                <div key={error.id} className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <p className="font-semibold text-red-900">{error.originalText}</p>
-                    <span className="text-xs text-red-600 bg-red-100 px-2 py-1 rounded-sm">
-                      {new Date(error.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <p className="text-sm text-red-700 mb-2">{error.notes}</p>
-                  <p className="text-xs text-red-600">
-                    Confidence: {(error.confidence * 100).toFixed(1)}%
-                  </p>
-                </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Most common notes</CardTitle>
+          <CardDescription>Shopping lists customers write most often — candidates for a ready-made bundle.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <Skeleton className="h-40 w-full" />
+          ) : !data?.commonSearches.length ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">No notes yet.</p>
+          ) : (
+            <ul className="divide-y rounded-lg border text-sm">
+              {data.commonSearches.slice(0, 15).map((c) => (
+                <li key={c.text} className="flex items-center justify-between gap-3 px-3 py-2">
+                  <span className="min-w-0 truncate">“{c.text}”</span>
+                  <span className="shrink-0 text-muted-foreground tabular-nums">{c.count.toLocaleString()}×</span>
+                </li>
               ))}
-              {analytics.errorNotes.length === 0 && (
-                <p className="text-center py-8 text-gray-500">No parsing errors</p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {selectedTab === 'low-confidence' && (
-          <div className="p-6">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">User Searched For</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Matched Product</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Confidence</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Match Ratio</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {analytics.lowConfidenceMatches.map((match, index) => (
-                    <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4">{match.originalText}</td>
-                      <td className="py-3 px-4">{match.matchedProduct}</td>
-                      <td className="py-3 px-4">
-                        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                          match.confidence > 0.8 ? 'bg-green-100 text-green-800' :
-                          match.confidence > 0.6 ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {(match.confidence * 100).toFixed(1)}%
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-16 bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-blue-600 h-2 rounded-full"
-                              style={{ width: `${match.matchRatio * 100}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-xs">{(match.matchRatio * 100).toFixed(0)}%</span>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {analytics.lowConfidenceMatches.length === 0 && (
-                    <tr>
-                      <td colSpan={4} className="text-center py-8 text-gray-500">
-                        No low confidence matches
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="flex justify-end">
-        <button
-          onClick={fetchAnalytics}
-          disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-2 px-6 rounded-lg transition"
-        >
-          {loading ? 'Refreshing...' : 'Refresh Data'}
-        </button>
-      </div>
-    </>
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
-};
-
-export default NotesTrackingTab;
+}
