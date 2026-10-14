@@ -92,6 +92,7 @@ const SUB_PAGES: Record<string, { label: string; tab: string; superAdminOnly?: b
   ],
   '/marketing': [
     { label: 'Campaigns', tab: 'campaigns' },
+    { label: 'Notifications', tab: 'notifications' },
     { label: 'Discount Codes', tab: 'coupons' },
   ],
   '/finance': [

@@ -5,6 +5,8 @@ export interface Campaign {
   channel: 'social' | 'sms' | 'email' | 'in_app' | 'push';
   objective: 'awareness' | 'conversion' | 'retention' | 'engagement';
   status: 'draft' | 'active' | 'paused' | 'ended';
+  targetZones?: number[] | null;
+  targetSubscriptionStatus?: string | null;
   startDate: string;
   endDate?: string;
   budget?: number;
@@ -24,6 +26,8 @@ export interface Campaign {
   content: string;
   imageUrl?: string;
   title?: string;
+  cta?: string | null;
+  ctaLink?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -63,6 +67,9 @@ export interface NotificationSend {
   emailFailureCount?: number;
   readCount: number;
   clickCount: number;
+  targetZones?: number[] | null;
+  targetSubscriptionStatus?: string | null;
+  template?: { id: number; name: string; title: string; body: string } | null;
   createdAt: string;
 }
 

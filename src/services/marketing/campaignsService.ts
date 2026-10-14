@@ -57,6 +57,8 @@ export class CampaignsService {
     description?: string;
     channel: string;
     objective: string;
+    targetZones?: number[];
+    targetSubscriptionStatus?: string;
     startDate: string;
     endDate?: string;
     budget?: number;
@@ -82,6 +84,7 @@ export class CampaignsService {
     id: number,
     data: {
       name?: string;
+      description?: string;
       status?: string;
       title?: string;
       content?: string;
