@@ -166,7 +166,7 @@ export default function BundlesTab({ products, categories }: BundlesTabProps) {
                     </div>
                   )}
                   <div className="absolute top-2 left-2 flex gap-1.5">
-                    {off > 0 && <Badge className="bg-emerald-600 text-white">−{off}%</Badge>}
+                    {off > 0 && <Badge className="bg-emerald-600 text-white dark:bg-emerald-500/20 dark:text-emerald-300">−{off}%</Badge>}
                     {isOff && <Badge variant="secondary">Deactivated</Badge>}
                     {stale && (
                       <Badge variant="outline" className="gap-1 border-amber-500/30 bg-amber-50 text-amber-800">

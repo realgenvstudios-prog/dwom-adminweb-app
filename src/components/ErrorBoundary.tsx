@@ -26,19 +26,19 @@ class ErrorBoundary extends React.Component<Props, State> {
   render() {
     if (this.state.error) {
       return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-lg">
+        <div className="flex min-h-screen items-center justify-center bg-background p-4">
+          <div className="w-full max-w-lg rounded-xl border bg-card p-8 text-card-foreground shadow-sm">
             <h1 className="text-xl font-bold text-red-600 mb-2">Something went wrong</h1>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="mb-4 text-sm text-muted-foreground">
               This page hit an unexpected error. Reloading usually fixes a transient issue —
               if it keeps happening, the detail below is what's actually failing.
             </p>
-            <pre className="text-xs bg-gray-100 rounded-sm p-3 overflow-x-auto whitespace-pre-wrap text-red-700">
+            <pre className="overflow-x-auto rounded-md bg-muted p-3 text-xs whitespace-pre-wrap text-destructive">
               {this.state.error.message}
             </pre>
             <button
               onClick={() => window.location.reload()}
-              className="mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg"
+              className="mt-4 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
             >
               Reload
             </button>

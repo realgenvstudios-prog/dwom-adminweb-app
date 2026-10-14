@@ -15,6 +15,7 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import { activeSubTab, findNavItem } from '@/config/navigation';
 import type { UiRole } from '@/config/permissions';
+import ThemeToggle from './ThemeToggle';
 
 interface SiteHeaderProps {
   role: UiRole;
@@ -83,6 +84,7 @@ export default function SiteHeader({ role, onOpenSearch }: SiteHeaderProps) {
             <span className="text-xs">⌘</span>K
           </kbd>
         </Button>
+        <ThemeToggle />
       </div>
     </header>
   );

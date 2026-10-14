@@ -18,8 +18,8 @@ if (rootElement) {
   createRoot(rootElement).render(
     <StrictMode>
       <ErrorBoundary>
-        {/* Light-only until every page is on theme tokens — drop forcedTheme to enable dark mode. */}
-        <ThemeProvider attribute="class" forcedTheme="light">
+        {/* Light / dark / system, remembered per browser (toggle in the header). */}
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange storageKey="dwom-admin-theme">
           <TooltipProvider>
             <BrowserRouter>
               <App />

@@ -51,7 +51,7 @@ export default function BundleSheet({ bundle, products, open, onOpenChange, onEd
           <div className="flex flex-wrap items-baseline gap-2 pt-1">
             <span className="text-2xl font-semibold tabular-nums">{formatGhs(price)}</span>
             {discount > 0 && original > price && <span className="text-sm text-muted-foreground line-through tabular-nums">{formatGhs(original)}</span>}
-            {discount > 0 && <Badge className="bg-emerald-600 text-white">Save {discount}%</Badge>}
+            {discount > 0 && <Badge className="bg-emerald-600 text-white dark:bg-emerald-500/20 dark:text-emerald-300">Save {discount}%</Badge>}
           </div>
         </SheetHeader>
 
