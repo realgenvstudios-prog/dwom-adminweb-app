@@ -39,6 +39,8 @@ export default function SupplierSheet({ supplier, products, open, onOpenChange, 
   const [links, setLinks] = useState<SupplierProductLink[] | null>(supplier ? null : []);
   const [busyProduct, setBusyProduct] = useState<number | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  // New supplier: products picked before saving, linked in the same request.
+  const [picked, setPicked] = useState<Set<number>>(new Set());
   const set = (patch: Partial<typeof form>) => setForm((f) => ({ ...f, ...patch }));
 
   useEffect(() => {
@@ -56,8 +58,17 @@ export default function SupplierSheet({ supplier, products, open, onOpenChange, 
     };
   }, [supplier]);
 
-  const linkedIds = useMemo(() => new Set((links ?? []).map((l) => l.productId)), [links]);
-  const unlinked = products.filter((p) => !linkedIds.has(p.id));
+  const linkedIds = useMemo(() => (supplier ? new Set((links ?? []).map((l) => l.productId)) : picked), [supplier, links, picked]);
+  const pickedProducts = products.filter((p) => picked.has(p.id));
+  const sortedProducts = useMemo(() => [...products].sort((a, b) => a.nameEnglish.localeCompare(b.nameEnglish)), [products]);
+
+  const togglePicked = (id: number) =>
+    setPicked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   const reloadLinks = async (id: number) => setLinks((await suppliersService.getById(id)).ProductSupplier ?? []);
 
@@ -94,8 +105,8 @@ export default function SupplierSheet({ supplier, products, open, onOpenChange, 
         toast.success(`${dto.name} saved`);
         onOpenChange(false);
       } else {
-        await suppliersService.create(dto);
-        toast.success(`${dto.name} added. Open it to link the products they supply`);
+        await suppliersService.create({ ...dto, productIds: [...picked] });
+        toast.success(picked.size ? `${dto.name} added with ${picked.size} product${picked.size === 1 ? '' : 's'}` : `${dto.name} added`);
         onOpenChange(false);
       }
       onSaved();
@@ -112,7 +123,7 @@ export default function SupplierSheet({ supplier, products, open, onOpenChange, 
       <SheetContent className="flex flex-col gap-0 p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-lg">
         <SheetHeader className="border-b p-6 pb-4">
           <SheetTitle className="text-xl">{supplier ? supplier.name : 'New supplier'}</SheetTitle>
-          <SheetDescription>{supplier ? `Supplier since ${formatDate(supplier.createdAt)}` : 'Who you buy from. Link their products after saving.'}</SheetDescription>
+          <SheetDescription>{supplier ? `Supplier since ${formatDate(supplier.createdAt)}` : 'Who you buy from and the products they sell.'}</SheetDescription>
         </SheetHeader>
 
         <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-6">
@@ -141,79 +152,106 @@ export default function SupplierSheet({ supplier, products, open, onOpenChange, 
             </div>
           </section>
 
-          {supplier && (
-            <section className="grid gap-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Products they supply ({links?.length ?? '…'})</h3>
-                <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
-                  <PopoverTrigger asChild>
-                    <Button size="sm" variant="outline" disabled={links === null}>
-                      <Plus />
-                      Add product
-                      <ChevronsUpDown className="opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-72 p-0" align="end">
-                    <Command>
-                      <CommandInput placeholder="Search products…" />
-                      <CommandList>
-                        <CommandEmpty>No products left to add.</CommandEmpty>
-                        <CommandGroup>
-                          {unlinked.map((p) => (
+          <section className="grid gap-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Products they supply ({supplier ? (links?.length ?? '…') : picked.size})</h3>
+              <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button size="sm" variant="outline" disabled={links === null}>
+                    <Plus />
+                    Add products
+                    <ChevronsUpDown className="opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0" align="end">
+                  <Command>
+                    <CommandInput placeholder="Search products…" />
+                    <CommandList>
+                      <CommandEmpty>No products found.</CommandEmpty>
+                      <CommandGroup>
+                        {sortedProducts.map((p) => {
+                          const on = linkedIds.has(p.id);
+                          return (
                             <CommandItem
                               key={p.id}
-                              value={`${p.nameEnglish} ${p.nameLocal ?? ''}`}
-                              onSelect={() => {
-                                setPickerOpen(false);
-                                void toggleProduct(p.id, true);
-                              }}
+                              value={`${p.id} ${p.nameEnglish} ${p.nameLocal ?? ''}`}
+                              disabled={busyProduct === p.id}
+                              onSelect={() => (supplier ? void toggleProduct(p.id, !on) : togglePicked(p.id))}
                             >
-                              <Check className="opacity-0" />
-                              {p.nameEnglish}
+                              <span
+                                className={`flex size-4 shrink-0 items-center justify-center rounded-[4px] border ${on ? 'border-primary bg-primary text-primary-foreground' : 'border-input'}`}
+                              >
+                                {busyProduct === p.id ? <Loader2 className="size-3 animate-spin" /> : on && <Check className="size-3 text-current" />}
+                              </span>
+                              <span className="truncate">{p.nameEnglish}</span>
                             </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </div>
+                          );
+                        })}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                  <div className="flex items-center justify-between border-t px-3 py-2 text-xs text-muted-foreground">
+                    <span>{linkedIds.size} selected</span>
+                    <Button size="sm" variant="ghost" className="h-7" onClick={() => setPickerOpen(false)}>
+                      Done
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
 
-              {links === null ? (
-                <Skeleton className="h-24 w-full" />
-              ) : links.length === 0 ? (
-                <p className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">No products linked yet.</p>
+            {!supplier ? (
+              pickedProducts.length === 0 ? (
+                <p className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">Pick the products this supplier sells. You can change them later.</p>
               ) : (
                 <ul className="divide-y rounded-lg border">
-                  {links.map((l) => (
-                    <li key={l.id} className="flex items-center gap-3 px-3 py-2">
+                  {pickedProducts.map((p) => (
+                    <li key={p.id} className="flex items-center gap-3 px-3 py-2">
                       <div className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted">
-                        {l.Product.imageUrl ? <img src={l.Product.imageUrl} alt="" className="size-full object-cover" /> : <ImageOff className="size-3.5 text-muted-foreground" />}
+                        {p.imageUrl ? <img src={p.imageUrl} alt="" className="size-full object-cover" /> : <ImageOff className="size-3.5 text-muted-foreground" />}
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium">{l.Product.nameEnglish}</p>
-                        <p className="text-xs text-muted-foreground tabular-nums">
-                          {l.latestCost != null
-                            ? `Last paid ${formatGhs(Number(l.latestCost))} / ${l.Product.unitType}${l.latestCostRecordedAt ? ` · ${formatDate(l.latestCostRecordedAt)}` : ''}`
-                            : 'No cost recorded yet'}
-                        </p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        disabled={busyProduct === l.productId}
-                        onClick={() => void toggleProduct(l.productId, false)}
-                        aria-label={`Unlink ${l.Product.nameEnglish}`}
-                      >
-                        {busyProduct === l.productId ? <Loader2 className="animate-spin" /> : <X />}
+                      <p className="min-w-0 flex-1 truncate text-sm font-medium">{p.nameEnglish}</p>
+                      <Button variant="ghost" size="icon-sm" onClick={() => togglePicked(p.id)} aria-label={`Remove ${p.nameEnglish}`}>
+                        <X />
                       </Button>
                     </li>
                   ))}
                 </ul>
-              )}
-              <p className="text-xs text-muted-foreground">Unlinking keeps any cost and purchase history.</p>
-            </section>
-          )}
+              )
+            ) : links === null ? (
+              <Skeleton className="h-24 w-full" />
+            ) : links.length === 0 ? (
+              <p className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">No products linked yet.</p>
+            ) : (
+              <ul className="divide-y rounded-lg border">
+                {links.map((l) => (
+                  <li key={l.id} className="flex items-center gap-3 px-3 py-2">
+                    <div className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted">
+                      {l.Product.imageUrl ? <img src={l.Product.imageUrl} alt="" className="size-full object-cover" /> : <ImageOff className="size-3.5 text-muted-foreground" />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{l.Product.nameEnglish}</p>
+                      <p className="text-xs text-muted-foreground tabular-nums">
+                        {l.latestCost != null
+                          ? `Last paid ${formatGhs(Number(l.latestCost))} / ${l.Product.unitType}${l.latestCostRecordedAt ? ` · ${formatDate(l.latestCostRecordedAt)}` : ''}`
+                          : 'No cost recorded yet'}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      disabled={busyProduct === l.productId}
+                      onClick={() => void toggleProduct(l.productId, false)}
+                      aria-label={`Unlink ${l.Product.nameEnglish}`}
+                    >
+                      {busyProduct === l.productId ? <Loader2 className="animate-spin" /> : <X />}
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {supplier && <p className="text-xs text-muted-foreground">Unlinking keeps any cost and purchase history.</p>}
+          </section>
         </div>
 
         <SheetFooter className="flex-row items-center justify-end gap-2 border-t p-4">

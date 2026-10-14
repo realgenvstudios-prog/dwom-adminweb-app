@@ -35,6 +35,8 @@ export interface CreateSupplierDto {
   phone?: string;
   location?: string;
   notes?: string;
+  /** Products they sell, linked in the same step. */
+  productIds?: number[];
 }
 
 export interface UpdateSupplierDto {

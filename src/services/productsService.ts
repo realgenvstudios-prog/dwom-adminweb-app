@@ -63,12 +63,7 @@ export const productsService = {
   /**
    * Get all products with optional filtering
    */
-  async getAll(
-    categoryId?: number,
-    search?: string,
-    skip?: number,
-    take?: number
-  ): Promise<Product[]> {
+  async getAll(categoryId?: number, search?: string, skip?: number, take?: number): Promise<Product[]> {
     try {
       const params = new URLSearchParams();
       if (categoryId) params.append('categoryId', categoryId.toString());
@@ -76,9 +71,7 @@ export const productsService = {
       if (skip) params.append('skip', skip.toString());
       if (take) params.append('take', take.toString());
 
-      const response = await adminApiClient.get<Product[]>(
-        `/products${params.toString() ? '?' + params.toString() : ''}`
-      );
+      const response = await adminApiClient.get<Product[]>(`/products${params.toString() ? '?' + params.toString() : ''}`);
       return response;
     } catch (error) {
       logger.error('❌ [ProductsService] Failed to fetch products:', error);
@@ -95,6 +88,16 @@ export const productsService = {
   /** Brings an archived product back into the app. */
   async restore(id: number): Promise<Product> {
     return adminApiClient.post<Product>(`/products/${id}/restore`);
+  },
+
+  /** Whether an archived product can be deleted for good, and if not, why. */
+  async deleteCheck(id: number): Promise<{ id: number; name: string; canDelete: boolean; blockers: string[] }> {
+    return adminApiClient.get(`/products/${id}/delete-check`);
+  },
+
+  /** Deletes an archived product permanently. The server refuses if orders or bundles still use it. */
+  async deletePermanently(id: number): Promise<{ deleted: boolean; id: number }> {
+    return adminApiClient.delete(`/products/${id}/permanent`);
   },
 
   /**
