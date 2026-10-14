@@ -31,12 +31,13 @@ export interface CreateCouponPayload {
   campaignId?: number | null;
 }
 
+// Matches GET /coupons/:id/stats (discount amounts are Decimals — parse them).
 export interface CouponStats {
-  couponId: number;
-  code: string;
+  coupon: Coupon;
   totalUsages: number;
   uniqueUsers: number;
-  totalDiscount: number;
+  totalDiscountGiven: number | string;
+  usages: { id: number; userId: number; orderId: number | null; discount: number | string; createdAt: string }[];
 }
 
 class CouponService {
