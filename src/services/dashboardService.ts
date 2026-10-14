@@ -11,12 +11,6 @@ function asArray<T>(value: unknown): T[] {
   return [];
 }
 
-// /products includes each product's inventory row, which Product (from
-// productsService) doesn't model since most consumers don't need it.
-interface ProductWithInventory extends Product {
-  Inventory?: Array<{ quantity: number }>;
-}
-
 interface TopProductSummary {
   productId: number;
   name?: string;
@@ -119,22 +113,17 @@ class DashboardService {
    */
   async getProductStats(): Promise<ProductStats> {
     try {
-      
+
       // Fetch all products
-      const products = asArray<ProductWithInventory>(await adminApiClient.get('/products'));
+      const products = asArray<Product>(await adminApiClient.get('/products'));
 
       const totalProducts = products.length;
-      
-      // Count low stock (less than 10) and out of stock (0)
-      const lowStockProducts = products.filter((p) => {
-        const inventory = p.Inventory?.[0]?.quantity || 0;
-        return inventory > 0 && inventory < 10;
-      }).length;
 
-      const outOfStockProducts = products.filter((p) => {
-        const inventory = p.Inventory?.[0]?.quantity || 0;
-        return inventory === 0;
-      }).length;
+      // Manual admin flag (stockStatus) is the real availability signal —
+      // DWOM doesn't hold warehouse stock day-to-day, so Inventory.quantity
+      // no longer reflects what's actually sellable.
+      const lowStockProducts = products.filter((p) => p.stockStatus === 'low_stock').length;
+      const outOfStockProducts = products.filter((p) => p.stockStatus === 'out_of_stock').length;
 
       const stats: ProductStats = {
         totalProducts,

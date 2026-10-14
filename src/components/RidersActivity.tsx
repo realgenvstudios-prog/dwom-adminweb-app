@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import adminApiClient from "../services/apiClient";
 import { logger } from '../utils/logger';
 
@@ -10,6 +11,7 @@ interface Rider {
 }
 
 const RidersActivity: React.FC = () => {
+  const navigate = useNavigate();
   const [riders, setRiders] = useState<Rider[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -42,7 +44,7 @@ const RidersActivity: React.FC = () => {
     <div className="bg-white rounded-xl shadow p-6 mb-6 border">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold">Riders Activity</h3>
-        <a href="/riders" className="text-blue-600 text-sm font-medium hover:underline">View all riders</a>
+        <button onClick={() => navigate('/field-operations')} className="text-blue-600 text-sm font-medium hover:underline">View all riders</button>
       </div>
       {loading ? (
         <div className="flex items-center justify-center py-4">

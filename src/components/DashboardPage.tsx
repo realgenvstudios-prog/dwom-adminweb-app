@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import dashboardService from '../services/dashboardService';
 import PopularItems from './PopularItems';
 import RidersActivity from './RidersActivity';
-import QuickActions from './QuickActions';
-import InventoryAlerts from './InventoryAlerts';
+import NeedsAttentionCard from './NeedsAttentionCard';
 import { logger } from '../utils/logger';
 
 interface KPICard {
@@ -19,6 +18,7 @@ const REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes for main dashboard
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [kpis, setKpis] = useState<KPICard[]>([]);
+  const [outOfStockProducts, setOutOfStockProducts] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -72,6 +72,7 @@ const DashboardPage: React.FC = () => {
       ];
 
       setKpis(kpiData);
+      setOutOfStockProducts(dashboardData.productStats.outOfStockProducts);
     } catch (err) {
       logger.error('Error fetching dashboard data:', err);
       setError('Failed to load dashboard data. Some features may be offline.');
@@ -142,9 +143,6 @@ const DashboardPage: React.FC = () => {
         ))}
       </div>
 
-      {/* Quick Actions */}
-      <QuickActions />
-
       {/* Popular Items - Full Width */}
       <PopularItems />
 
@@ -161,13 +159,13 @@ const DashboardPage: React.FC = () => {
         <span className="text-blue-600 font-semibold">View full financials →</span>
       </button>
 
-      {/* Riders & Alerts */}
+      {/* Riders & Attention Queue */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <RidersActivity />
         </div>
         <div className="lg:col-span-1">
-          <InventoryAlerts />
+          <NeedsAttentionCard outOfStockProducts={outOfStockProducts} />
         </div>
       </div>
     </div>
