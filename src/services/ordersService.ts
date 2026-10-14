@@ -98,6 +98,12 @@ export const ordersService = {
     }
   },
 
+  /** The newest orders (one page) — used to poll for new ones without reloading everything. */
+  async getLatest(limit = 50): Promise<AdminOrderSummary[]> {
+    const response = await adminApiClient.get<{ data: AdminOrderSummary[] } | AdminOrderSummary[]>(`/orders/admin/all?page=1&pageSize=${limit}`);
+    return Array.isArray(response) ? response : response?.data || [];
+  },
+
   /**
    * Get order by ID
    */

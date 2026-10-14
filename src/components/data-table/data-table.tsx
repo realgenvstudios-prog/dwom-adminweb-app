@@ -54,6 +54,8 @@ interface DataTableProps<TData> {
   /** Shown in a floating bar while rows are selected. Requires a selectColumn(). */
   bulkActions?: (rows: TData[], clear: () => void) => React.ReactNode;
   onRowClick?: (row: TData) => void;
+  /** Extra classes for a row, e.g. highlighting one that just arrived. */
+  rowClassName?: (row: TData) => string | undefined;
   getRowId?: (row: TData, index: number) => string;
   initialSorting?: SortingState;
   initialHidden?: VisibilityState;
@@ -71,6 +73,7 @@ export function DataTable<TData>({
   toolbarActions,
   bulkActions,
   onRowClick,
+  rowClassName,
   getRowId,
   initialSorting = [],
   initialHidden = {},
@@ -168,7 +171,7 @@ export function DataTable<TData>({
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
                   onClick={(e) => handleRowClick(e, row.original)}
-                  className={cn(onRowClick && 'cursor-pointer')}
+                  className={cn(onRowClick && 'cursor-pointer', rowClassName?.(row.original))}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className={cell.column.columnDef.meta?.className}>
@@ -193,12 +196,7 @@ export function DataTable<TData>({
       {bulkActions && selectedRows.length > 0 && (
         <div className="fixed inset-x-0 bottom-6 z-30 flex justify-center px-4 animate-in fade-in slide-in-from-bottom-4">
           <div className="flex items-center gap-2 rounded-xl border bg-background/95 p-2 shadow-lg backdrop-blur">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => table.resetRowSelection()}
-              aria-label="Clear selection"
-            >
+            <Button variant="ghost" size="icon-sm" onClick={() => table.resetRowSelection()} aria-label="Clear selection">
               <X />
             </Button>
             <Separator orientation="vertical" className="data-[orientation=vertical]:h-5" />

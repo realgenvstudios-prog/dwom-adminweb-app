@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AlertCircle, CalendarDays, Download, Plus, RotateCw } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DataTable, type FilterConfig } from '@/components/data-table';
@@ -11,9 +12,11 @@ import CreateOrderDialog from './orders/CreateOrderDialog';
 import AssignPersonDialog from './orders/AssignPersonDialog';
 import OrderDetailsSheet from './orders/details/OrderDetailsSheet';
 import { buildOrderColumns, NO_ZONE, UNASSIGNED } from './orders/columns';
+import LiveBadge from './orders/LiveBadge';
+import { playNewOrderChime } from './orders/live-alert';
 import { useOrders } from './orders/useOrders';
 import type { Order } from './orders/OrderTypes';
-import { ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES } from './orders/order-status';
+import { formatGhs, ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES } from './orders/order-status';
 import { downloadOrdersCsv } from './orders/export-csv';
 
 type DateRange = 'today' | '7d' | '30d' | 'all';
@@ -35,7 +38,6 @@ function rangeStart(range: DateRange): number | null {
 }
 
 const OrdersPage: React.FC = () => {
-  const { orders, loading, error, refresh, patchOrder } = useOrders();
   const [riders, setRiders] = useState<{ id: string; name: string }[]>([]);
   const [dateRange, setDateRange] = useState<DateRange>('all');
   // ?order=<id> deep-links straight into an order's details (e.g. from the Dashboard).
@@ -57,6 +59,16 @@ const OrdersPage: React.FC = () => {
   const [assign, setAssign] = useState<{ kind: 'rider' | 'picker'; orderId: string } | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [statsKey, setStatsKey] = useState(0);
+  const { orders, loading, error, refresh, patchOrder, newIds, updatedAt } = useOrders((fresh) => {
+    playNewOrderChime();
+    setStatsKey((k) => k + 1);
+    const [first] = fresh;
+    toast.success(fresh.length === 1 ? `New order #${first.id}` : `${fresh.length} new orders`, {
+      description: fresh.length === 1 ? `${first.customer} · ${formatGhs(first.total)}` : fresh.map((o) => `#${o.id}`).join(', '),
+      action: fresh.length === 1 ? { label: 'View', onClick: () => setSelectedId(first.id) } : undefined,
+      duration: 8000,
+    });
+  });
 
   // Every rider, not just ones on loaded orders, so a rider with no orders
   // yet still appears as a filter option.
@@ -73,7 +85,7 @@ const OrdersPage: React.FC = () => {
   }, [orders, dateRange]);
 
   const selectedOrder = orders.find((o) => o.id === selectedId) ?? null;
-  const assignOrder = assign ? orders.find((o) => o.id === assign.orderId) ?? null : null;
+  const assignOrder = assign ? (orders.find((o) => o.id === assign.orderId) ?? null) : null;
 
   const columns = useMemo(
     () =>
@@ -98,7 +110,10 @@ const OrdersPage: React.FC = () => {
       {
         columnId: 'zone',
         title: 'Zone',
-        options: [...[...new Set(orders.map((o) => o.zone).filter((z): z is string => !!z))].sort().map((z) => ({ value: z, label: z })), { value: NO_ZONE, label: 'Not recorded' }],
+        options: [
+          ...[...new Set(orders.map((o) => o.zone).filter((z): z is string => !!z))].sort().map((z) => ({ value: z, label: z })),
+          { value: NO_ZONE, label: 'Not recorded' },
+        ],
       },
     ],
     [riders, orders],
@@ -113,7 +128,10 @@ const OrdersPage: React.FC = () => {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Orders</h1>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-semibold tracking-tight">Orders</h1>
+            {!loading && !error && <LiveBadge updatedAt={updatedAt} />}
+          </div>
           <p className="text-sm text-muted-foreground">Track, assign, and update every DWOM order.</p>
         </div>
         <Button onClick={() => setCreateOpen(true)}>
@@ -147,6 +165,7 @@ const OrdersPage: React.FC = () => {
         searchPlaceholder="Search order #, customer, phone, address…"
         filters={filters}
         onRowClick={(o) => setSelectedId(o.id)}
+        rowClassName={(o) => (newIds.has(o.id) ? 'flash-new' : undefined)}
         emptyMessage={dateRange === 'all' ? 'No orders match these filters.' : 'No orders in this date range.'}
         toolbarStart={
           <Select value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
