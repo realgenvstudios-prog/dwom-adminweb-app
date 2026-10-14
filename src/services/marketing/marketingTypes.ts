@@ -20,6 +20,7 @@ export interface Campaign {
   // attributed to this campaign yet (e.g. a social campaign with no
   // trackable link).
   metricsAreEstimate: boolean;
+  Coupon?: { id: number; code: string; usageCount: number; discountValue: number; discountType: string; active: boolean }[];
   content: string;
   imageUrl?: string;
   title?: string;

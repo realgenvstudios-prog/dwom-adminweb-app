@@ -3,9 +3,11 @@ import marketingService, { type Campaign, type CartCodeAnalytics, type CampaignM
 import CreateCampaignModal from "./marketing/CreateCampaignModal";
 import SendNotificationModal from "./marketing/SendNotificationModal";
 import CreateTemplateModal from "./marketing/CreateTemplateModal";
+import CouponsTab from "./marketing/CouponsTab";
 import { logger } from '../utils/logger';
 
 const MarketingPage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<"campaigns" | "coupons">("campaigns");
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [metrics, setMetrics] = useState<CampaignMetrics | null>(null);
   const [cartCodes, setCartCodes] = useState<CartCodeAnalytics[]>([]);
@@ -91,7 +93,7 @@ const MarketingPage: React.FC = () => {
     { label: "Click-Through Rate", value: `${((metrics.totalClicks / (metrics.totalImpressions || 1)) * 100).toFixed(1)}%` },
   ] : [];
 
-  if (loading) {
+  if (loading && activeTab === "campaigns") {
     return (
       <div className="bg-gray-50 min-h-screen py-10 px-4 flex items-center justify-center">
         <div className="text-center">
@@ -108,6 +110,29 @@ const MarketingPage: React.FC = () => {
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
       <div className="max-w-screen-2xl mx-auto">
+        <div className="mb-6 flex gap-2">
+          <button
+            onClick={() => setActiveTab("campaigns")}
+            className={`px-4 py-2 rounded-lg font-semibold transition ${
+              activeTab === "campaigns" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            Campaigns
+          </button>
+          <button
+            onClick={() => setActiveTab("coupons")}
+            className={`px-4 py-2 rounded-lg font-semibold transition ${
+              activeTab === "coupons" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            Discount Codes
+          </button>
+        </div>
+
+        {activeTab === "coupons" && <CouponsTab />}
+
+        {activeTab === "campaigns" && (
+        <>
         {/* Top Filter Bar */}
         <div className="mb-8">
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 w-full">
@@ -163,6 +188,7 @@ const MarketingPage: React.FC = () => {
                   <thead>
                     <tr className="text-gray-500 border-b">
                       <th className="py-2 pr-4 font-medium">Campaign Name</th>
+                      <th className="py-2 pr-4 font-medium">Coupon</th>
                       <th className="py-2 pr-4 font-medium">Channel</th>
                       <th className="py-2 pr-4 font-medium">Status</th>
                       <th className="py-2 pr-4 font-medium">Spend</th>
@@ -177,6 +203,15 @@ const MarketingPage: React.FC = () => {
                     {campaigns.slice(0, 5).map((campaign) => (
                       <tr key={campaign.id} className="border-b last:border-0 hover:bg-gray-50">
                         <td className="py-2 pr-4 font-medium">{campaign.name}</td>
+                        <td className="py-2 pr-4">
+                          {campaign.Coupon && campaign.Coupon.length > 0 ? (
+                            <span className="text-xs font-mono bg-gray-100 px-2 py-0.5 rounded" title={`${campaign.Coupon[0].usageCount} uses`}>
+                              {campaign.Coupon[0].code} · {campaign.Coupon[0].usageCount} uses
+                            </span>
+                          ) : (
+                            <span className="text-xs text-gray-400">—</span>
+                          )}
+                        </td>
                         <td className="py-2 pr-4 capitalize">{campaign.channel.replace('_', ' ')}</td>
                         <td className="py-2 pr-4">
                           <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -412,6 +447,8 @@ const MarketingPage: React.FC = () => {
           </div>
         </div>
 
+        </>
+        )}
       </div>
 
       {/* Modals */}

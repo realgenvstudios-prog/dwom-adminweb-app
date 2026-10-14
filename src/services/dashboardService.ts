@@ -2,7 +2,6 @@ import adminApiClient from './apiClient';
 import { logger } from '../utils/logger';
 import type { RiderData } from './ridersService';
 import type { Product } from './productsService';
-import type { AdminOrderSummary } from './ordersService';
 
 function asArray<T>(value: unknown): T[] {
   if (Array.isArray(value)) return value as T[];
@@ -52,12 +51,6 @@ export interface ProductStats {
   outOfStockProducts: number;
 }
 
-export interface OrderTrend {
-  date: string;
-  orders: number;
-  revenue: number;
-}
-
 export interface PopularProduct {
   id: number;
   nameEnglish: string;
@@ -70,7 +63,6 @@ export interface DashboardData {
   stats: DashboardStats;
   riderStats: RiderStats;
   productStats: ProductStats;
-  orderTrends?: OrderTrend[];
   popularProducts?: PopularProduct[];
   totalCustomers: number;
 }
@@ -215,57 +207,6 @@ class DashboardService {
       return popularProducts;
     } catch (error) {
       logger.error('❌ [DashboardService] Failed to fetch popular products:', (error as Error).message);
-      return [];
-    }
-  }
-
-  /**
-   * Get revenue breakdown by time period
-   */
-  async getRevenueOverTime(days: number = 7): Promise<OrderTrend[]> {
-    try {
-      
-      // Fetch all orders
-      const orders = asArray<AdminOrderSummary>(await adminApiClient.get('/orders/admin/all'));
-
-      // Group by date
-      const dateMap = new Map<string, { orders: number; revenue: number }>();
-
-      orders.forEach((order) => {
-        const orderDate = new Date(order.createdAt);
-        const dateKey = orderDate.toISOString().split('T')[0]; // YYYY-MM-DD format
-
-        if (!dateMap.has(dateKey)) {
-          dateMap.set(dateKey, { orders: 0, revenue: 0 });
-        }
-
-        const existing = dateMap.get(dateKey)!;
-        existing.orders += 1;
-        
-        // Only count paid orders for revenue
-        if (order.paymentStatus === 'paid') {
-          existing.revenue += order.total || 0;
-        }
-      });
-
-      // Zero-fill every day in the trailing N-day window, not just days
-      // that happen to have an order — otherwise a quiet day silently
-      // disappears from the series instead of showing as zero, and the
-      // chart's x-axis (which assumes exactly `days` entries) mislabels
-      // every bar after the gap.
-      const trends: OrderTrend[] = [];
-      const today = new Date();
-      for (let i = days - 1; i >= 0; i--) {
-        const d = new Date(today);
-        d.setDate(d.getDate() - i);
-        const dateKey = d.toISOString().split('T')[0];
-        const data = dateMap.get(dateKey) || { orders: 0, revenue: 0 };
-        trends.push({ date: dateKey, ...data });
-      }
-
-      return trends;
-    } catch (error) {
-      logger.error('❌ [DashboardService] Failed to fetch revenue trends:', (error as Error).message);
       return [];
     }
   }

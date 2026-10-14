@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import dashboardService from '../services/dashboardService';
-import OrdersOverviewChart from './OrdersOverviewChart';
 import PopularItems from './PopularItems';
 import RidersActivity from './RidersActivity';
 import QuickActions from './QuickActions';
@@ -17,6 +17,7 @@ interface KPICard {
 const REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes for main dashboard
 
 const DashboardPage: React.FC = () => {
+  const navigate = useNavigate();
   const [kpis, setKpis] = useState<KPICard[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -147,12 +148,18 @@ const DashboardPage: React.FC = () => {
       {/* Popular Items - Full Width */}
       <PopularItems />
 
-      {/* Charts & Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-3">
-          <OrdersOverviewChart />
+      {/* Financials live in one place — Finance — rather than a
+          shallower duplicate chart here. */}
+      <button
+        onClick={() => navigate('/finance')}
+        className="w-full bg-white rounded-xl shadow-sm p-6 flex items-center justify-between hover:shadow-md transition-shadow text-left"
+      >
+        <div>
+          <div className="font-semibold text-gray-900">Revenue, P&L, and margin</div>
+          <div className="text-sm text-gray-500 mt-1">Full breakdown lives on the Finance page</div>
         </div>
-      </div>
+        <span className="text-blue-600 font-semibold">View full financials →</span>
+      </button>
 
       {/* Riders & Alerts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -21,7 +21,6 @@ import SettingsPage from './components/SettingsPage';
 import SupportPage from './components/SupportPage';
 import DataDeletionRequestsPage from './components/DataDeletionRequestsPage';
 import DeliveryZonesPage from './components/DeliveryZonesPage';
-import CouponsPage from './components/CouponsPage';
 import AnalyticsPage from './components/AnalyticsPage';
 import './App.css';
 
@@ -216,16 +215,7 @@ const App: React.FC = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/coupons"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <CouponsPage />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/coupons" element={<Navigate to="/marketing" replace />} />
       <Route path="/" element={<Navigate to="/login" replace />} />
     </Routes>
   );
