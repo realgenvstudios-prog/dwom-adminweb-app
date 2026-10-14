@@ -1,375 +1,352 @@
-import React, { useState, useEffect, useRef } from "react";
-import apiClient from "../services/apiClient";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { ColumnDef } from '@tanstack/react-table';
+import { AlertCircle, CheckCircle2, Clock, Eraser, Loader2, MoreHorizontal, RotateCw, ShieldCheck, ShieldQuestion, Trash2, XCircle } from 'lucide-react';
+import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { DataTable, DataTableColumnHeader, facetedFilterFn } from '@/components/data-table';
+import { StatCard } from '@/components/stat-card';
+import { cn } from '@/lib/utils';
+import deletionRequestsService, { type DeletionAction, type DeletionRequest } from '../services/deletionRequestsService';
 import { logger } from '../utils/logger';
 
-interface DeletionRequest {
-  id: number;
-  phoneNumber: string;
-  email: string;
-  reason?: string;
-  status: 'PENDING' | 'VERIFIED' | 'APPROVED' | 'COMPLETED' | 'REJECTED';
-  requestedAt: string;
-  scheduledDeletionDate?: string;
-  completedAt?: string;
-  notes?: string;
-  approvedBy?: string;
+type Stage = 'check' | 'approve' | 'waiting' | 'due' | 'erased' | 'rejected';
+
+const STAGES: Record<Stage, { label: string; className: string }> = {
+  check: { label: 'Check identity', className: 'border-amber-500/20 bg-amber-500/10 text-amber-700' },
+  approve: { label: 'Ready to approve', className: 'border-sky-500/20 bg-sky-500/10 text-sky-700' },
+  waiting: { label: 'Waiting period', className: 'border-violet-500/20 bg-violet-500/10 text-violet-700' },
+  due: { label: 'Due — erase', className: 'border-red-500/20 bg-red-500/10 text-red-700' },
+  erased: { label: 'Erased', className: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-700' },
+  rejected: { label: 'Rejected / cancelled', className: 'text-muted-foreground' },
+};
+
+function stageOf(r: DeletionRequest, now: number): Stage {
+  switch (r.status) {
+    case 'PENDING':
+      return 'check';
+    case 'VERIFIED':
+      return 'approve';
+    case 'APPROVED':
+      return r.scheduledDeletionDate && new Date(r.scheduledDeletionDate).getTime() > now ? 'waiting' : 'due';
+    case 'COMPLETED':
+      return 'erased';
+    default:
+      return 'rejected';
+  }
 }
 
-const DataDeletionRequestsPage: React.FC = () => {
+const fmt = (iso?: string | null) => (iso ? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
+const daysUntil = (iso: string, now: number) => Math.ceil((new Date(iso).getTime() - now) / 86400000);
+// In-app requests without an email get a placeholder "<digits>@dwom.app" — not a real address.
+const realEmail = (e: string) => (e && !e.endsWith('@dwom.app') ? e : null);
+
+const ACTION_COPY: Record<DeletionAction, { title: string; body: string; cta: string; destructive?: boolean }> = {
+  verify: {
+    title: 'Confirm it’s really them',
+    body: 'This came from the website form, so anyone could have typed this number. Contact the customer on this phone number and confirm they asked for deletion before verifying.',
+    cta: 'Mark verified',
+  },
+  approve: {
+    title: 'Approve the deletion',
+    body: 'Starts a 30-day waiting period. The customer can cancel from the app until then; after that you can erase the account.',
+    cta: 'Approve',
+  },
+  complete: {
+    title: 'Erase this customer',
+    body: 'Permanently erases their name, phone, email, password, saved addresses, chats, notifications, carts and reviews, and cancels their subscriptions. Their orders are kept without personal details, for your accounts. This can’t be undone.',
+    cta: 'Erase permanently',
+    destructive: true,
+  },
+  reject: {
+    title: 'Reject this request',
+    body: 'Nothing is deleted. Add a note explaining why (e.g. couldn’t confirm identity).',
+    cta: 'Reject',
+    destructive: true,
+  },
+};
+
+export default function DataDeletionRequestsPage() {
   const [requests, setRequests] = useState<DeletionRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("PENDING");
-  const [selectedRequest, setSelectedRequest] = useState<DeletionRequest | null>(null);
-  const [showModal, setShowModal] = useState(false);
-  const [adminNotes, setAdminNotes] = useState("");
-  const [actionType, setActionType] = useState<'approve' | 'verify' | 'complete' | 'reject' | null>(null);
-  const isFetchingRef = useRef(false);
+  const [pending, setPending] = useState<{ request: DeletionRequest; action: DeletionAction } | null>(null);
+  const [notes, setNotes] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [now] = useState(() => Date.now());
 
-  useEffect(() => {
-    fetchDeletionRequests();
+  const load = useCallback(async () => {
+    try {
+      setError(null);
+      setRequests(await deletionRequestsService.getAll());
+    } catch (err) {
+      logger.error('Failed to load deletion requests:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load deletion requests');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const fetchDeletionRequests = async () => {
-    if (isFetchingRef.current) return;
-    
-    try {
-      isFetchingRef.current = true;
-      setLoading(true);
-      setError(null);
-      
-      logger.log('🗑️ [DeletionRequests] Fetching deletion requests...');
-      
-      const response = await apiClient.get<DeletionRequest[]>('/account/deletion-requests');
-      logger.log('🗑️ [DeletionRequests] Response:', response);
-      
-      if (!Array.isArray(response)) {
-        logger.error('❌ [DeletionRequests] Expected array, got:', typeof response);
-        setError('Invalid response from server');
-        setRequests([]);
-        return;
-      }
+  useEffect(() => {
+    const t = setTimeout(() => void load(), 0);
+    return () => clearTimeout(t);
+  }, [load]);
 
-      logger.log(`✅ [DeletionRequests] Fetched ${response.length} requests`);
-      setRequests(response);
-    } catch (err: any) {
-      logger.error('❌ [DeletionRequests] Error:', err);
-      setError(err.message || 'Failed to fetch deletion requests');
-      setRequests([]);
+  const open = (request: DeletionRequest, action: DeletionAction) => {
+    setNotes('');
+    setPending({ request, action });
+  };
+
+  const submit = async () => {
+    if (!pending) return;
+    const { request, action } = pending;
+    if (action === 'reject' && !notes.trim()) return toast.error('Add a short reason for rejecting.');
+    try {
+      setSaving(true);
+      const updated = await deletionRequestsService.act(request.id, action, notes.trim() || undefined);
+      toast.success(
+        action === 'verify' ? 'Marked verified' : action === 'approve' ? `Approved — can be erased from ${fmt(updated.scheduledDeletionDate)}` : action === 'complete' ? 'Customer erased' : 'Request rejected',
+        action === 'complete' && updated.notes ? { description: updated.notes } : undefined,
+      );
+      setPending(null);
+      await load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Couldn’t update the request.');
     } finally {
-      setLoading(false);
-      isFetchingRef.current = false;
+      setSaving(false);
     }
   };
 
-  const handleActionClick = (request: DeletionRequest, type: 'approve' | 'verify' | 'complete' | 'reject') => {
-    setSelectedRequest(request);
-    setActionType(type);
-    setAdminNotes("");
-    setShowModal(true);
-  };
-
-  const handleAction = async () => {
-    if (!selectedRequest || !actionType) return;
-
-    try {
-      setLoading(true);
-      
-      const endpoint = `/account/deletion-requests/${selectedRequest.id}/${actionType}`;
-      const payload = {
-        notes: adminNotes,
-        actionDate: new Date().toISOString(),
-      };
-
-      logger.log(`🔄 [DeletionRequests] ${actionType}ing request:`, payload);
-      
-      const response = await apiClient.put<DeletionRequest>(endpoint, payload);
-      
-      logger.log(`✅ [DeletionRequests] Request ${actionType}ed:`, response);
-      
-      // Update the request in the list
-      setRequests(requests.map(r => r.id === response.id ? response : r));
-      
-      setShowModal(false);
-      setSelectedRequest(null);
-      setActionType(null);
-      setAdminNotes("");
-      
-      // Refresh the list
-      fetchDeletionRequests();
-    } catch (err: any) {
-      logger.error('❌ [DeletionRequests] Error updating request:', err);
-      setError(err.message || `Failed to ${actionType} request`);
-      setShowModal(false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const statusColors: Record<string, string> = {
-    "PENDING": "bg-yellow-100 text-yellow-700",
-    "VERIFIED": "bg-blue-100 text-blue-700",
-    "APPROVED": "bg-purple-100 text-purple-700",
-    "COMPLETED": "bg-green-100 text-green-700",
-    "REJECTED": "bg-red-100 text-red-700"
-  };
-
-  const statusLabels: Record<string, string> = {
-    "PENDING": "Pending Verification",
-    "VERIFIED": "Verified",
-    "APPROVED": "Approved for Deletion",
-    "COMPLETED": "Completed",
-    "REJECTED": "Rejected"
-  };
-
-  const filtered = requests.filter(r =>
-    (selectedStatus === "All" || r.status === selectedStatus) &&
-    (r.phoneNumber.includes(search) ||
-      r.email.toLowerCase().includes(search.toLowerCase()))
+  const columns = useMemo<ColumnDef<DeletionRequest>[]>(
+    () => [
+      {
+        id: 'customer',
+        accessorFn: (r) => `${r.phoneNumber} ${r.email}`,
+        header: 'Customer',
+        enableSorting: false,
+        cell: ({ row }) => (
+          <div className="min-w-[160px]">
+            <p className="font-medium tabular-nums">{row.original.phoneNumber}</p>
+            <p className="truncate text-xs text-muted-foreground">{realEmail(row.original.email) ?? 'No email'}</p>
+          </div>
+        ),
+        meta: { title: 'Customer' },
+      },
+      {
+        id: 'stage',
+        accessorFn: (r) => stageOf(r, now),
+        header: 'Status',
+        filterFn: facetedFilterFn,
+        enableSorting: false,
+        enableGlobalFilter: false,
+        cell: ({ row }) => {
+          const s = STAGES[stageOf(row.original, now)];
+          return (
+            <Badge variant="outline" className={s.className}>
+              {s.label}
+            </Badge>
+          );
+        },
+        meta: { title: 'Status' },
+      },
+      {
+        id: 'requested',
+        accessorFn: (r) => new Date(r.requestedAt).getTime(),
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Requested" />,
+        enableGlobalFilter: false,
+        cell: ({ row }) => <span className="whitespace-nowrap text-muted-foreground">{fmt(row.original.requestedAt)}</span>,
+        meta: { title: 'Requested' },
+      },
+      {
+        id: 'when',
+        header: 'Erase',
+        enableSorting: false,
+        enableGlobalFilter: false,
+        cell: ({ row }) => {
+          const r = row.original;
+          if (r.status === 'COMPLETED') return <span className="whitespace-nowrap text-muted-foreground">Erased {fmt(r.completedAt)}</span>;
+          if (r.status !== 'APPROVED' || !r.scheduledDeletionDate) return <span className="text-muted-foreground">—</span>;
+          const d = daysUntil(r.scheduledDeletionDate, now);
+          return d > 0 ? (
+            <span className="whitespace-nowrap text-muted-foreground">
+              in {d} day{d === 1 ? '' : 's'} ({fmt(r.scheduledDeletionDate)})
+            </span>
+          ) : (
+            <span className="font-medium whitespace-nowrap text-red-700">Due now</span>
+          );
+        },
+        meta: { title: 'Erase' },
+      },
+      {
+        id: 'reason',
+        accessorFn: (r) => `${r.reason ?? ''} ${r.notes ?? ''}`,
+        header: 'Reason / notes',
+        enableSorting: false,
+        cell: ({ row }) => (
+          <div className="max-w-[280px]">
+            <p className="truncate text-sm">{row.original.reason || <span className="text-muted-foreground">No reason given</span>}</p>
+            {row.original.notes && <p className="truncate text-xs text-muted-foreground">{row.original.notes}</p>}
+          </div>
+        ),
+        meta: { title: 'Reason / notes' },
+      },
+      {
+        id: 'actions',
+        enableHiding: false,
+        enableSorting: false,
+        meta: { className: 'w-10' },
+        cell: ({ row }) => {
+          const r = row.original;
+          const stage = stageOf(r, now);
+          if (stage === 'erased' || stage === 'rejected') return null;
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon-sm" className="data-[state=open]:bg-muted">
+                  <MoreHorizontal />
+                  <span className="sr-only">Actions</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {stage === 'check' && (
+                  <DropdownMenuItem onSelect={() => open(r, 'verify')}>
+                    <ShieldCheck />
+                    Mark verified
+                  </DropdownMenuItem>
+                )}
+                {stage === 'approve' && (
+                  <DropdownMenuItem onSelect={() => open(r, 'approve')}>
+                    <CheckCircle2 />
+                    Approve
+                  </DropdownMenuItem>
+                )}
+                {(stage === 'due' || stage === 'waiting') && (
+                  <DropdownMenuItem variant="destructive" disabled={stage === 'waiting'} onSelect={() => open(r, 'complete')}>
+                    <Eraser />
+                    {stage === 'waiting' ? 'Erase (after waiting period)' : 'Erase now'}
+                  </DropdownMenuItem>
+                )}
+                {(stage === 'check' || stage === 'approve') && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem variant="destructive" onSelect={() => open(r, 'reject')}>
+                      <XCircle />
+                      Reject
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
+      },
+    ],
+    [now],
   );
 
-  const statusOptions = ["PENDING", "VERIFIED", "APPROVED", "COMPLETED", "REJECTED", "All"];
-
-  const getStatusBadgeClass = (status: string) => {
-    return `inline-block px-3 py-1 rounded-full text-xs font-semibold ${statusColors[status] || 'bg-gray-100 text-gray-700'}`;
-  };
-
-  const getActionButtons = (request: DeletionRequest) => {
-    const buttons = [];
-
-    if (request.status === 'PENDING') {
-      buttons.push(
-        <button
-          key="verify"
-          onClick={() => handleActionClick(request, 'verify')}
-          className="px-3 py-1 text-xs font-semibold rounded-sm bg-blue-500 text-white hover:bg-blue-600 transition-colors mr-2"
-        >
-          Verify
-        </button>,
-        <button
-          key="reject"
-          onClick={() => handleActionClick(request, 'reject')}
-          className="px-3 py-1 text-xs font-semibold rounded-sm bg-red-500 text-white hover:bg-red-600 transition-colors"
-        >
-          Reject
-        </button>
-      );
-    }
-
-    if (request.status === 'VERIFIED') {
-      buttons.push(
-        <button
-          key="approve"
-          onClick={() => handleActionClick(request, 'approve')}
-          className="px-3 py-1 text-xs font-semibold rounded-sm bg-purple-500 text-white hover:bg-purple-600 transition-colors"
-        >
-          Approve
-        </button>
-      );
-    }
-
-    if (request.status === 'APPROVED') {
-      buttons.push(
-        <button
-          key="complete"
-          onClick={() => handleActionClick(request, 'complete')}
-          className="px-3 py-1 text-xs font-semibold rounded-sm bg-green-500 text-white hover:bg-green-600 transition-colors"
-        >
-          Mark Complete
-        </button>
-      );
-    }
-
-    return buttons.length > 0 ? buttons : <span className="text-gray-500 text-xs">No actions</span>;
-  };
+  const count = (s: Stage) => requests.filter((r) => stageOf(r, now) === s).length;
+  const copy = pending ? ACTION_COPY[pending.action] : null;
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Data Deletion Requests</h1>
-        <p className="text-gray-600">Manage user account and data deletion requests</p>
+    <div className="flex flex-col gap-6">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Data deletion</h1>
+        <p className="text-sm text-muted-foreground">Customers asking for their account and personal data to be erased.</p>
       </div>
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard
+          label="Need you"
+          value={String(count('check') + count('approve'))}
+          hint={`${count('check')} to verify · ${count('approve')} to approve`}
+          icon={ShieldQuestion}
+          tint="bg-amber-500/10 text-amber-600"
+          loading={loading}
+          failed={!!error}
+        />
+        <StatCard label="Due to erase" value={String(count('due'))} hint="Waiting period is over" icon={Trash2} tint="bg-red-500/10 text-red-600" loading={loading} failed={!!error} />
+        <StatCard label="In waiting period" value={String(count('waiting'))} hint="Customer can still cancel" icon={Clock} tint="bg-violet-500/10 text-violet-600" loading={loading} failed={!!error} />
+        <StatCard label="Erased" value={String(count('erased'))} hint={`${count('rejected')} rejected or cancelled`} icon={CheckCircle2} tint="bg-emerald-500/10 text-emerald-600" loading={loading} failed={!!error} />
+      </div>
+
+      <Card className="py-4">
+        <CardContent className="grid gap-3 text-sm sm:grid-cols-4">
+          {[
+            { n: 1, t: 'Check identity', d: 'Website-form requests only. In-app requests are already verified.' },
+            { n: 2, t: 'Approve', d: 'Starts a 30-day waiting period.' },
+            { n: 3, t: 'Waiting period', d: 'The customer can cancel from the app.' },
+            { n: 4, t: 'Erase', d: 'Personal data erased; orders kept anonymously.' },
+          ].map((s) => (
+            <div key={s.n} className="flex gap-3">
+              <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">{s.n}</span>
+              <div>
+                <p className="font-medium">{s.t}</p>
+                <p className="text-xs text-muted-foreground">{s.d}</p>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-          <strong>Error:</strong> {error}
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
+          <div className="flex items-center gap-2 text-destructive">
+            <AlertCircle className="size-4" />
+            Couldn’t load requests: {error}
+          </div>
+          <Button variant="outline" size="sm" onClick={() => void load()}>
+            <RotateCw />
+            Retry
+          </Button>
         </div>
       )}
 
-      {/* Filters Section */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Search by Phone or Email
-            </label>
-            <input
-              type="text"
-              placeholder="Search..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-hidden"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Filter by Status
-            </label>
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-hidden"
-            >
-              {statusOptions.map(status => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-        <button
-          onClick={fetchDeletionRequests}
-          className="mt-4 px-6 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors"
-        >
-          Refresh
-        </button>
-      </div>
+      <DataTable
+        columns={columns}
+        data={requests}
+        isLoading={loading}
+        getRowId={(r) => String(r.id)}
+        initialSorting={[{ id: 'requested', desc: true }]}
+        searchPlaceholder="Search phone, email or reason…"
+        filters={[{ columnId: 'stage', title: 'Status', options: (Object.keys(STAGES) as Stage[]).map((s) => ({ value: s, label: STAGES[s].label })) }]}
+        emptyMessage={requests.length === 0 ? 'No deletion requests yet.' : 'No requests match.'}
+      />
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <p className="text-gray-600 text-sm font-semibold">Total Requests</p>
-          <p className="text-3xl font-bold text-gray-900">{requests.length}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <p className="text-gray-600 text-sm font-semibold">Pending</p>
-          <p className="text-3xl font-bold text-yellow-600">{requests.filter(r => r.status === 'PENDING').length}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <p className="text-gray-600 text-sm font-semibold">Approved</p>
-          <p className="text-3xl font-bold text-purple-600">{requests.filter(r => r.status === 'APPROVED').length}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <p className="text-gray-600 text-sm font-semibold">Completed</p>
-          <p className="text-3xl font-bold text-green-600">{requests.filter(r => r.status === 'COMPLETED').length}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <p className="text-gray-600 text-sm font-semibold">Rejected</p>
-          <p className="text-3xl font-bold text-red-600">{requests.filter(r => r.status === 'REJECTED').length}</p>
-        </div>
-      </div>
-
-      {/* Requests Table */}
-      {loading ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500">Loading deletion requests...</p>
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg shadow-md">
-          <p className="text-gray-500 text-lg">No deletion requests found</p>
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Phone Number</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Email</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Requested On</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Scheduled Deletion</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((request, index) => (
-                  <tr key={request.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                    <td className="px-6 py-4 text-sm text-gray-900">{request.phoneNumber}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{request.email}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{formatDate(request.requestedAt)}</td>
-                    <td className="px-6 py-4 text-sm">
-                      <span className={getStatusBadgeClass(request.status)}>
-                        {statusLabels[request.status] || request.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {request.scheduledDeletionDate ? formatDate(request.scheduledDeletionDate) : '-'}
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      {getActionButtons(request)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* Modal for Actions */}
-      {showModal && selectedRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              {actionType === 'verify' && 'Verify Request'}
-              {actionType === 'approve' && 'Approve Deletion'}
-              {actionType === 'complete' && 'Mark as Complete'}
-              {actionType === 'reject' && 'Reject Request'}
-            </h2>
-
-            <div className="bg-gray-50 p-4 rounded-lg mb-4">
-              <p className="text-sm text-gray-600"><strong>Phone:</strong> {selectedRequest.phoneNumber}</p>
-              <p className="text-sm text-gray-600"><strong>Email:</strong> {selectedRequest.email}</p>
-              <p className="text-sm text-gray-600"><strong>Requested:</strong> {formatDate(selectedRequest.requestedAt)}</p>
-              {selectedRequest.reason && (
-                <p className="text-sm text-gray-600"><strong>Reason:</strong> {selectedRequest.reason}</p>
-              )}
+      <Dialog open={!!pending} onOpenChange={(o) => !o && !saving && setPending(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{copy?.title}</DialogTitle>
+            <DialogDescription>{copy?.body}</DialogDescription>
+          </DialogHeader>
+          {pending && (
+            <div className="grid gap-3">
+              <div className="rounded-lg border bg-muted/40 p-3 text-sm">
+                <p className="font-medium tabular-nums">{pending.request.phoneNumber}</p>
+                <p className="text-muted-foreground">{realEmail(pending.request.email) ?? 'No email'} · requested {fmt(pending.request.requestedAt)}</p>
+                {pending.request.reason && <p className="mt-1">“{pending.request.reason}”</p>}
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="dd-notes">{pending.action === 'reject' ? 'Reason for rejecting' : 'Note (optional)'}</Label>
+                <Textarea id="dd-notes" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+              </div>
             </div>
-
-            <textarea
-              placeholder="Add notes about this action (optional)..."
-              value={adminNotes}
-              onChange={(e) => setAdminNotes(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-hidden mb-4 resize-none"
-              rows={3}
-            />
-
-            <div className="flex gap-4">
-              <button
-                onClick={() => {
-                  setShowModal(false);
-                  setSelectedRequest(null);
-                  setActionType(null);
-                }}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAction}
-                disabled={loading}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 disabled:bg-gray-400 transition-colors"
-              >
-                {loading ? 'Processing...' : 'Confirm'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPending(null)} disabled={saving}>
+              Cancel
+            </Button>
+            <Button variant={copy?.destructive ? 'destructive' : 'default'} onClick={() => void submit()} disabled={saving} className={cn(copy?.destructive && 'text-white')}>
+              {saving && <Loader2 className="animate-spin" />}
+              {copy?.cta}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
-};
-
-export default DataDeletionRequestsPage;
+}

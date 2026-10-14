@@ -36,7 +36,7 @@ export default function NeedsAttentionCard({ role, outOfStockProducts, ordersWit
   useEffect(() => {
     let cancelled = false;
     Promise.allSettled([
-      canDeletions ? adminApiClient.get<{ status: string }[]>('/account/deletion-requests') : Promise.resolve([]),
+      canDeletions ? adminApiClient.get<{ status: string; scheduledDeletionDate?: string | null }[]>('/account/deletion-requests') : Promise.resolve([]),
       canSupport ? supportService.getSupportMetrics() : Promise.resolve(null),
       canAdmins ? adminsService.getAdminMetrics() : Promise.resolve(null),
     ]).then(([del, sup, adm]) => {
@@ -45,7 +45,16 @@ export default function NeedsAttentionCard({ role, outOfStockProducts, ordersWit
       if (sup.status === 'rejected') logger.error('❌ [NeedsAttention] support metrics:', sup.reason);
       if (adm.status === 'rejected') logger.error('❌ [NeedsAttention] admin metrics:', adm.reason);
       setCounts({
-        deletions: del.status === 'fulfilled' && Array.isArray(del.value) ? del.value.filter((r) => r.status === 'PENDING').length : 0,
+        // Anything waiting on an admin: to verify, to approve, or past its waiting period.
+        deletions:
+          del.status === 'fulfilled' && Array.isArray(del.value)
+            ? del.value.filter(
+                (r) =>
+                  r.status === 'PENDING' ||
+                  r.status === 'VERIFIED' ||
+                  (r.status === 'APPROVED' && (!r.scheduledDeletionDate || new Date(r.scheduledDeletionDate).getTime() <= Date.now())),
+              ).length
+            : 0,
         support: sup.status === 'fulfilled' && sup.value ? (sup.value.needsReply ?? 0) : 0,
         invites: adm.status === 'fulfilled' && adm.value ? adm.value.pendingAdmins : 0,
       });
