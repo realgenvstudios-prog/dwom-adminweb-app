@@ -47,14 +47,22 @@ export interface SupportMetrics {
   repliesLast7Days: number;
 }
 
+export const OUTDATED_SERVER = 'The server is running an older version of Support. Deploy the latest backend to use this inbox.';
+
 const supportService = {
   async getConversations(): Promise<SupportConversation[]> {
     const data = await adminApiClient.get<SupportConversation[]>('/chat/admin/support-tickets');
-    return Array.isArray(data) ? data : [];
+    const list = Array.isArray(data) ? data : [];
+    // The pre-fix backend returns fabricated "tickets" (T-1001, lastUpdate…)
+    // without these fields; showing them would be wrong, not just ugly.
+    if (list.length > 0 && !('state' in list[0] && 'lastMessageAt' in list[0])) throw new Error(OUTDATED_SERVER);
+    return list;
   },
 
   async getConversation(userId: number): Promise<SupportThread> {
-    return adminApiClient.get<SupportThread>(`/chat/admin/support-tickets/${userId}`);
+    const t = await adminApiClient.get<SupportThread>(`/chat/admin/support-tickets/${userId}`);
+    if (!t || !Array.isArray(t.messages)) throw new Error(OUTDATED_SERVER);
+    return t;
   },
 
   /** `notified` is false when the customer has no app/push token to receive it. */

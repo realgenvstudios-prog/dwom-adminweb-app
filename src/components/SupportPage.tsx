@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StatCard } from '@/components/stat-card';
 import { cn } from '@/lib/utils';
-import supportService, { type ConversationState, type SupportConversation, type SupportMetrics } from '../services/supportService';
+import supportService, { OUTDATED_SERVER, type ConversationState, type SupportConversation, type SupportMetrics } from '../services/supportService';
 import { logger } from '../utils/logger';
 import { ago, displayName, initials, minutesLabel, stateMeta } from './support/support-meta';
 import ThreadPane from './support/ThreadPane';
@@ -22,6 +22,7 @@ const VIEWS: { value: View; label: string }[] = [
   { value: 'all', label: 'All' },
 ];
 const POLL_MS = 30_000;
+const ts = (iso?: string | null) => (iso ? new Date(iso).getTime() || 0 : 0);
 
 export default function SupportPage() {
   const [params, setParams] = useSearchParams();
@@ -54,7 +55,8 @@ export default function SupportPage() {
     } catch (err) {
       logger.error('Failed to load support inbox:', err);
       setError(err instanceof Error ? err.message : 'Failed to load support');
-      setConversations((c) => c ?? []);
+      // Never keep showing data from a server we've just learned is outdated.
+      setConversations((c) => (err instanceof Error && err.message === OUTDATED_SERVER ? [] : (c ?? [])));
     }
     setNow(Date.now());
   }, []);
@@ -90,7 +92,7 @@ export default function SupportPage() {
       .filter((c) => !q || [c.customer, c.phone, c.email, c.lastMessage].some((v) => v?.toLowerCase().includes(q)))
       .sort((a, b) =>
         // Longest-waiting first when triaging; otherwise most recent first.
-        view === 'needs_reply' ? new Date(a.waitingSince ?? a.lastMessageAt).getTime() - new Date(b.waitingSince ?? b.lastMessageAt).getTime() : b.lastMessageAt.localeCompare(a.lastMessageAt),
+        view === 'needs_reply' ? ts(a.waitingSince ?? a.lastMessageAt) - ts(b.waitingSince ?? b.lastMessageAt) : ts(b.lastMessageAt) - ts(a.lastMessageAt),
       );
   }, [conversations, view, query]);
 
@@ -132,7 +134,7 @@ export default function SupportPage() {
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
           <div className="flex items-center gap-2 text-destructive">
             <AlertCircle className="size-4" />
-            Couldn’t load support: {error}
+            {error === OUTDATED_SERVER ? error : `Couldn’t load support: ${error}`}
           </div>
           <Button variant="outline" size="sm" onClick={() => void load()}>
             <RotateCw />
