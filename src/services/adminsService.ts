@@ -37,6 +37,10 @@ class AdminsService {
     return this.lifecycle.cancelInvite(inviteId);
   }
 
+  sendPasswordReset(adminId: number) {
+    return this.lifecycle.sendPasswordReset(adminId);
+  }
+
   changeOwnPassword(currentPassword: string, newPassword: string): Promise<void> {
     return this.lifecycle.changeOwnPassword(currentPassword, newPassword);
   }

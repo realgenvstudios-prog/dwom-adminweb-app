@@ -68,7 +68,7 @@ export default function LoginPage() {
         </Button>
       </form>
       <p className="text-xs text-muted-foreground">
-        New here? Use the invite link from your email to set up your account. Forgot your password? Contact a Super Admin.
+        New here? Use the invite link from your email to set up your account. Forgot your password? Ask a Super Admin to send you a reset link.
       </p>
     </AuthLayout>
   );

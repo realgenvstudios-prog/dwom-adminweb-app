@@ -45,6 +45,11 @@ export class AdminLifecycleService {
     await adminApiClient.delete(`/users/invites/${inviteId}`);
   }
 
+  /** Emails a one-time reset link (24h). `resetUrl` is returned only when the server can't send email. */
+  async sendPasswordReset(adminId: number): Promise<{ email: string; emailed: boolean; expiresAt: string; resetUrl?: string }> {
+    return adminApiClient.post(`/users/${adminId}/password-reset`);
+  }
+
   /** Self-scoped server-side from the JWT. */
   async changeOwnPassword(currentPassword: string, newPassword: string): Promise<void> {
     await adminApiClient.patch('/admin/change-password', { currentPassword, newPassword });

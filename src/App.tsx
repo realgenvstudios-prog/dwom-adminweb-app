@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import LoginPage from './components/LoginPage';
 import AcceptInvitePage from './components/AcceptInvitePage';
+import ResetPasswordPage from './components/ResetPasswordPage';
 import DashboardPage from './components/DashboardPage';
 import AdminsPage from './components/AdminsPage';
 import OrdersPage from './components/OrdersPage';
@@ -25,6 +26,7 @@ const App: React.FC = () => {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/accept-invite" element={<AcceptInvitePage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route
         path="/dashboard"
         element={

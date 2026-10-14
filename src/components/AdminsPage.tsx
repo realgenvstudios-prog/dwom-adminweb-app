@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
-import { AlertCircle, Ban, Loader2, Mail, MailX, MoreHorizontal, RotateCw, ShieldCheck, UserCheck, UserCog, UserPlus, Users } from 'lucide-react';
+import { AlertCircle, Ban, Copy, KeyRound, Loader2, Mail, MailX, MoreHorizontal, RotateCw, ShieldCheck, UserCheck, UserCog, UserPlus, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import { DataTable, DataTableColumnHeader, facetedFilterFn } from '@/components/data-table';
 import { StatCard } from '@/components/stat-card';
 import adminsService, { type Admin, type AdminRole } from '../services/adminsService';
@@ -46,6 +47,7 @@ export default function AdminsPage() {
   const [roleFor, setRoleFor] = useState<{ admin: Admin; role: AdminRole } | null>(null);
   const [confirm, setConfirm] = useState<{ admin: Admin; action: 'suspend' | 'reactivate' | 'cancel' } | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [resetLink, setResetLink] = useState<{ name: string; email: string; url: string } | null>(null);
   const me = Number(adminAuthService.getCurrentAdmin()?.id);
 
   const load = useCallback(async () => {
@@ -80,6 +82,22 @@ export default function AdminsPage() {
     },
     [load],
   );
+
+  // Emails a one-time link (24h). When the server can't send email, the
+  // link comes back so it can be passed on directly.
+  const sendReset = useCallback(async (a: Admin) => {
+    try {
+      setBusy(rowKey(a));
+      const r = await adminsService.sendPasswordReset(a.id);
+      if (r.emailed) toast.success(`Reset link sent to ${r.email}`, { description: 'It works once and expires in 24 hours.' });
+      else if (r.resetUrl) setResetLink({ name: a.name, email: r.email, url: r.resetUrl });
+      else toast.error('The reset link couldn’t be emailed.');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Couldn’t send the reset link.');
+    } finally {
+      setBusy(null);
+    }
+  }, []);
 
   const columns = useMemo<ColumnDef<Admin>[]>(
     () => [
@@ -186,6 +204,12 @@ export default function AdminsPage() {
                       <UserCog />
                       Change role
                     </DropdownMenuItem>
+                    {!self && a.status === 'Active' && (
+                      <DropdownMenuItem onSelect={() => void sendReset(a)}>
+                        <KeyRound />
+                        Send password reset
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     {a.status === 'Suspended' ? (
                       <DropdownMenuItem onSelect={() => setConfirm({ admin: a, action: 'reactivate' })}>
@@ -206,7 +230,7 @@ export default function AdminsPage() {
         },
       },
     ],
-    [busy, me, run],
+    [busy, me, run, sendReset],
   );
 
   const accounts = admins.filter((a) => a.kind === 'admin');
@@ -346,6 +370,37 @@ export default function AdminsPage() {
             >
               Save role
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!resetLink} onOpenChange={(o) => !o && setResetLink(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send this link to {resetLink?.name}</DialogTitle>
+            <DialogDescription>
+              Email isn’t set up on the server, so it wasn’t sent. Share it with {resetLink?.email} privately (e.g. WhatsApp). It works once and expires in 24 hours.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2">
+            <Input readOnly value={resetLink?.url ?? ''} className="font-mono text-xs" onFocus={(e) => e.currentTarget.select()} />
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="Copy link"
+              onClick={() => {
+                if (!resetLink) return;
+                navigator.clipboard.writeText(resetLink.url).then(
+                  () => toast.success('Link copied'),
+                  () => toast.error('Couldn’t copy — select the link and copy it'),
+                );
+              }}
+            >
+              <Copy />
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setResetLink(null)}>Done</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

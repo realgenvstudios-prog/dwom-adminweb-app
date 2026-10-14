@@ -98,6 +98,22 @@ export const adminAuthService = {
     return { accessToken, admin };
   },
 
+  /** Completes a reset link from a Super Admin. Doesn't sign in — the admin signs in next. */
+  async resetPassword(token: string, password: string): Promise<{ email: string }> {
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/auth/admin/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, password }),
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      if (response.status === 429) throw new Error('Too many attempts. Wait 15 minutes and try again.');
+      const m = Array.isArray(body.message) ? body.message.join('. ') : body.message;
+      throw new Error(m || 'This reset link is invalid or has expired.');
+    }
+    return { email: body.email ?? '' };
+  },
+
   /**
    * Logout
    */
