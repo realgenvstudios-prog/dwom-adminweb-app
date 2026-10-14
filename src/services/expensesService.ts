@@ -38,6 +38,7 @@ export const EXPENSE_CATEGORIES = [
   'Utilities',
   'Salaries',
   'Marketing',
+  'Software & apps',
   'Equipment',
   'Other',
 ];

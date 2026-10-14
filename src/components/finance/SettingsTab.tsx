@@ -17,7 +17,6 @@ type Key =
   | 'paystackFeePercent'
   | 'packagingCostPerOrder'
   | 'grossProfitMarginPercent'
-  | 'subscriptionPriceGHS'
   | 'pickerRatePerOrder'
   | 'pickerDailyMinimumPay'
   | 'pickerDailyThreshold';
@@ -49,11 +48,6 @@ const SECTIONS: { title: string; description: string; affectsCustomers?: boolean
       { key: 'packagingCostPerOrder', label: 'Packaging per order', hint: 'Added to every order’s cost.', unit: '₵' },
       { key: 'grossProfitMarginPercent', label: 'Fallback margin', hint: 'Used to estimate profit when no product costs are recorded.', unit: '%' },
     ],
-  },
-  {
-    title: 'Subscriptions',
-    description: 'Used for MRR (active subscriptions × this price).',
-    fields: [{ key: 'subscriptionPriceGHS', label: 'Price per month', hint: 'What one subscription is counted as.', unit: '₵' }],
   },
   {
     title: 'Picker pay',
@@ -168,7 +162,7 @@ const SettingsTab: React.FC = () => {
   if (!form) {
     return (
       <div className="grid gap-6 lg:grid-cols-2">
-        {Array.from({ length: 4 }).map((_, i) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <Skeleton key={i} className="h-48 w-full rounded-xl" />
         ))}
       </div>
@@ -221,6 +215,13 @@ const SettingsTab: React.FC = () => {
                     </>
                   )}
                   .
+                </p>
+              )}
+              {section.title === 'Picker pay' && !unavailable('pickerDailyThreshold') && busyDay * n('pickerRatePerOrder') < n('pickerDailyMinimumPay') && (
+                <p className="flex items-start gap-2 rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-800">
+                  <AlertCircle className="mt-px size-3.5 shrink-0" />
+                  A picker who reaches the threshold earns less than the daily minimum. Raise the pay per order to at least{' '}
+                  {formatGhs(Math.ceil((n('pickerDailyMinimumPay') / busyDay) * 100) / 100)}.
                 </p>
               )}
             </CardContent>

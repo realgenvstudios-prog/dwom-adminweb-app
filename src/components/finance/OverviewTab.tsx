@@ -68,7 +68,7 @@ const OverviewTab: React.FC = () => {
           failed={kFailed}
         />
         <StatCard label="Avg paid order" value={formatGhs(k?.avgOrderValue)} hint="Net revenue ÷ paid orders" icon={Receipt} tint="bg-sky-500/10 text-sky-600" loading={loading} failed={kFailed} />
-        <StatCard label="MRR" value={formatGhs(k?.mrr)} hint="Active subs × subscription price" icon={Repeat} tint="bg-emerald-500/10 text-emerald-600" loading={loading} failed={kFailed} />
+        <StatCard label="MRR" value={formatGhs(k?.mrr)} hint="Active subscription baskets, per month" icon={Repeat} tint="bg-emerald-500/10 text-emerald-600" loading={loading} failed={kFailed} />
         <StatCard label="Active subscriptions" value={String(k?.activeSubscriptions ?? 0)} hint="Active and due to bill" icon={Repeat} tint="bg-violet-500/10 text-violet-600" loading={loading} failed={kFailed} />
         <StatCard
           label="Failed payments"
