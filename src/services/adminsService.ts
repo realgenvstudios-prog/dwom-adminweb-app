@@ -41,6 +41,10 @@ class AdminsService {
     return this.lifecycle.resetPermissions(adminId);
   }
 
+  removeAdmin(adminId: number): ReturnType<AdminLifecycleService['removeAdmin']> {
+    return this.lifecycle.removeAdmin(adminId);
+  }
+
   resendInvite(inviteId: number): ReturnType<AdminLifecycleService['resendInvite']> {
     return this.lifecycle.resendInvite(inviteId);
   }

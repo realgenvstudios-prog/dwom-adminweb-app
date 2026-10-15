@@ -1,6 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
-import { AlertCircle, Ban, Copy, KeyRound, ListChecks, Loader2, Mail, MailX, MoreHorizontal, RotateCw, ShieldCheck, UserCheck, UserCog, UserPlus, Users } from 'lucide-react';
+import {
+  AlertCircle,
+  Ban,
+  Copy,
+  KeyRound,
+  ListChecks,
+  Loader2,
+  Mail,
+  MailX,
+  MoreHorizontal,
+  RotateCw,
+  ShieldCheck,
+  UserCheck,
+  UserCog,
+  UserPlus,
+  Trash2,
+  Users,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -48,7 +65,7 @@ export default function AdminsPage() {
   const [inviteToken, setInviteToken] = useState<number | null>(null);
   const [roleFor, setRoleFor] = useState<{ admin: Admin; role: AdminRole } | null>(null);
   const [permsFor, setPermsFor] = useState<{ admin: Admin; token: number } | null>(null);
-  const [confirm, setConfirm] = useState<{ admin: Admin; action: 'suspend' | 'reactivate' | 'cancel' } | null>(null);
+  const [confirm, setConfirm] = useState<{ admin: Admin; action: 'suspend' | 'reactivate' | 'cancel' | 'delete' } | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   // A link to pass on directly: always after an invite, and for a reset only when email isn't set up.
   const [resetLink, setResetLink] = useState<{ name: string; email: string; url: string; kind: 'reset' | 'invite'; emailed: boolean } | null>(null);
@@ -261,6 +278,10 @@ export default function AdminsPage() {
                         Suspend
                       </DropdownMenuItem>
                     )}
+                    <DropdownMenuItem variant="destructive" disabled={self} onSelect={() => setConfirm({ admin: a, action: 'delete' })}>
+                      <Trash2 />
+                      Delete admin
+                    </DropdownMenuItem>
                   </>
                 )}
               </DropdownMenuContent>
@@ -288,6 +309,11 @@ export default function AdminsPage() {
       },
       reactivate: { title: `Reactivate ${confirm.admin.name}?`, body: `They can sign in again with their ${confirm.admin.role} access.`, cta: 'Reactivate' },
       cancel: { title: `Cancel the invite to ${confirm.admin.email}?`, body: 'The link they were sent stops working. You can invite them again later.', cta: 'Cancel invite' },
+      delete: {
+        title: `Delete ${confirm.admin.name} as an admin?`,
+        body: 'This can’t be undone. Their dashboard access ends immediately and their admin role and permissions are removed. If they also shop on the DWOM app, their customer account and orders are kept. To bring them back you’d send a new invite. To pause access instead, use Suspend.',
+        cta: 'Delete admin',
+      },
     }[confirm.action];
 
   const doConfirm = () => {
@@ -296,6 +322,14 @@ export default function AdminsPage() {
     setConfirm(null);
     const key = rowKey(admin);
     if (action === 'cancel') void run(key, () => adminsService.cancelInvite(admin.id), 'Invite cancelled');
+    else if (action === 'delete')
+      void run(
+        key,
+        async () => {
+          await adminsService.removeAdmin(admin.id);
+        },
+        `${admin.name} is no longer an admin`,
+      );
     else void run(key, () => adminsService.setSuspended(admin.id, action === 'suspend'), action === 'suspend' ? `${admin.name} suspended` : `${admin.name} reactivated`);
   };
 

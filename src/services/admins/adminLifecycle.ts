@@ -56,6 +56,14 @@ export class AdminLifecycleService {
     await adminApiClient.patch(`/users/${adminId}`, { useRolePreset: true });
   }
 
+  /**
+   * Removes an admin for good: their access ends immediately. If they also
+   * shop on the app they stay a customer (orders kept); otherwise the account is deleted.
+   */
+  async removeAdmin(adminId: number): Promise<{ removed: boolean; keptAsCustomer: boolean }> {
+    return adminApiClient.delete(`/users/admins/${adminId}`);
+  }
+
   /** The link stops working immediately. */
   async cancelInvite(inviteId: number): Promise<void> {
     await adminApiClient.delete(`/users/invites/${inviteId}`);
