@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { AlertCircle, Archive, ChevronDown, CircleAlert, CircleX, Leaf, Package, RotateCw, Sparkles } from 'lucide-react';
+import { AlertCircle, Archive, ChevronDown, CircleAlert, CircleX, Download, Leaf, Package, RotateCw, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -12,6 +12,7 @@ import seasonalService from '../../services/seasonalService';
 import { logger } from '../../utils/logger';
 import { buildProductColumns } from './columns';
 import ProductSheet, { type ProductSheetIntent } from './ProductSheet';
+import { downloadProductsCsv } from './export-csv';
 import SeasonalRotationDialog from './SeasonalRotationDialog';
 import { STOCK_STATUSES, discountOf, stockMeta } from './product-meta';
 import type { Product, ProductCategory } from './ProductTypes';
@@ -207,8 +208,23 @@ export default function ProductsTab({ products, categories, loading, error, refr
           setSheetOpen(true);
         }}
         emptyMessage={products.length === 0 ? 'No products yet. Add your first one.' : 'No products match these filters.'}
-        toolbarActions={
+        toolbarActions={(table) => (
           <>
+            {/* Exports what's shown: search and filters apply. */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8"
+              disabled={loading || products.length === 0}
+              onClick={() => {
+                const rows = table.getFilteredRowModel().rows.map((r) => r.original);
+                downloadProductsCsv(rows, categories);
+                toast.success(`Exported ${rows.length} product${rows.length === 1 ? '' : 's'}`);
+              }}
+            >
+              <Download />
+              Export
+            </Button>
             <Button variant="outline" size="sm" className="h-8" onClick={() => setArchivedKey(Date.now())}>
               <Archive />
               Archived
@@ -218,7 +234,7 @@ export default function ProductsTab({ products, categories, loading, error, refr
               Seasonal
             </Button>
           </>
-        }
+        )}
         bulkActions={(rows, clear) => (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
