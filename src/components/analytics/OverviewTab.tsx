@@ -59,6 +59,10 @@ function BarList({ rows, max }: { rows: { label: string; value: number; hint?: s
   );
 }
 
+function Unavailable() {
+  return <p className="py-8 text-center text-sm text-muted-foreground">Couldn’t load this. Refresh to try again.</p>;
+}
+
 export default function OverviewTab({ data, loading, failed }: { data: AnalyticsInsights | null; loading: boolean; failed: boolean }) {
   const t = data?.totals;
   const funnelTop = data?.funnel[0]?.sessions ?? 0;
@@ -112,8 +116,10 @@ export default function OverviewTab({ data, loading, failed }: { data: Analytics
             <CardDescription>App sessions reaching each step</CardDescription>
           </CardHeader>
           <CardContent>
-            {loading || !data ? (
+            {loading ? (
               <Skeleton className="h-[260px] w-full" />
+            ) : !data ? (
+              <Unavailable />
             ) : (
               <ol className="grid gap-3">
                 {data.funnel.map((f, i) => {
@@ -145,8 +151,10 @@ export default function OverviewTab({ data, loading, failed }: { data: Analytics
             <CardDescription>App sessions and the orders they turned into</CardDescription>
           </CardHeader>
           <CardContent>
-            {loading || !data ? (
+            {loading ? (
               <Skeleton className="h-[260px] w-full" />
+            ) : !data ? (
+              <Unavailable />
             ) : (
               <ChartContainer config={chartConfig} className="aspect-auto h-[260px] w-full">
                 <ComposedChart data={data.daily} margin={{ left: 0, right: 8, top: 8 }}>
@@ -178,8 +186,10 @@ export default function OverviewTab({ data, loading, failed }: { data: Analytics
             <CardDescription>Most frequent searches in the app</CardDescription>
           </CardHeader>
           <CardContent>
-            {loading || !data ? (
+            {loading ? (
               <Skeleton className="h-64 w-full" />
+            ) : !data ? (
+              <Unavailable />
             ) : data.topSearches.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">No searches in this range.</p>
             ) : (
@@ -200,8 +210,10 @@ export default function OverviewTab({ data, loading, failed }: { data: Analytics
             <CardDescription>Searches that returned nothing: products customers want that the catalog doesn’t match</CardDescription>
           </CardHeader>
           <CardContent>
-            {loading || !data ? (
+            {loading ? (
               <Skeleton className="h-64 w-full" />
+            ) : !data ? (
+              <Unavailable />
             ) : data.missedSearches.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">Every search found something. 🎉</p>
             ) : (
@@ -234,8 +246,10 @@ export default function OverviewTab({ data, loading, failed }: { data: Analytics
             <CardDescription>Screen views in this range</CardDescription>
           </CardHeader>
           <CardContent>
-            {loading || !data ? (
+            {loading ? (
               <Skeleton className="h-56 w-full" />
+            ) : !data ? (
+              <Unavailable />
             ) : data.topScreens.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">No screen views in this range.</p>
             ) : (
@@ -249,8 +263,10 @@ export default function OverviewTab({ data, loading, failed }: { data: Analytics
             <CardDescription>Share of app sessions</CardDescription>
           </CardHeader>
           <CardContent>
-            {loading || !data ? (
+            {loading ? (
               <Skeleton className="h-32 w-full" />
+            ) : !data ? (
+              <Unavailable />
             ) : data.platforms.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">No sessions in this range.</p>
             ) : (

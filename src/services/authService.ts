@@ -19,7 +19,7 @@ export interface AuthResponse {
 
 export const adminAuthService = {
   /**
-   * Login with hardcoded credentials (temporary - works without backend)
+   * Signs an admin in through the backend, which checks the password and issues the token.
    */
   async login(email: string, password: string): Promise<AuthResponse> {
     // Always go through the real backend — it already validates credentials
@@ -63,7 +63,7 @@ export const adminAuthService = {
 
     return { accessToken, admin };
   },
-  
+
   /**
    * Accept an admin invite — sets a password (and phone, for brand-new
    * accounts) and logs straight in, same response shape as login().

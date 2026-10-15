@@ -22,8 +22,12 @@ function peakWindow(byHour: { hour: number; orders: number }[]) {
   return best;
 }
 
-function Empty({ text = 'No orders in this range.' }: { text?: string }) {
-  return <div className="flex h-[220px] items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">{text}</div>;
+function Empty({ text = 'No orders in this range.', failed }: { text?: string; failed?: boolean }) {
+  return (
+    <div className="flex h-[220px] items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+      {failed ? 'Couldn’t load this. Refresh to try again.' : text}
+    </div>
+  );
 }
 
 export default function OrdersInsightsTab({ data, loading, failed }: { data: OrderInsights | null; loading: boolean; failed: boolean }) {
@@ -42,10 +46,42 @@ export default function OrdersInsightsTab({ data, loading, failed }: { data: Ord
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
-        <StatCard label="Orders" value={(t?.orders ?? 0).toLocaleString()} hint={t ? `${t.ordersPerDay} a day on average` : undefined} icon={ShoppingCart} tint="bg-sky-500/10 text-sky-600" loading={loading} failed={failed} />
-        <StatCard label="Average basket" value={formatGhs(t?.avgBasket ?? 0)} hint={t ? `Half are under ${formatGhs(t.medianBasket)} (goods only)` : undefined} icon={ShoppingBasket} tint="bg-emerald-500/10 text-emerald-600" loading={loading} failed={failed} />
-        <StatCard label="Average order" value={formatGhs(t?.avgOrderValue ?? 0)} hint="What customers paid, with fees" icon={Banknote} tint="bg-violet-500/10 text-violet-600" loading={loading} failed={failed} />
-        <StatCard label="Items per order" value={String(t?.avgItems ?? 0)} hint="Units, on average" icon={CalendarDays} tint="bg-amber-500/10 text-amber-600" loading={loading} failed={failed} />
+        <StatCard
+          label="Orders"
+          value={(t?.orders ?? 0).toLocaleString()}
+          hint={t ? `${t.ordersPerDay} a day on average` : undefined}
+          icon={ShoppingCart}
+          tint="bg-sky-500/10 text-sky-600"
+          loading={loading}
+          failed={failed}
+        />
+        <StatCard
+          label="Average basket"
+          value={formatGhs(t?.avgBasket ?? 0)}
+          hint={t ? `Half are under ${formatGhs(t.medianBasket)} (goods only)` : undefined}
+          icon={ShoppingBasket}
+          tint="bg-emerald-500/10 text-emerald-600"
+          loading={loading}
+          failed={failed}
+        />
+        <StatCard
+          label="Average order"
+          value={formatGhs(t?.avgOrderValue ?? 0)}
+          hint="What customers paid, with fees"
+          icon={Banknote}
+          tint="bg-violet-500/10 text-violet-600"
+          loading={loading}
+          failed={failed}
+        />
+        <StatCard
+          label="Items per order"
+          value={String(t?.avgItems ?? 0)}
+          hint="Units, on average"
+          icon={CalendarDays}
+          tint="bg-amber-500/10 text-amber-600"
+          loading={loading}
+          failed={failed}
+        />
         <StatCard
           label="From returning customers"
           value={`${pct(t?.returningOrders ?? 0, t?.orders ?? 0)}%`}
@@ -55,7 +91,15 @@ export default function OrdersInsightsTab({ data, loading, failed }: { data: Ord
           loading={loading}
           failed={failed}
         />
-        <StatCard label="Cancelled" value={`${t?.cancellationRate ?? 0}%`} hint={t ? `${t.cancelled} order${t.cancelled === 1 ? '' : 's'}` : undefined} icon={XCircle} tint="bg-red-500/10 text-red-600" loading={loading} failed={failed} />
+        <StatCard
+          label="Cancelled"
+          value={`${t?.cancellationRate ?? 0}%`}
+          hint={t ? `${t.cancelled} order${t.cancelled === 1 ? '' : 's'}` : undefined}
+          icon={XCircle}
+          tint="bg-red-500/10 text-red-600"
+          loading={loading}
+          failed={failed}
+        />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -76,7 +120,7 @@ export default function OrdersInsightsTab({ data, loading, failed }: { data: Ord
             {loading ? (
               <Skeleton className="h-[220px] w-full" />
             ) : !hasOrders ? (
-              <Empty />
+              <Empty failed={failed} />
             ) : (
               <ChartContainer config={ordersConfig} className="aspect-auto h-[220px] w-full">
                 <BarChart data={weekdays} margin={{ left: 0, right: 8, top: 8 }}>
@@ -123,14 +167,20 @@ export default function OrdersInsightsTab({ data, loading, failed }: { data: Ord
             {loading ? (
               <Skeleton className="h-[220px] w-full" />
             ) : !hasOrders ? (
-              <Empty />
+              <Empty failed={failed} />
             ) : (
               <ChartContainer config={ordersConfig} className="aspect-auto h-[220px] w-full">
                 <BarChart data={data!.byHour} margin={{ left: 0, right: 8, top: 8 }}>
                   <CartesianGrid vertical={false} />
                   <XAxis dataKey="hour" tickLine={false} axisLine={false} tickMargin={8} interval={2} tickFormatter={(h: number) => String(h).padStart(2, '0')} />
                   <YAxis tickLine={false} axisLine={false} width={28} allowDecimals={false} />
-                  <ChartTooltip content={<ChartTooltipContent labelFormatter={(_, p) => `${hourLabel(Number(p?.[0]?.payload?.hour ?? 0))}–${hourLabel((Number(p?.[0]?.payload?.hour ?? 0) + 1) % 24)}`} />} />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        labelFormatter={(_, p) => `${hourLabel(Number(p?.[0]?.payload?.hour ?? 0))}–${hourLabel((Number(p?.[0]?.payload?.hour ?? 0) + 1) % 24)}`}
+                      />
+                    }
+                  />
                   <Bar dataKey="orders" radius={[3, 3, 0, 0]}>
                     {data!.byHour.map((h) => {
                       const inPeak = peak ? [0, 1, 2].some((k) => (peak.start + k) % 24 === h.hour) : false;
@@ -153,7 +203,7 @@ export default function OrdersInsightsTab({ data, loading, failed }: { data: Ord
           {loading ? (
             <Skeleton className="h-[220px] w-full" />
           ) : !hasOrders ? (
-            <Empty />
+            <Empty failed={failed} />
           ) : (
             <div className="min-w-[640px]">
               <div className="grid grid-cols-[48px_repeat(24,minmax(0,1fr))] gap-[3px]">
@@ -189,7 +239,8 @@ export default function OrdersInsightsTab({ data, loading, failed }: { data: Ord
             <CardDescription>
               {topBucket && t?.orders ? (
                 <>
-                  Most baskets are <span className="font-medium text-foreground">{topBucket.label.toLowerCase()}</span> ({pct(topBucket.orders, t.orders)}%). Goods only, before fees.
+                  Most baskets are <span className="font-medium text-foreground">{topBucket.label.toLowerCase()}</span> ({pct(topBucket.orders, t.orders)}%). Goods only, before
+                  fees.
                 </>
               ) : (
                 'Goods only, before fees'
@@ -200,7 +251,7 @@ export default function OrdersInsightsTab({ data, loading, failed }: { data: Ord
             {loading ? (
               <Skeleton className="h-40 w-full" />
             ) : !t?.orders ? (
-              <Empty />
+              <Empty failed={failed} />
             ) : (
               <ul className="grid gap-2">
                 {data!.basketBuckets.map((b) => (
@@ -228,7 +279,7 @@ export default function OrdersInsightsTab({ data, loading, failed }: { data: Ord
             {loading ? (
               <Skeleton className="h-40 w-full" />
             ) : !data?.topProducts.length ? (
-              <Empty />
+              <Empty failed={failed} />
             ) : (
               <table className="w-full text-sm">
                 <thead>
@@ -264,7 +315,7 @@ export default function OrdersInsightsTab({ data, loading, failed }: { data: Ord
           {loading ? (
             <Skeleton className="h-16 w-full" />
           ) : !data?.paymentMethods.length ? (
-            <Empty text="No payments in this range." />
+            <Empty text="No payments in this range." failed={failed} />
           ) : (
             <div className="grid gap-4">
               <div className="flex h-3 overflow-hidden rounded-full bg-muted">

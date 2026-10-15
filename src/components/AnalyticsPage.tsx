@@ -1,8 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { CalendarDays, FlaskConical } from 'lucide-react';
-import { Label } from '@/components/ui/label';
+import { useCallback, useEffect, useState } from 'react';
+import { CalendarDays, Info } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTabParam } from '@/hooks/use-tab-param';
 import analyticsService, { type AnalyticsInsights, type OrderInsights } from '../services/analyticsService';
@@ -11,7 +9,6 @@ import { logger } from '../utils/logger';
 import NotesTrackingTab from './analytics/NotesTrackingTab';
 import OrdersInsightsTab from './analytics/OrdersInsightsTab';
 import OverviewTab from './analytics/OverviewTab';
-import { SAMPLE_NOTES, sampleInsights, sampleOrderInsights } from './analytics/sample-data';
 
 const TAB_KEYS = ['orders', 'overview', 'notes'] as const;
 type TabKey = (typeof TAB_KEYS)[number];
@@ -29,8 +26,6 @@ export default function AnalyticsPage() {
   const [notes, setNotes] = useState<NotesAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState({ insights: false, notes: false, orders: false });
-  // null = automatic: sample data shows only while there's no real data.
-  const [sampleChoice, setSampleChoice] = useState<boolean | null>(null);
 
   const load = useCallback(async (days: Range) => {
     setLoading(true);
@@ -53,42 +48,20 @@ export default function AnalyticsPage() {
     return () => clearTimeout(t);
   }, [load, range]);
 
-  const hasReal =
-    activeTab === 'orders' ? (orders?.totals.orders ?? 0) > 0 : activeTab === 'overview' ? (insights?.totals.events ?? 0) > 0 : (notes?.stats.totalNotes ?? 0) > 0;
-  const sample = sampleChoice ?? (!loading && !hasReal);
-  const sampleOverview = useMemo(() => sampleInsights(eventDays(range)), [range]);
-  const sampleOrders = useMemo(() => sampleOrderInsights(range), [range]);
+  // App usage only fills in once the app sends activity events.
+  const noAppActivity = activeTab === 'overview' && !loading && !failed.insights && (insights?.totals.events ?? 0) === 0;
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
-          <p className="text-sm text-muted-foreground">When and how customers order, and how they use the app.</p>
-        </div>
-        <div className="flex items-center gap-2 rounded-lg border px-3 py-1.5">
-          <Switch id="sample" checked={sample} onCheckedChange={(v) => setSampleChoice(v)} />
-          <Label htmlFor="sample" className="cursor-pointer text-sm font-normal">
-            Sample data
-          </Label>
-        </div>
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
+        <p className="text-sm text-muted-foreground">When and how customers order, and how they use the app.</p>
       </div>
 
-      {sample && (
-        <div className="flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-900">
-          <FlaskConical className="mt-0.5 size-4 shrink-0" />
-          <div>
-            <p className="font-medium">You’re looking at sample data. None of these numbers are real.</p>
-            <p className="text-amber-900/80">
-              {hasReal
-                ? 'Real data is available. Turn off “Sample data” to see it.'
-                : (failed.insights && activeTab === 'overview') || (failed.orders && activeTab === 'orders')
-                  ? 'The server doesn’t provide these insights yet (deploy the latest backend). Real numbers replace this automatically.'
-                  : activeTab === 'orders'
-                    ? 'No orders in this range yet. Real numbers replace this automatically.'
-                    : 'No activity has been recorded yet. Real numbers replace this automatically once the app sends events.'}
-            </p>
-          </div>
+      {noAppActivity && (
+        <div className="flex items-start gap-3 rounded-lg border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+          <Info className="mt-0.5 size-4 shrink-0" />
+          <p>No app activity recorded in this range yet. These figures fill in as customers use the latest version of the app.</p>
         </div>
       )}
 
@@ -116,13 +89,13 @@ export default function AnalyticsPage() {
           )}
         </div>
         <TabsContent value="orders">
-          <OrdersInsightsTab data={sample ? sampleOrders : orders} loading={loading && !sample} failed={!sample && failed.orders} />
+          <OrdersInsightsTab data={orders} loading={loading} failed={failed.orders} />
         </TabsContent>
         <TabsContent value="overview">
-          <OverviewTab data={sample ? sampleOverview : insights} loading={loading && !sample} failed={!sample && failed.insights} />
+          <OverviewTab data={insights} loading={loading} failed={failed.insights} />
         </TabsContent>
         <TabsContent value="notes">
-          <NotesTrackingTab data={sample ? SAMPLE_NOTES : notes} loading={loading && !sample} failed={!sample && failed.notes} />
+          <NotesTrackingTab data={notes} loading={loading} failed={failed.notes} />
         </TabsContent>
       </Tabs>
     </div>
