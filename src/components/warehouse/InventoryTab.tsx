@@ -13,6 +13,7 @@ import InventoryItemSheet from './InventoryItemSheet';
 import StockDialog, { type StockAction } from './StockDialogs';
 import { buildInventoryColumns } from './columns';
 import { LEVELS, levelOf, type InventoryRow } from './inventory-meta';
+import { STOCK_STATUSES } from '../products/product-meta';
 
 function csvCell(v: string | number) {
   let s = String(v);
@@ -21,7 +22,7 @@ function csvCell(v: string | number) {
 }
 
 function downloadCsv(rows: InventoryRow[]) {
-  const header = ['Product ID', 'Product', 'Category', 'On hand', 'Unit', 'Reorder at', 'Reorder quantity', 'Level', 'Last restocked', 'Product status'];
+  const header = ['Product ID', 'Product', 'Category', 'On hand', 'Unit', 'Reorder at', 'Reorder quantity', 'Level', 'In the shop', 'Last restocked', 'Product status'];
   const lines = rows.map((r) => [
     r.productId,
     r.Product?.nameEnglish ?? '',
@@ -31,6 +32,7 @@ function downloadCsv(rows: InventoryRow[]) {
     r.reorderLevel,
     r.reorderQuantity,
     LEVELS[levelOf(r)].label,
+    STOCK_STATUSES.find((s) => s.value === r.Product?.stockStatus)?.label ?? 'In stock',
     r.lastRestockedAt ?? '',
     r.Product?.active === false ? 'Archived' : 'Live',
   ]);
@@ -120,32 +122,62 @@ export default function InventoryTab() {
   }, []);
 
   const columns = useMemo(() => buildInventoryColumns(openAction), [openAction]);
+  // Counted from the rows: the API's own low-stock figure treats every
+  // uncounted (0) product as low, which isn't meaningful here.
+  const live = rows.filter((r) => r.Product?.active !== false);
+  const needReorder = live.filter((r) => levelOf(r) === 'reorder').length;
+  const counted = live.filter((r) => r.quantity > 0).length;
+  const outInShop = live.filter((r) => r.Product?.stockStatus === 'out_of_stock').length;
   const viewing = rows.find((r) => r.id === viewId) ?? null;
-  const dialogRow = dialog ? rows.find((r) => r.id === dialog.id) ?? null : null;
+  const dialogRow = dialog ? (rows.find((r) => r.id === dialog.id) ?? null) : null;
 
   return (
     <div className="flex flex-col gap-6">
       <p className="flex items-start gap-2 rounded-lg border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
         <Info className="mt-0.5 size-4 shrink-0" />
         <span>
-          Warehouse counts track stock you hold. They don’t control what customers can buy; that’s each product’s{' '}
-          <strong className="text-foreground">stock status</strong> in Catalog.
+          Warehouse counts track stock you hold. They don’t control what customers can buy; that’s each product’s <strong className="text-foreground">stock status</strong> in
+          Catalog.
         </span>
       </p>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Units on hand" value={(stats?.totalUnits ?? 0).toLocaleString()} hint={`${stats?.totalProducts ?? 0} products tracked`} icon={Boxes} tint="bg-sky-500/10 text-sky-600" loading={loading} failed={!!error} />
+        <StatCard
+          label="Units on hand"
+          value={(stats?.totalUnits ?? 0).toLocaleString()}
+          hint={`${counted} of ${live.length} live products counted`}
+          icon={Boxes}
+          tint="bg-sky-500/10 text-sky-600"
+          loading={loading}
+          failed={!!error}
+        />
         <StatCard
           label="Need reordering"
-          value={String(stats?.lowStockItems ?? 0)}
-          hint={`${stats?.outOfStockItems ?? 0} empty`}
+          value={String(needReorder)}
+          hint={`${outInShop} marked out of stock in the shop`}
           icon={TriangleAlert}
           tint="bg-amber-500/10 text-amber-600"
           loading={loading}
           failed={!!error}
         />
-        <StatCard label="Stock value" value={formatGhs(stats?.totalInventoryValue)} hint="At selling price" icon={Wallet} tint="bg-emerald-500/10 text-emerald-600" loading={loading} failed={!!error} />
-        <StatCard label="Cost basis" value={formatGhs(stats?.totalInventoryCostBasis)} hint="At purchase cost, where set" icon={Wallet} tint="bg-violet-500/10 text-violet-600" loading={loading} failed={!!error} />
+        <StatCard
+          label="Stock value"
+          value={formatGhs(stats?.totalInventoryValue)}
+          hint="At selling price"
+          icon={Wallet}
+          tint="bg-emerald-500/10 text-emerald-600"
+          loading={loading}
+          failed={!!error}
+        />
+        <StatCard
+          label="Cost basis"
+          value={formatGhs(stats?.totalInventoryCostBasis)}
+          hint="At purchase cost, where set"
+          icon={Wallet}
+          tint="bg-violet-500/10 text-violet-600"
+          loading={loading}
+          failed={!!error}
+        />
       </div>
 
       {error && (
@@ -170,6 +202,7 @@ export default function InventoryTab() {
         initialHidden={{ status: false }}
         searchPlaceholder="Search products…"
         filters={[
+          { columnId: 'shop', title: 'In the shop', options: STOCK_STATUSES.map((s) => ({ value: s.value, label: s.label, icon: s.icon })) },
           { columnId: 'level', title: 'Level', options: (Object.keys(LEVELS) as (keyof typeof LEVELS)[]).map((k) => ({ value: k, label: LEVELS[k].label, icon: LEVELS[k].icon })) },
           {
             columnId: 'status',
@@ -208,13 +241,9 @@ export default function InventoryTab() {
         )}
       />
 
-      {viewing && (
-        <InventoryItemSheet key={viewing.id} row={viewing} open={viewOpen} onOpenChange={setViewOpen} onAction={(action) => openAction(viewing, action)} />
-      )}
+      {viewing && <InventoryItemSheet key={viewing.id} row={viewing} open={viewOpen} onOpenChange={setViewOpen} onAction={(action) => openAction(viewing, action)} />}
 
-      {dialog && dialogRow && (
-        <StockDialog key={dialog.token} row={dialogRow} action={dialog.action} open={dialogOpen} onOpenChange={setDialogOpen} onDone={() => void load()} />
-      )}
+      {dialog && dialogRow && <StockDialog key={dialog.token} row={dialogRow} action={dialog.action} open={dialogOpen} onOpenChange={setDialogOpen} onDone={() => void load()} />}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { ArrowDownLeft, ArrowUpRight, CircleCheck, CircleX, TriangleAlert, type LucideIcon } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, CircleCheck, CircleDashed, TriangleAlert, type LucideIcon } from 'lucide-react';
 import type { MovementRecord } from '../../services/inventoryService';
 
 /** One row of GET /inventory: the Inventory record + its product and movements. */
@@ -16,22 +16,26 @@ export interface InventoryRow {
     imageUrl?: string | null;
     unitType?: string;
     active?: boolean;
+    /** What customers see in the app: the real availability signal. */
+    stockStatus?: string;
     Category?: { id: number; name: string } | null;
   };
   InventoryMovement?: MovementRecord[];
 }
 
-export type LevelKey = 'ok' | 'reorder' | 'empty';
+export type LevelKey = 'ok' | 'reorder' | 'none';
 
-// Same rule as the API's stats: at or below the reorder level needs reordering.
+// DWOM buys fresh per order, so most products hold no counted stock: a
+// count of 0 is "not counted", not an alarm. Reorder only applies once some
+// stock has been counted and runs down to the reorder level.
 export const LEVELS: Record<LevelKey, { label: string; icon: LucideIcon; tone: string; badge: string }> = {
   ok: { label: 'Stocked', icon: CircleCheck, tone: 'text-emerald-600', badge: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20' },
   reorder: { label: 'Reorder', icon: TriangleAlert, tone: 'text-amber-600', badge: 'bg-amber-500/10 text-amber-700 border-amber-500/20' },
-  empty: { label: 'Empty', icon: CircleX, tone: 'text-red-600', badge: 'bg-red-500/10 text-red-700 border-red-500/20' },
+  none: { label: 'Not counted', icon: CircleDashed, tone: 'text-muted-foreground', badge: 'text-muted-foreground' },
 };
 
 export function levelOf(row: Pick<InventoryRow, 'quantity' | 'reorderLevel'>): LevelKey {
-  if (row.quantity <= 0) return 'empty';
+  if (row.quantity <= 0) return 'none';
   if (row.quantity <= row.reorderLevel) return 'reorder';
   return 'ok';
 }

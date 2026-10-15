@@ -2,18 +2,13 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { ArrowLeftRight, History, ImageOff, MoreHorizontal, PackagePlus, SlidersHorizontal } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DataTableColumnHeader, facetedFilterFn, selectColumn } from '@/components/data-table';
 import { cn } from '@/lib/utils';
 import { timeAgo } from '../customers/CustomerTypes';
 import type { StockAction } from './StockDialogs';
 import { LEVELS, levelOf, type InventoryRow } from './inventory-meta';
+import { stockMeta } from '../products/product-meta';
 
 export function buildInventoryColumns(onAction: (row: InventoryRow, action: StockAction | 'history') => void): ColumnDef<InventoryRow>[] {
   return [
@@ -33,9 +28,7 @@ export function buildInventoryColumns(onAction: (row: InventoryRow, action: Stoc
             </div>
             <div className="min-w-0">
               <p className="truncate font-medium">{p?.nameEnglish ?? `Product #${row.original.productId}`}</p>
-              <p className="truncate text-xs text-muted-foreground">
-                {archived ? 'Archived product' : (p?.Category?.name ?? 'None')}
-              </p>
+              <p className="truncate text-xs text-muted-foreground">{archived ? 'Archived product' : (p?.Category?.name ?? 'None')}</p>
             </div>
           </div>
         );
@@ -79,6 +72,24 @@ export function buildInventoryColumns(onAction: (row: InventoryRow, action: Stoc
         );
       },
       meta: { title: 'Level' },
+    },
+    {
+      id: 'shop',
+      accessorFn: (r) => r.Product?.stockStatus ?? 'in_stock',
+      header: 'In the shop',
+      filterFn: facetedFilterFn,
+      enableGlobalFilter: false,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const s = stockMeta(row.original.Product?.stockStatus);
+        return (
+          <Badge variant="outline" className={cn('gap-1 font-medium', s.badge)}>
+            <s.icon className="size-3" />
+            {s.label}
+          </Badge>
+        );
+      },
+      meta: { title: 'In the shop' },
     },
     {
       id: 'restocked',

@@ -33,8 +33,8 @@ export default function InventoryItemSheet({ row, open, onOpenChange, onAction }
             {row.Product?.active === false && <Badge variant="secondary">Archived</Badge>}
           </div>
           <SheetDescription>
-            <span className="text-2xl font-semibold text-foreground tabular-nums">{row.quantity.toLocaleString()}</span> {unit} on hand · reorder at ≤{' '}
-            {row.reorderLevel}, usually {row.reorderQuantity} at a time
+            <span className="text-2xl font-semibold text-foreground tabular-nums">{row.quantity.toLocaleString()}</span> {unit} on hand · reorder at ≤ {row.reorderLevel}, usually{' '}
+            {row.reorderQuantity} at a time
           </SheetDescription>
         </SheetHeader>
 
@@ -51,9 +51,7 @@ export default function InventoryItemSheet({ row, open, onOpenChange, onAction }
                     <meta.icon className={cn('mt-0.5 size-4 shrink-0', meta.tone)} />
                     <div className="min-w-0 flex-1">
                       <p className="font-medium">{meta.label}</p>
-                      {(m.reference || m.notes) && (
-                        <p className="truncate text-xs text-muted-foreground">{[m.reference, m.notes].filter(Boolean).join(' · ')}</p>
-                      )}
+                      {(m.reference || m.notes) && <p className="truncate text-xs text-muted-foreground">{[m.reference, m.notes].filter(Boolean).join(' · ')}</p>}
                     </div>
                     <div className="shrink-0 text-right">
                       <p className={cn('font-medium tabular-nums', meta.tone)}>

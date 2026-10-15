@@ -15,13 +15,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DataTable, DataTableColumnHeader, facetedFilterFn } from '@/components/data-table';
 import { StatCard } from '@/components/stat-card';
 import suppliersService, { type Supplier } from '../../services/suppliersService';
@@ -219,9 +213,33 @@ export default function SuppliersTab() {
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Active suppliers" value={String(active.length)} hint={`${suppliers.length - active.length} inactive`} icon={Truck} tint="bg-sky-500/10 text-sky-600" loading={loading} failed={!!error} />
-        <StatCard label="Product links" value={String(active.reduce((s, x) => s + (x.productCount ?? 0), 0))} hint="Product–supplier pairs" icon={Package} tint="bg-emerald-500/10 text-emerald-600" loading={loading} failed={!!error} />
-        <StatCard label="Purchases logged" value={String(suppliers.reduce((s, x) => s + (x.procurementCount ?? 0), 0))} hint="All time" icon={ReceiptText} tint="bg-violet-500/10 text-violet-600" loading={loading} failed={!!error} />
+        <StatCard
+          label="Active suppliers"
+          value={String(active.length)}
+          hint={`${suppliers.length - active.length} inactive`}
+          icon={Truck}
+          tint="bg-sky-500/10 text-sky-600"
+          loading={loading}
+          failed={!!error}
+        />
+        <StatCard
+          label="Product links"
+          value={String(active.reduce((s, x) => s + (x.productCount ?? 0), 0))}
+          hint="Product–supplier pairs"
+          icon={Package}
+          tint="bg-emerald-500/10 text-emerald-600"
+          loading={loading}
+          failed={!!error}
+        />
+        <StatCard
+          label="Purchases logged"
+          value={String(suppliers.reduce((s, x) => s + (x.procurementCount ?? 0), 0))}
+          hint="All time"
+          icon={ReceiptText}
+          tint="bg-violet-500/10 text-violet-600"
+          loading={loading}
+          failed={!!error}
+        />
         <StatCard
           label="Without products"
           value={String(active.filter((s) => !s.productCount).length)}
@@ -273,17 +291,14 @@ export default function SuppliersTab() {
         }
       />
 
-      {sheet && (
-        <SupplierSheet key={sheet.token} supplier={sheet.supplier} products={products} open={sheetOpen} onOpenChange={setSheetOpen} onSaved={() => void load()} />
-      )}
+      {sheet && <SupplierSheet key={sheet.token} supplier={sheet.supplier} products={products} open={sheetOpen} onOpenChange={setSheetOpen} onSaved={() => void load()} />}
 
       <AlertDialog open={!!toRemove} onOpenChange={(o) => !o && setToRemove(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remove {toRemove?.name}?</AlertDialogTitle>
             <AlertDialogDescription>
-              If you’ve logged purchases or costs from them, they’re deactivated so that history stays intact. You can reactivate them
-              later. If not, they’re deleted for good.
+              If you’ve logged purchases or costs from them, they’re deactivated so that history stays intact. You can reactivate them later. If not, they’re deleted for good.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
