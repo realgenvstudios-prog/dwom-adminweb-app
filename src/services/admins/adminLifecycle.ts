@@ -1,16 +1,16 @@
 import adminApiClient from '../apiClient';
 import { reverseMapRole } from './adminRoleMapping';
 import { logger } from '../../utils/logger';
-import type { InviteResult } from './adminTypes';
+import type { InviteResult, PermissionCatalog } from './adminTypes';
 
 // Inviting, role changes, suspend/reactivate, and invite management — all
 // Super Admin only server-side. Each throws ApiError with the server's
 // message (e.g. "You can't suspend yourself"), so the UI can show it.
 export class AdminLifecycleService {
   /** Emails an invite link; the account is created when they accept (they set their own phone/password). */
-  async inviteAdmin(data: { name: string; email: string; role: string }): Promise<InviteResult> {
+  async inviteAdmin(data: { name: string; email: string; role: string; permissions?: string[] }): Promise<InviteResult> {
     try {
-      return await adminApiClient.post<InviteResult>('/users', { name: data.name, email: data.email, role: reverseMapRole(data.role) });
+      return await adminApiClient.post<InviteResult>('/users', { name: data.name, email: data.email, role: reverseMapRole(data.role), permissions: data.permissions });
     } catch (error) {
       logger.error('❌ [AdminsService] Error inviting admin:', error);
       throw error;
@@ -39,6 +39,21 @@ export class AdminLifecycleService {
   /** Issues a fresh 7-day link (also for an expired invite) and invalidates the old one. */
   async resendInvite(inviteId: number): Promise<InviteResult> {
     return adminApiClient.post<InviteResult>(`/users/invites/${inviteId}/resend`);
+  }
+
+  /** The checkbox list, each role's defaults, and the signed-in admin's own permissions. */
+  async getPermissionCatalog(): Promise<PermissionCatalog> {
+    return adminApiClient.get<PermissionCatalog>('/auth/admin/permissions');
+  }
+
+  /** Saves ticked boxes for an admin; takes effect on their next action. */
+  async setPermissions(adminId: number, permissions: string[]): Promise<void> {
+    await adminApiClient.patch(`/users/${adminId}`, { permissions });
+  }
+
+  /** Back to their role's defaults. */
+  async resetPermissions(adminId: number): Promise<void> {
+    await adminApiClient.patch(`/users/${adminId}`, { useRolePreset: true });
   }
 
   /** The link stops working immediately. */

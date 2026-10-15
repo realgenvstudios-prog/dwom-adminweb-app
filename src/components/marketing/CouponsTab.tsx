@@ -15,6 +15,7 @@ import { COUPON_STATES, couponState, discountLabel, stateOf } from './coupon-met
 import CouponDialog from './CouponDialog';
 import CouponSheet from './CouponSheet';
 import DiscountCustomersTable from './DiscountCustomersTable';
+import { can } from '../../config/permissions';
 
 const WEEK = 7 * 24 * 60 * 60 * 1000;
 
@@ -288,10 +289,12 @@ export default function CouponsTab() {
                 <Download />
                 Export
               </Button>
-              <Button size="sm" className="h-8" onClick={() => openDialog(null)}>
-                <Plus />
-                New code
-              </Button>
+              {can('coupons.manage') && (
+                <Button size="sm" className="h-8" onClick={() => openDialog(null)}>
+                  <Plus />
+                  New code
+                </Button>
+              )}
             </>
           );
         }}

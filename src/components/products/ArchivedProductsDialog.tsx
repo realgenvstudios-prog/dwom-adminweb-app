@@ -17,6 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import productsService from '../../services/productsService';
 import { logger } from '../../utils/logger';
 import { formatGhs } from '../orders/order-status';
+import { can } from '../../config/permissions';
 
 type DeleteCheck = { canDelete: boolean; blockers: string[] } | 'loading' | 'failed';
 
@@ -122,21 +123,25 @@ export default function ArchivedProductsDialog({ open, onOpenChange, onRestored 
                     </p>
                   </div>
                   <div className="flex shrink-0 gap-1.5">
-                    <Button size="sm" variant="outline" disabled={busy === p.id} onClick={() => void restore(p)}>
-                      {busy === p.id ? <Loader2 className="animate-spin" /> : <ArchiveRestore />}
-                      Restore
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      disabled={busy === p.id}
-                      onClick={() => askDelete(p)}
-                      aria-label={`Delete ${p.nameEnglish} permanently`}
-                    >
-                      <Trash2 />
-                      <span className="hidden sm:inline">Delete</span>
-                    </Button>
+                    {can('products.archive') && (
+                      <Button size="sm" variant="outline" disabled={busy === p.id} onClick={() => void restore(p)}>
+                        {busy === p.id ? <Loader2 className="animate-spin" /> : <ArchiveRestore />}
+                        Restore
+                      </Button>
+                    )}
+                    {can('products.deletePermanently') && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        disabled={busy === p.id}
+                        onClick={() => askDelete(p)}
+                        aria-label={`Delete ${p.nameEnglish} permanently`}
+                      >
+                        <Trash2 />
+                        <span className="hidden sm:inline">Delete</span>
+                      </Button>
+                    )}
                   </div>
                 </li>
               ))}

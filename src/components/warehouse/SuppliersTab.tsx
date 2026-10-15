@@ -23,6 +23,7 @@ import productsService, { type Product } from '../../services/productsService';
 import { logger } from '../../utils/logger';
 import { initialsOf } from '../customers/CustomerTypes';
 import SupplierSheet from '../suppliers/SupplierSheet';
+import { can } from '../../config/permissions';
 
 // Who DWOM buys from and which products each supplies — independent of
 // logging a purchase (product cost lives in Finance › Product Costs).
@@ -189,16 +190,18 @@ export default function SuppliersTab() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {s.active ? (
-                  <DropdownMenuItem variant="destructive" onSelect={() => setToRemove(s)}>
-                    <Trash2 />
-                    Remove
-                  </DropdownMenuItem>
-                ) : (
+                  can('suppliers.delete') ? (
+                    <DropdownMenuItem variant="destructive" onSelect={() => setToRemove(s)}>
+                      <Trash2 />
+                      Remove
+                    </DropdownMenuItem>
+                  ) : null
+                ) : can('suppliers.manage') ? (
                   <DropdownMenuItem onSelect={() => void reactivate(s)}>
                     <Power />
                     Reactivate
                   </DropdownMenuItem>
-                )}
+                ) : null}
               </DropdownMenuContent>
             </DropdownMenu>
           );
@@ -284,10 +287,12 @@ export default function SuppliersTab() {
         onRowClick={(s) => openSheet(s)}
         emptyMessage={suppliers.length === 0 ? 'No suppliers yet. Add who you buy from.' : 'No suppliers match these filters.'}
         toolbarActions={
-          <Button size="sm" className="h-8" onClick={() => openSheet(null)}>
-            <Plus />
-            Add supplier
-          </Button>
+          can('suppliers.manage') && (
+            <Button size="sm" className="h-8" onClick={() => openSheet(null)}>
+              <Plus />
+              Add supplier
+            </Button>
+          )
         }
       />
 

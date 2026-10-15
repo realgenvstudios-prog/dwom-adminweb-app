@@ -22,6 +22,7 @@ import ProductFormFields from './ProductFormFields';
 import { productToForm, validateProductForm, type ProductFormErrors, type ProductFormValues } from './product-form';
 import { categoryNameOf, discountOf, priceOf, salePrice, stockMeta } from './product-meta';
 import type { Product, ProductCategory } from './ProductTypes';
+import { can } from '../../config/permissions';
 
 export type ProductSheetIntent = 'view' | 'edit' | 'archive';
 
@@ -118,17 +119,11 @@ export default function ProductSheet({ product, intent, open, onOpenChange, cate
           <SheetHeader className="border-b p-6 pb-4">
             <div className="flex items-start gap-4 pr-8">
               <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted">
-                {product.imageUrl ? (
-                  <img src={product.imageUrl} alt="" className="size-full object-cover" />
-                ) : (
-                  <ImageOff className="size-5 text-muted-foreground" />
-                )}
+                {product.imageUrl ? <img src={product.imageUrl} alt="" className="size-full object-cover" /> : <ImageOff className="size-5 text-muted-foreground" />}
               </div>
               <div className="min-w-0 space-y-1">
                 <SheetTitle className="text-xl">{editing ? `Edit ${product.nameEnglish}` : product.nameEnglish}</SheetTitle>
-                <SheetDescription>
-                  {[product.nameLocal, product.nameFrench].filter(Boolean).join(' · ') || 'No local or French name'}
-                </SheetDescription>
+                <SheetDescription>{[product.nameLocal, product.nameFrench].filter(Boolean).join(' · ') || 'No local or French name'}</SheetDescription>
                 {!editing && (
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     <Badge variant="outline" className={cn('gap-1 font-medium', stock.badge)}>
@@ -225,14 +220,19 @@ export default function ProductSheet({ product, intent, open, onOpenChange, cate
               </>
             ) : (
               <>
-                <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setConfirmArchive(true)}>
-                  <Archive />
-                  Archive
-                </Button>
-                <Button onClick={startEdit}>
-                  <Pencil />
-                  Edit product
-                </Button>
+                {can('products.archive') && (
+                  <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setConfirmArchive(true)}>
+                    <Archive />
+                    Archive
+                  </Button>
+                )}
+                {can('products.edit') ||
+                  (can('products.prices') && (
+                    <Button onClick={startEdit}>
+                      <Pencil />
+                      Edit product
+                    </Button>
+                  ))}
               </>
             )}
           </SheetFooter>
@@ -244,8 +244,7 @@ export default function ProductSheet({ product, intent, open, onOpenChange, cate
           <AlertDialogHeader>
             <AlertDialogTitle>Archive {product.nameEnglish}?</AlertDialogTitle>
             <AlertDialogDescription>
-              Customers will no longer see it in the app, and it will disappear from this list. Past orders keep it.
-              You can restore it later from Products → Archived.
+              Customers will no longer see it in the app, and it will disappear from this list. Past orders keep it. You can restore it later from Products → Archived.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

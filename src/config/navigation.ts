@@ -15,7 +15,7 @@ import {
   Warehouse,
   type LucideIcon,
 } from 'lucide-react';
-import { ALL_PAGES, canAccessRoute, type UiRole } from './permissions';
+import { ALL_PAGES, canAccessRoute, canTab, type UiRole } from './permissions';
 
 export interface NavSubItem {
   label: string;
@@ -107,8 +107,8 @@ const SUB_PAGES: Record<string, { label: string; tab: string; superAdminOnly?: b
 
 function toNavItem(page: { path: string; label: string }, role: UiRole): NavItem {
   const subs = SUB_PAGES[page.path]
-    ?.filter((s) => !s.superAdminOnly || role === 'Super Admin')
-    .map((s, i) => ({ label: s.label, tab: s.tab, href: i === 0 ? page.path : `${page.path}?tab=${s.tab}` }));
+    ?.filter((s) => (!s.superAdminOnly || role === 'Super Admin') && canTab(page.path, s.tab))
+    .map((s) => ({ label: s.label, tab: s.tab, href: s.tab === SUB_PAGES[page.path][0].tab ? page.path : `${page.path}?tab=${s.tab}` }));
   return {
     path: page.path,
     label: SHORT_LABELS[page.path] ?? page.label,

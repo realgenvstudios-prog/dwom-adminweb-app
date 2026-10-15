@@ -1,13 +1,7 @@
 import type { ColumnDef } from '@tanstack/react-table';
 import { Archive, ImageOff, MoreHorizontal, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { DataTableColumnHeader, facetedFilterFn, selectColumn } from '@/components/data-table';
@@ -16,6 +10,7 @@ import { formatGhs } from '../orders/order-status';
 import { STOCK_STATUSES, categoryIdOf, categoryNameOf, discountOf, priceOf, salePrice, stockMeta } from './product-meta';
 import type { Product, ProductCategory } from './ProductTypes';
 import DiscountCell from './DiscountCell';
+import { can } from '../../config/permissions';
 
 export interface ProductActions {
   categories: ProductCategory[];
@@ -87,7 +82,12 @@ export function buildProductColumns(a: ProductActions): ColumnDef<Product>[] {
       sortingFn: (x, y) => discountOf(x.original) - discountOf(y.original),
       filterFn: facetedFilterFn,
       enableGlobalFilter: false,
-      cell: ({ row }) => <DiscountCell product={row.original} onCommit={(v) => a.onDiscount(row.original, v)} />,
+      cell: ({ row }) =>
+        can('products.prices') ? (
+          <DiscountCell product={row.original} onCommit={(v) => a.onDiscount(row.original, v)} />
+        ) : (
+          <span className="text-sm text-muted-foreground tabular-nums">{discountOf(row.original) > 0 ? `${discountOf(row.original)}% off` : 'None'}</span>
+        ),
       meta: { title: 'Discount' },
     },
     {
@@ -99,7 +99,7 @@ export function buildProductColumns(a: ProductActions): ColumnDef<Product>[] {
       cell: ({ row }) => {
         const s = stockMeta(row.original.stockStatus);
         return (
-          <Select value={s.value} onValueChange={(v) => a.onStock(row.original, v)}>
+          <Select value={s.value} onValueChange={(v) => a.onStock(row.original, v)} disabled={!can('products.stockStatus')}>
             <SelectTrigger size="sm" className={cn('h-7 w-[130px] gap-1.5 border font-medium shadow-none', s.badge)} aria-label="Stock status">
               <SelectValue />
             </SelectTrigger>
@@ -126,6 +126,7 @@ export function buildProductColumns(a: ProductActions): ColumnDef<Product>[] {
         <Switch
           checked={!!row.original.seasonal}
           onCheckedChange={(v) => a.onSeasonal(row.original, v)}
+          disabled={!can('products.seasonal')}
           aria-label={`Seasonal: ${row.original.nameEnglish}`}
         />
       ),
@@ -146,15 +147,19 @@ export function buildProductColumns(a: ProductActions): ColumnDef<Product>[] {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
             <DropdownMenuItem onSelect={() => a.onOpen(row.original)}>View</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => a.onEdit(row.original)}>
-              <Pencil />
-              Edit
-            </DropdownMenuItem>
+            {can('products.edit') && (
+              <DropdownMenuItem onSelect={() => a.onEdit(row.original)}>
+                <Pencil />
+                Edit
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onSelect={() => a.onArchive(row.original)}>
-              <Archive />
-              Archive
-            </DropdownMenuItem>
+            {can('products.archive') && (
+              <DropdownMenuItem variant="destructive" onSelect={() => a.onArchive(row.original)}>
+                <Archive />
+                Archive
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       ),

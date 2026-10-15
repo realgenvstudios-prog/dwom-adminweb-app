@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { settingsService, type Settings } from '../../services/settingsService';
 import { logger } from '../../utils/logger';
 import { formatGhs } from '../orders/order-status';
+import { can } from '../../config/permissions';
 
 type Key =
   | 'defaultServiceFee'
@@ -255,10 +256,12 @@ const SettingsTab: React.FC = () => {
               <Undo2 />
               Discard
             </Button>
-            <Button size="sm" onClick={() => void save()} disabled={saving}>
-              {saving && <Loader2 className="animate-spin" />}
-              Save
-            </Button>
+            {can('finance.settings') && (
+              <Button size="sm" onClick={() => void save()} disabled={saving}>
+                {saving && <Loader2 className="animate-spin" />}
+                Save
+              </Button>
+            )}
           </div>
         </div>
       )}

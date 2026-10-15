@@ -17,7 +17,7 @@ class AdminsService {
     return this.directory.getAllAdmins();
   }
 
-  inviteAdmin(data: { name: string; email: string; role: string }): ReturnType<AdminLifecycleService['inviteAdmin']> {
+  inviteAdmin(data: Parameters<AdminLifecycleService['inviteAdmin']>[0]): ReturnType<AdminLifecycleService['inviteAdmin']> {
     return this.lifecycle.inviteAdmin(data);
   }
 
@@ -27,6 +27,18 @@ class AdminsService {
 
   setSuspended(adminId: number, suspended: boolean): Promise<void> {
     return this.lifecycle.setSuspended(adminId, suspended);
+  }
+
+  getPermissionCatalog(): ReturnType<AdminLifecycleService['getPermissionCatalog']> {
+    return this.lifecycle.getPermissionCatalog();
+  }
+
+  setPermissions(adminId: number, permissions: string[]): Promise<void> {
+    return this.lifecycle.setPermissions(adminId, permissions);
+  }
+
+  resetPermissions(adminId: number): Promise<void> {
+    return this.lifecycle.resetPermissions(adminId);
   }
 
   resendInvite(inviteId: number): ReturnType<AdminLifecycleService['resendInvite']> {

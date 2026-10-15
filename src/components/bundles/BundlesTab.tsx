@@ -14,13 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
@@ -32,6 +26,7 @@ import type { Product, ProductCategory } from '../products/ProductTypes';
 import BundleDialog from './BundleDialog';
 import BundleSheet from './BundleSheet';
 import { priceIsStale } from './bundle-pricing';
+import { can } from '../../config/permissions';
 
 interface BundlesTabProps {
   products: Product[];
@@ -123,10 +118,12 @@ export default function BundlesTab({ products, categories }: BundlesTabProps) {
             </label>
           )}
         </div>
-        <Button size="sm" className="h-8" onClick={() => openEditor(null)}>
-          <Plus />
-          New bundle
-        </Button>
+        {can('bundles.manage') && (
+          <Button size="sm" className="h-8" onClick={() => openEditor(null)}>
+            <Plus />
+            New bundle
+          </Button>
+        )}
       </div>
 
       {error && (
@@ -160,10 +157,7 @@ export default function BundlesTab({ products, categories }: BundlesTabProps) {
             const isOff = b.active === false;
             const stale = !isOff && priceIsStale(b, products);
             return (
-              <Card
-                key={b.id}
-                className={cn('group gap-0 overflow-hidden py-0 transition-shadow hover:shadow-md', isOff && 'opacity-60')}
-              >
+              <Card key={b.id} className={cn('group gap-0 overflow-hidden py-0 transition-shadow hover:shadow-md', isOff && 'opacity-60')}>
                 <button
                   type="button"
                   className="relative block aspect-[16/10] bg-muted text-left"
@@ -218,24 +212,29 @@ export default function BundlesTab({ products, categories }: BundlesTabProps) {
                         >
                           View
                         </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => openEditor(b)}>
-                          <Pencil />
-                          Edit
-                        </DropdownMenuItem>
+                        {can('bundles.manage') && (
+                          <DropdownMenuItem onSelect={() => openEditor(b)}>
+                            <Pencil />
+                            Edit
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem variant="destructive" onSelect={() => setToDelete(b)}>
-                          <Trash2 />
-                          Delete
-                        </DropdownMenuItem>
+                        {can('bundles.delete') && (
+                          <DropdownMenuItem variant="destructive" onSelect={() => setToDelete(b)}>
+                            <Trash2 />
+                            Delete
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
-                  {isOff && (
-                    <Button variant="outline" size="sm" disabled={reactivating === b.id} onClick={() => void reactivate(b)}>
-                      {reactivating === b.id ? <Loader2 className="animate-spin" /> : <Power />}
-                      Turn on
-                    </Button>
-                  )}
+                  {isOff &&
+                    (can('bundles.manage') ? (
+                      <Button variant="outline" size="sm" disabled={reactivating === b.id} onClick={() => void reactivate(b)}>
+                        {reactivating === b.id ? <Loader2 className="animate-spin" /> : <Power />}
+                        Turn on
+                      </Button>
+                    ) : null)}
                 </div>
               </Card>
             );
@@ -275,8 +274,8 @@ export default function BundlesTab({ products, categories }: BundlesTabProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete {toDelete?.name}?</AlertDialogTitle>
             <AlertDialogDescription>
-              It disappears from the app. If customers have ordered it before, it’s deactivated instead of deleted so their
-              order history stays intact. You can turn a deactivated bundle back on later.
+              It disappears from the app. If customers have ordered it before, it’s deactivated instead of deleted so their order history stays intact. You can turn a deactivated
+              bundle back on later.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

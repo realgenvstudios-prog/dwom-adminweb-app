@@ -10,6 +10,7 @@ import { SUGGESTED_ORDER_EVENT_STAGES, formatStageLabel } from '../../../service
 import { formatDateTime, orderStatusMeta } from '../order-status';
 import type { StatusChange } from './useOrderDetails';
 import { useOrderEvents } from './useOrderEvents';
+import { can } from '../../../config/permissions';
 
 const CUSTOM = '__custom__';
 
@@ -36,12 +37,7 @@ function StatusTimeline({ history, loading }: { history: StatusChange[]; loading
         const latest = i === history.length - 1;
         return (
           <li key={h.id} className="relative">
-            <span
-              className={cn(
-                'absolute top-0.5 -left-[33px] flex size-5 items-center justify-center rounded-full border bg-background',
-                latest && 'border-primary',
-              )}
-            >
+            <span className={cn('absolute top-0.5 -left-[33px] flex size-5 items-center justify-center rounded-full border bg-background', latest && 'border-primary')}>
               <meta.icon className={cn('size-3', meta.tone)} />
             </span>
             <div className="flex flex-wrap items-baseline justify-between gap-x-3">
@@ -104,57 +100,53 @@ export default function ActivityTab({ orderId, history, historyLoading }: Activi
           </ul>
         )}
 
-        <form onSubmit={submit} className="grid gap-3 rounded-lg border bg-muted/30 p-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-          <div className="grid gap-1.5">
-            <Label htmlFor="event-stage" className="text-xs">
-              Step
-            </Label>
-            <Select value={stage} onValueChange={setStage}>
-              <SelectTrigger id="event-stage" size="sm" className="w-full bg-background">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {SUGGESTED_ORDER_EVENT_STAGES.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {formatStageLabel(s)}
-                  </SelectItem>
-                ))}
-                <SelectItem value={CUSTOM}>Other…</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-1.5">
-            <Label htmlFor="event-by" className="text-xs">
-              By (optional)
-            </Label>
-            <Input
-              id="event-by"
-              value={performedBy}
-              onChange={(e) => setPerformedBy(e.target.value)}
-              placeholder="e.g. Ama"
-              className="h-8 bg-background"
-            />
-          </div>
-          <Button type="submit" size="sm" disabled={logging || !resolvedStage}>
-            {logging ? <Loader2 className="animate-spin" /> : <Plus />}
-            Log step
-          </Button>
-          {stage === CUSTOM && (
-            <div className="grid gap-1.5 sm:col-span-3">
-              <Label htmlFor="event-custom" className="text-xs">
-                Custom step name
+        {can('orders.addNote') && (
+          <form onSubmit={submit} className="grid gap-3 rounded-lg border bg-muted/30 p-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+            <div className="grid gap-1.5">
+              <Label htmlFor="event-stage" className="text-xs">
+                Step
               </Label>
-              <Input
-                id="event-custom"
-                value={customStage}
-                onChange={(e) => setCustomStage(e.target.value)}
-                placeholder="e.g. repackaged"
-                className="h-8 bg-background"
-                autoFocus
-              />
+              <Select value={stage} onValueChange={setStage}>
+                <SelectTrigger id="event-stage" size="sm" className="w-full bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SUGGESTED_ORDER_EVENT_STAGES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {formatStageLabel(s)}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value={CUSTOM}>Other…</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          )}
-        </form>
+            <div className="grid gap-1.5">
+              <Label htmlFor="event-by" className="text-xs">
+                By (optional)
+              </Label>
+              <Input id="event-by" value={performedBy} onChange={(e) => setPerformedBy(e.target.value)} placeholder="e.g. Ama" className="h-8 bg-background" />
+            </div>
+            <Button type="submit" size="sm" disabled={logging || !resolvedStage}>
+              {logging ? <Loader2 className="animate-spin" /> : <Plus />}
+              Log step
+            </Button>
+            {stage === CUSTOM && (
+              <div className="grid gap-1.5 sm:col-span-3">
+                <Label htmlFor="event-custom" className="text-xs">
+                  Custom step name
+                </Label>
+                <Input
+                  id="event-custom"
+                  value={customStage}
+                  onChange={(e) => setCustomStage(e.target.value)}
+                  placeholder="e.g. repackaged"
+                  className="h-8 bg-background"
+                  autoFocus
+                />
+              </div>
+            )}
+          </form>
+        )}
       </Section>
     </div>
   );

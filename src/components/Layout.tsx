@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import adminAuthService from '../services/authService';
 import { canAccessRoute, resolveUiRole } from '../config/permissions';
 import { getNavGroups } from '../config/navigation';
+import { usePermissions, useRefreshPermissions } from '@/hooks/use-permissions';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import AppSidebar from './layout/AppSidebar';
 import SiteHeader from './layout/SiteHeader';
@@ -22,6 +23,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchOpen, setSearchOpen] = useState(false);
+  // Ticked permissions are re-read from the server on open and on tab focus.
+  useRefreshPermissions();
+  usePermissions();
 
   const currentAdmin = adminAuthService.getCurrentAdmin();
   const role = resolveUiRole(currentAdmin);
@@ -39,12 +43,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <SidebarProvider defaultOpen={readSidebarOpen()}>
-      <AppSidebar
-        groups={groups}
-        user={user}
-        canOpenSettings={canAccessRoute(role, '/settings')}
-        onLogout={handleLogout}
-      />
+      <AppSidebar groups={groups} user={user} canOpenSettings={canAccessRoute(role, '/settings')} onLogout={handleLogout} />
       <SidebarInset>
         <SiteHeader role={role} onOpenSearch={() => setSearchOpen(true)} />
         <main className="flex-1 p-4 md:p-6">

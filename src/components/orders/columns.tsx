@@ -3,18 +3,13 @@ import { Bike, Copy, Eye, MoreHorizontal, ShoppingBasket } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { DataTableColumnHeader, facetedFilterFn, selectColumn } from '@/components/data-table';
 import { cn } from '@/lib/utils';
 import type { Order } from './OrderTypes';
 import { formatDateTime, formatGhs, orderStatusMeta, paymentMethodMeta, paymentStatusMeta } from './order-status';
+import { can } from '../../config/permissions';
 
 export interface OrderRowActions {
   onView: (order: Order) => void;
@@ -97,11 +92,7 @@ export function buildOrderColumns({ onView, onAssignRider, onAssignPicker }: Ord
         const { rider, picker } = row.original;
         return (
           <div className="min-w-0">
-            {rider ? (
-              <div className="truncate">{rider.name}</div>
-            ) : (
-              <span className="text-muted-foreground italic">Unassigned</span>
-            )}
+            {rider ? <div className="truncate">{rider.name}</div> : <span className="text-muted-foreground italic">Unassigned</span>}
             {picker && <div className="truncate text-xs text-muted-foreground">Picker: {picker.name}</div>}
           </div>
         );
@@ -198,14 +189,18 @@ export function buildOrderColumns({ onView, onAssignRider, onAssignPicker }: Ord
               </DropdownMenuItem>
               {!closed && (
                 <>
-                  <DropdownMenuItem onSelect={() => onAssignRider(order)}>
-                    <Bike />
-                    {order.rider ? 'Reassign rider' : 'Assign rider'}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => onAssignPicker(order)}>
-                    <ShoppingBasket />
-                    {order.picker ? 'Reassign picker' : 'Assign picker'}
-                  </DropdownMenuItem>
+                  {can('orders.assignRider') && (
+                    <DropdownMenuItem onSelect={() => onAssignRider(order)}>
+                      <Bike />
+                      {order.rider ? 'Reassign rider' : 'Assign rider'}
+                    </DropdownMenuItem>
+                  )}
+                  {can('orders.assignPicker') && (
+                    <DropdownMenuItem onSelect={() => onAssignPicker(order)}>
+                      <ShoppingBasket />
+                      {order.picker ? 'Reassign picker' : 'Assign picker'}
+                    </DropdownMenuItem>
+                  )}
                 </>
               )}
               <DropdownMenuSeparator />

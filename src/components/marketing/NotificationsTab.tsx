@@ -25,6 +25,7 @@ import SchedulesCard from './SchedulesCard';
 import { logger } from '../../utils/logger';
 import SendNotificationDialog from './SendNotificationDialog';
 import TemplateDialog from './TemplateDialog';
+import { can } from '../../config/permissions';
 
 const SEND_STATUS: Record<string, { label: string; className: string }> = {
   sent: {
@@ -280,10 +281,12 @@ export default function NotificationsTab() {
             <CardTitle>Templates</CardTitle>
             <CardDescription>Reusable messages. Send to everyone, a zone, chosen customers or a saved group.</CardDescription>
           </div>
-          <Button size="sm" variant="outline" onClick={() => openEdit(null)}>
-            <Plus />
-            New template
-          </Button>
+          {can('notifications.templates') && (
+            <Button size="sm" variant="outline" onClick={() => openEdit(null)}>
+              <Plus />
+              New template
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           {templates === null ? (
@@ -299,10 +302,12 @@ export default function NotificationsTab() {
                 <p className="font-medium">No templates yet</p>
                 <p className="text-sm text-muted-foreground">Create one to send your first notification.</p>
               </div>
-              <Button size="sm" onClick={() => openEdit(null)}>
-                <Plus />
-                New template
-              </Button>
+              {can('notifications.templates') && (
+                <Button size="sm" onClick={() => openEdit(null)}>
+                  <Plus />
+                  New template
+                </Button>
+              )}
             </div>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -321,15 +326,19 @@ export default function NotificationsTab() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-36">
-                        <DropdownMenuItem onSelect={() => openEdit(t)}>
-                          <Pencil />
-                          Edit
-                        </DropdownMenuItem>
+                        {can('notifications.templates') && (
+                          <DropdownMenuItem onSelect={() => openEdit(t)}>
+                            <Pencil />
+                            Edit
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onSelect={() => setToArchive(t)}>
-                          <Archive />
-                          Archive
-                        </DropdownMenuItem>
+                        {can('notifications.templates') && (
+                          <DropdownMenuItem onSelect={() => setToArchive(t)}>
+                            <Archive />
+                            Archive
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -343,10 +352,12 @@ export default function NotificationsTab() {
                         </>
                       )}
                     </span>
-                    <Button size="sm" variant="secondary" onClick={() => openSend(t.id)}>
-                      <Send />
-                      Send
-                    </Button>
+                    {can('notifications.send') && (
+                      <Button size="sm" variant="secondary" onClick={() => openSend(t.id)}>
+                        <Send />
+                        Send
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -363,10 +374,12 @@ export default function NotificationsTab() {
             <CardTitle>Customer groups</CardTitle>
             <CardDescription>Saved sets of customers to message together, like VIPs or a street’s regulars.</CardDescription>
           </div>
-          <Button size="sm" variant="outline" onClick={() => openGroup(null)}>
-            <Plus />
-            New group
-          </Button>
+          {can('customerGroups.manage') && (
+            <Button size="sm" variant="outline" onClick={() => openGroup(null)}>
+              <Plus />
+              New group
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           {groups === null ? (
@@ -391,10 +404,12 @@ export default function NotificationsTab() {
                           .join(', ') + (g.members.length > 4 ? ` and ${g.members.length - 4} more` : '')}
                     </p>
                   </div>
-                  <Button size="sm" variant="secondary" onClick={() => openSend(undefined, g.id)} disabled={!g.members.length}>
-                    <Send />
-                    Send
-                  </Button>
+                  {can('notifications.send') && (
+                    <Button size="sm" variant="secondary" onClick={() => openSend(undefined, g.id)} disabled={!g.members.length}>
+                      <Send />
+                      Send
+                    </Button>
+                  )}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon-sm" className="data-[state=open]:bg-muted">
@@ -403,15 +418,19 @@ export default function NotificationsTab() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-36">
-                      <DropdownMenuItem onSelect={() => openGroup(g)}>
-                        <Pencil />
-                        Edit
-                      </DropdownMenuItem>
+                      {can('customerGroups.manage') && (
+                        <DropdownMenuItem onSelect={() => openGroup(g)}>
+                          <Pencil />
+                          Edit
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem variant="destructive" onSelect={() => setToDeleteGroup(g)}>
-                        <Trash2 />
-                        Delete
-                      </DropdownMenuItem>
+                      {can('customerGroups.manage') && (
+                        <DropdownMenuItem variant="destructive" onSelect={() => setToDeleteGroup(g)}>
+                          <Trash2 />
+                          Delete
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </li>
@@ -441,10 +460,12 @@ export default function NotificationsTab() {
             },
           ]}
           toolbarActions={
-            <Button size="sm" className="h-8" onClick={() => openSend()} disabled={!templates}>
-              <Send />
-              Send notification
-            </Button>
+            can('notifications.send') && (
+              <Button size="sm" className="h-8" onClick={() => openSend()} disabled={!templates}>
+                <Send />
+                Send notification
+              </Button>
+            )
           }
           emptyMessage={sends.length === 0 ? 'Nothing sent yet.' : 'No sends match.'}
         />

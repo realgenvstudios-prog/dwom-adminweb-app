@@ -14,13 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatCard } from '@/components/stat-card';
 import { cn } from '@/lib/utils';
@@ -31,6 +25,7 @@ import ZoneDialog from '../delivery/ZoneDialog';
 import { formatGhs } from '../orders/order-status';
 import { num } from '../riders/rider-meta';
 import { formatArea, zoneAreaKm2 } from '../delivery/zone-shape';
+import { can } from '../../config/permissions';
 
 // Zone coverage is a rider-logistics concern, so zones live on Field
 // Operations next to Riders and Pickers.
@@ -94,18 +89,30 @@ export default function ZonesTab() {
   const fees = active.map((z) => num(z.deliveryFee));
   const riders = zones.reduce((s, z) => s + (z.Rider?.length ?? 0), 0);
   const sorted = [...active, ...zones.filter((z) => !z.isActive)];
-  const feeRange = !fees.length
-    ? 'None'
-    : Math.min(...fees) === Math.max(...fees)
-      ? formatGhs(fees[0])
-      : `${formatGhs(Math.min(...fees))} – ${Math.max(...fees).toFixed(2)}`;
+  const feeRange = !fees.length ? 'None' : Math.min(...fees) === Math.max(...fees) ? formatGhs(fees[0]) : `${formatGhs(Math.min(...fees))} – ${Math.max(...fees).toFixed(2)}`;
 
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Delivering" value={String(active.length)} hint={`${zones.length - active.length} paused`} icon={Map} tint="bg-emerald-500/10 text-emerald-600" loading={loading} failed={!!error} />
+        <StatCard
+          label="Delivering"
+          value={String(active.length)}
+          hint={`${zones.length - active.length} paused`}
+          icon={Map}
+          tint="bg-emerald-500/10 text-emerald-600"
+          loading={loading}
+          failed={!!error}
+        />
         <StatCard label="Delivery fees" value={feeRange} hint="Across active zones" icon={Wallet} tint="bg-amber-500/10 text-amber-600" loading={loading} failed={!!error} />
-        <StatCard label="Riders covering" value={String(riders)} hint="Active riders assigned to a zone" icon={Bike} tint="bg-sky-500/10 text-sky-600" loading={loading} failed={!!error} />
+        <StatCard
+          label="Riders covering"
+          value={String(riders)}
+          hint="Active riders assigned to a zone"
+          icon={Bike}
+          tint="bg-sky-500/10 text-sky-600"
+          loading={loading}
+          failed={!!error}
+        />
         <StatCard
           label="Coverage"
           value={active.length ? formatArea(active.reduce((sum, z) => sum + zoneAreaKm2(z), 0)) : 'None'}
@@ -134,10 +141,12 @@ export default function ZonesTab() {
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground">Customers can only order from inside an active zone. Where zones overlap, the cheapest fee applies.</p>
-            <Button size="sm" className="h-8 shrink-0" onClick={() => openEditor(null)}>
-              <Plus />
-              New zone
-            </Button>
+            {can('zones.manage') && (
+              <Button size="sm" className="h-8 shrink-0" onClick={() => openEditor(null)}>
+                <Plus />
+                New zone
+              </Button>
+            )}
           </div>
 
           {loading ? (
@@ -153,17 +162,24 @@ export default function ZonesTab() {
                 <p className="font-medium">No delivery zones yet</p>
                 <p className="text-sm text-muted-foreground">Until you add one, nobody can place an order.</p>
               </div>
-              <Button size="sm" onClick={() => openEditor(null)}>
-                <Plus />
-                Create the first zone
-              </Button>
+              {can('zones.manage') && (
+                <Button size="sm" onClick={() => openEditor(null)}>
+                  <Plus />
+                  Create the first zone
+                </Button>
+              )}
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               {sorted.map((z) => (
                 <Card key={z.id} className={cn('gap-0 py-0 transition-shadow hover:shadow-md', !z.isActive && 'bg-muted/40')}>
                   <div className="flex items-start gap-3 p-4 pb-3">
-                    <div className={cn('flex size-10 shrink-0 items-center justify-center rounded-lg', z.isActive ? 'bg-emerald-500/10 text-emerald-600' : 'bg-muted text-muted-foreground')}>
+                    <div
+                      className={cn(
+                        'flex size-10 shrink-0 items-center justify-center rounded-lg',
+                        z.isActive ? 'bg-emerald-500/10 text-emerald-600' : 'bg-muted text-muted-foreground',
+                      )}
+                    >
                       <MapPin className="size-5" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -181,19 +197,23 @@ export default function ZonesTab() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem onSelect={() => openEditor(z)}>
-                          <Pencil />
-                          Edit
-                        </DropdownMenuItem>
+                        {can('zones.manage') && (
+                          <DropdownMenuItem onSelect={() => openEditor(z)}>
+                            <Pencil />
+                            Edit
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem onSelect={() => void toggle(z)}>
                           {z.isActive ? <Pause /> : <Play />}
                           {z.isActive ? 'Pause deliveries' : 'Resume deliveries'}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem variant="destructive" disabled={!!z.Rider?.length} onSelect={() => setToDelete(z)}>
-                          <Trash2 />
-                          Delete
-                        </DropdownMenuItem>
+                        {can('zones.delete') && (
+                          <DropdownMenuItem variant="destructive" disabled={!!z.Rider?.length} onSelect={() => setToDelete(z)}>
+                            <Trash2 />
+                            Delete
+                          </DropdownMenuItem>
+                        )}
                         {!!z.Rider?.length && (
                           // The API refuses this delete, but its reason arrives as a generic 500.
                           <p className="px-2 pb-1.5 text-xs text-muted-foreground">
@@ -235,8 +255,8 @@ export default function ZonesTab() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete {toDelete?.name}?</AlertDialogTitle>
             <AlertDialogDescription>
-              Customers there can no longer order. Past orders delivered in this zone lose their zone link, so they drop out of
-              Finance’s revenue-by-zone report. To stop deliveries but keep that history, pause the zone instead.
+              Customers there can no longer order. Past orders delivered in this zone lose their zone link, so they drop out of Finance’s revenue-by-zone report. To stop deliveries
+              but keep that history, pause the zone instead.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

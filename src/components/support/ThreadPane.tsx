@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import supportService, { type SupportThread } from '../../services/supportService';
 import { logger } from '../../utils/logger';
 import { displayName, initials, stateMeta } from './support-meta';
+import { can } from '../../config/permissions';
 
 interface ThreadPaneProps {
   userId: number;
@@ -153,10 +154,12 @@ export default function ThreadPane({ userId, refreshKey, onBack, onChanged }: Th
             )}
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={() => void toggleResolved()} disabled={toggling}>
-          {toggling ? <Loader2 className="animate-spin" /> : thread.state === 'resolved' ? <RotateCcw /> : <CheckCircle2 />}
-          {thread.state === 'resolved' ? 'Reopen' : 'Resolve'}
-        </Button>
+        {can('support.reply') && (
+          <Button variant="outline" size="sm" onClick={() => void toggleResolved()} disabled={toggling}>
+            {toggling ? <Loader2 className="animate-spin" /> : thread.state === 'resolved' ? <RotateCcw /> : <CheckCircle2 />}
+            {thread.state === 'resolved' ? 'Reopen' : 'Resolve'}
+          </Button>
+        )}
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto bg-muted/30 px-4 py-4">
@@ -186,28 +189,32 @@ export default function ThreadPane({ userId, refreshKey, onBack, onChanged }: Th
         </div>
       </div>
 
-      <div className="border-t p-3">
-        <div className="mx-auto flex max-w-2xl items-end gap-2">
-          <Textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                void send();
-              }
-            }}
-            rows={1}
-            placeholder={`Reply to ${name}…`}
-            className="max-h-40 min-h-10 resize-none"
-            aria-label="Reply"
-          />
-          <Button onClick={() => void send()} disabled={!draft.trim() || sending} size="icon" aria-label="Send reply">
-            {sending ? <Loader2 className="animate-spin" /> : <SendHorizontal />}
-          </Button>
+      {can('support.reply') ? (
+        <div className="border-t p-3">
+          <div className="mx-auto flex max-w-2xl items-end gap-2">
+            <Textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  void send();
+                }
+              }}
+              rows={1}
+              placeholder={`Reply to ${name}…`}
+              className="max-h-40 min-h-10 resize-none"
+              aria-label="Reply"
+            />
+            <Button onClick={() => void send()} disabled={!draft.trim() || sending} size="icon" aria-label="Send reply">
+              {sending ? <Loader2 className="animate-spin" /> : <SendHorizontal />}
+            </Button>
+          </div>
+          <p className="mx-auto mt-1.5 max-w-2xl text-[11px] text-muted-foreground">Enter to send · Shift+Enter for a new line · They get a push notification</p>
         </div>
-        <p className="mx-auto mt-1.5 max-w-2xl text-[11px] text-muted-foreground">Enter to send · Shift+Enter for a new line · They get a push notification</p>
-      </div>
+      ) : (
+        <p className="border-t p-3 text-center text-xs text-muted-foreground">You can read this conversation. Replying needs the “Reply and resolve conversations” permission.</p>
+      )}
     </div>
   );
 }

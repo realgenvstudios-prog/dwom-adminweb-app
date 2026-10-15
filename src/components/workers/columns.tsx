@@ -10,6 +10,7 @@ import type { Trip } from '../../services/workersService';
 import { initialsOf, timeAgo } from '../customers/CustomerTypes';
 import { formatGhs } from '../orders/order-status';
 import { pickerTypeLabel, tripPay, type PickerRow } from './picker-meta';
+import { can } from '../../config/permissions';
 
 export function buildRosterColumns(onToggleActive: (w: PickerRow) => void): ColumnDef<PickerRow>[] {
   return [
@@ -98,16 +99,18 @@ export function buildRosterColumns(onToggleActive: (w: PickerRow) => void): Colu
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
             {row.original.active ? (
-              <DropdownMenuItem variant="destructive" onSelect={() => onToggleActive(row.original)}>
-                <PowerOff />
-                Deactivate
-              </DropdownMenuItem>
-            ) : (
+              can('pickers.manage') ? (
+                <DropdownMenuItem variant="destructive" onSelect={() => onToggleActive(row.original)}>
+                  <PowerOff />
+                  Deactivate
+                </DropdownMenuItem>
+              ) : null
+            ) : can('pickers.manage') ? (
               <DropdownMenuItem onSelect={() => onToggleActive(row.original)}>
                 <Power />
                 Reactivate
               </DropdownMenuItem>
-            )}
+            ) : null}
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -123,9 +126,7 @@ export function buildTripColumns(onRemove: (t: Trip) => void, canOpenOrders: boo
       header: ({ column }) => <DataTableColumnHeader column={column} title="Date" />,
       enableGlobalFilter: false,
       cell: ({ row }) => (
-        <span className="whitespace-nowrap">
-          {new Date(row.original.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })}
-        </span>
+        <span className="whitespace-nowrap">{new Date(row.original.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })}</span>
       ),
       meta: { title: 'Date' },
     },

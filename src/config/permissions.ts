@@ -1,5 +1,6 @@
 import { mapRole } from '../services/admins/adminRoleMapping';
 import type { AdminRole } from '../services/admins/adminTypes';
+import adminAuthService from '../services/authService';
 
 export type UiRole = AdminRole;
 
@@ -29,9 +30,7 @@ const ROUTE_ROLES: Record<string, UiRole[]> = {
 /** The route every role lands on after login / on an access-denied redirect. */
 export const DEFAULT_ROUTE = '/dashboard';
 
-export const ALL_ROLES: UiRole[] = [
-  'Super Admin', 'Operations', 'Warehouse', 'Riders', 'Finance', 'Marketing', 'Support', 'Viewer',
-];
+export const ALL_ROLES: UiRole[] = ['Super Admin', 'Operations', 'Warehouse', 'Riders', 'Finance', 'Marketing', 'Support', 'Viewer'];
 
 /** Single source of truth for sidebar nav (Layout.tsx) and the read-only
  * role-access reference in Settings — one list so they can't drift apart. */
@@ -66,13 +65,103 @@ export function resolveUiRole(admin: { role?: string; adminRole?: string } | nul
   return mapRole(admin.adminRole || admin.role || '');
 }
 
+// Which permission keys belong to each page (keys are "<area>.<action>",
+// defined on the server in src/auth/permissions.ts). A page shows when the
+// admin has any of its boxes ticked. Pages not listed are Super-Admin-only.
+const PAGE_PREFIXES: Record<string, string[]> = {
+  '/dashboard': ['dashboard.'],
+  '/analytics': ['analytics.'],
+  '/orders': ['orders.'],
+  '/warehouse': ['warehouse.', 'suppliers.', 'purchases.'],
+  '/catalog': ['products.', 'categories.', 'bundles.'],
+  '/subscriptions': ['subscriptions.'],
+  '/field-operations': ['riders.', 'pickers.', 'zones.'],
+  '/customers': ['customers.'],
+  '/finance': ['finance.', 'expenses.'],
+  '/marketing': ['campaigns.', 'notifications.', 'customerGroups.', 'coupons.'],
+  '/support': ['support.'],
+};
+
+/** The signed-in admin's ticked permissions; null for a session from before they existed. */
+function myPermissions(): string[] | null {
+  const admin = adminAuthService.getCurrentAdmin() as { permissions?: unknown } | null;
+  return Array.isArray(admin?.permissions) ? (admin.permissions as string[]) : null;
+}
+
+function pageOfKey(key: string): string | undefined {
+  return Object.keys(PAGE_PREFIXES).find((path) => PAGE_PREFIXES[path].some((p) => key.startsWith(p)));
+}
+
+/**
+ * Whether the signed-in admin may take an action, e.g. can('orders.assignRider').
+ * The server enforces the same boxes; this only decides what to show.
+ */
+export function can(key: string): boolean {
+  const role = resolveUiRole(adminAuthService.getCurrentAdmin());
+  if (role === 'Super Admin') return true;
+  const mine = myPermissions();
+  if (mine) return mine.includes(key);
+  // Older session: fall back to the role's page access.
+  const page = pageOfKey(key);
+  return !!page && (ROUTE_ROLES[page] ?? []).includes(role);
+}
+
 export function canAccessRoute(role: UiRole, path: string): boolean {
   if (role === 'Super Admin') return true;
+  const prefixes = PAGE_PREFIXES[path];
+  if (!prefixes) return false;
+  const mine = myPermissions();
+  if (mine) return mine.some((k) => prefixes.some((p) => k.startsWith(p)));
   const allowed = ROUTE_ROLES[path];
-  if (!allowed) return false;
-  return allowed.includes(role);
+  return !!allowed && allowed.includes(role);
 }
+
+/** Where to send an admin after login or when a page is off-limits: the first page they can open. */
+export function landingRoute(role: UiRole): string {
+  return ALL_PAGES.find((p) => canAccessRoute(role, p.path))?.path ?? DEFAULT_ROUTE;
+}
+
+// Re-render on permission changes (they're re-read from the server when the
+// dashboard opens and when the tab regains focus).
+const listeners = new Set<() => void>();
+let version = 0;
+export function permissionsChanged() {
+  version += 1;
+  listeners.forEach((l) => l());
+}
+export function subscribePermissions(listener: () => void) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+export const permissionsVersion = () => version;
 
 export function getAccessibleMenuPaths(role: UiRole, allPaths: string[]): string[] {
   return allPaths.filter((path) => canAccessRoute(role, path));
+}
+
+// Which boxes open each tab of a multi-tab page. Entries ending in "." are
+// prefixes ("riders." = any riders box). An empty list = Super Admin only.
+const TAB_ACCESS: Record<string, Record<string, string[]>> = {
+  '/catalog': { products: ['products.'], categories: ['categories.', 'products.view'], bundles: ['bundles.', 'products.view'] },
+  '/warehouse': { operations: ['warehouse.'], suppliers: ['suppliers.', 'purchases.record'] },
+  '/field-operations': { riders: ['riders.'], pickers: ['pickers.'], zones: ['zones.'] },
+  '/marketing': { campaigns: ['campaigns.'], notifications: ['notifications.', 'customerGroups.manage'], coupons: ['coupons.'] },
+  '/finance': { overview: ['finance.view'], productCosts: ['finance.productCosts'], expenses: ['expenses.'], founderLedger: [], settings: ['finance.settings'] },
+};
+
+/** Whether a tab of a multi-tab page is open to the signed-in admin. */
+export function canTab(path: string, tab: string): boolean {
+  const role = resolveUiRole(adminAuthService.getCurrentAdmin());
+  if (role === 'Super Admin') return true;
+  const spec = TAB_ACCESS[path]?.[tab];
+  if (!spec) return canAccessRoute(role, path);
+  if (spec.length === 0) return false;
+  const mine = myPermissions();
+  if (!mine) return canAccessRoute(role, path); // older session: page-level access
+  return spec.some((k) => (k.endsWith('.') ? mine.some((m) => m.startsWith(k)) : mine.includes(k)));
+}
+
+/** The tabs of a page the admin may open, in order. */
+export function allowedTabs<T extends string>(path: string, tabs: readonly T[]): T[] {
+  return tabs.filter((t) => canTab(path, t));
 }

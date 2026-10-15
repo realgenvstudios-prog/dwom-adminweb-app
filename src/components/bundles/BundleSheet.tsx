@@ -6,6 +6,7 @@ import type { Bundle } from '../../services/bundlesService';
 import { formatGhs } from '../orders/order-status';
 import type { Product } from '../products/ProductTypes';
 import { bundleTotals, storedUnitPrices } from './bundle-pricing';
+import { can } from '../../config/permissions';
 
 interface BundleSheetProps {
   bundle: Bundle;
@@ -60,8 +61,8 @@ export default function BundleSheet({ bundle, products, open, onOpenChange, onEd
             <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800">
               <AlertTriangle className="mt-0.5 size-4 shrink-0" />
               <p>
-                Product prices have changed since this bundle was priced. At today’s prices it would be{' '}
-                <strong className="tabular-nums">{formatGhs(current.final)}</strong>. Open Edit and save to update it.
+                Product prices have changed since this bundle was priced. At today’s prices it would be <strong className="tabular-nums">{formatGhs(current.final)}</strong>. Open
+                Edit and save to update it.
               </p>
             </div>
           )}
@@ -108,14 +109,18 @@ export default function BundleSheet({ bundle, products, open, onOpenChange, onEd
 
         {!deactivated && (
           <SheetFooter className="flex-row justify-between border-t p-4">
-            <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={onDelete}>
-              <Trash2 />
-              Delete
-            </Button>
-            <Button onClick={onEdit}>
-              <Pencil />
-              Edit bundle
-            </Button>
+            {can('bundles.delete') && (
+              <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={onDelete}>
+                <Trash2 />
+                Delete
+              </Button>
+            )}
+            {can('bundles.manage') && (
+              <Button onClick={onEdit}>
+                <Pencil />
+                Edit bundle
+              </Button>
+            )}
           </SheetFooter>
         )}
       </SheetContent>

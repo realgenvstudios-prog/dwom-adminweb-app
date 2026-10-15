@@ -14,6 +14,7 @@ import StockDialog, { type StockAction } from './StockDialogs';
 import { buildInventoryColumns } from './columns';
 import { LEVELS, levelOf, type InventoryRow } from './inventory-meta';
 import { STOCK_STATUSES } from '../products/product-meta';
+import { can } from '../../config/permissions';
 
 function csvCell(v: string | number) {
   let s = String(v);
@@ -218,18 +219,20 @@ export default function InventoryTab() {
           setViewOpen(true);
         }}
         emptyMessage={rows.length === 0 ? 'No products are tracked in the warehouse yet.' : 'Nothing matches these filters.'}
-        toolbarActions={(table) => (
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8"
-            disabled={loading || rows.length === 0}
-            onClick={() => downloadCsv(table.getFilteredRowModel().rows.map((r) => r.original))}
-          >
-            <Download />
-            Export
-          </Button>
-        )}
+        toolbarActions={(table) =>
+          can('warehouse.export') ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8"
+              disabled={loading || rows.length === 0}
+              onClick={() => downloadCsv(table.getFilteredRowModel().rows.map((r) => r.original))}
+            >
+              <Download />
+              Export
+            </Button>
+          ) : null
+        }
         bulkActions={(selected, clear) => (
           <BulkReceive
             rows={selected}

@@ -22,6 +22,7 @@ import RiderSheet from './RiderSheet';
 import { buildRiderColumns } from './columns';
 import { NO_ZONE, RIDER_STATUSES, riderStatusMeta } from './rider-meta';
 import { useRidersData, type Rider } from './useRidersData';
+import { can } from '../../config/permissions';
 
 export default function RidersTab() {
   const { riders, zones, loading, error, refresh, patchRider } = useRidersData();
@@ -33,7 +34,7 @@ export default function RidersTab() {
   const [createOpen, setCreateOpen] = useState(false);
 
   const viewing = riders.find((r) => r.id === viewId) ?? null;
-  const zoneRider = zoneFor ? riders.find((r) => r.id === zoneFor.id) ?? null : null;
+  const zoneRider = zoneFor ? (riders.find((r) => r.id === zoneFor.id) ?? null) : null;
 
   const columns = useMemo(
     () =>
@@ -85,8 +86,24 @@ export default function RidersTab() {
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Active riders" value={String(active.length)} hint={`${riders.length - active.length} deactivated`} icon={Bike} tint="bg-sky-500/10 text-sky-600" loading={loading} failed={!!error} />
-        <StatCard label="Available now" value={String(active.filter((r) => r.status === 'available').length)} hint="Ready for a delivery" icon={CircleDot} tint="bg-emerald-500/10 text-emerald-600" loading={loading} failed={!!error} />
+        <StatCard
+          label="Active riders"
+          value={String(active.length)}
+          hint={`${riders.length - active.length} deactivated`}
+          icon={Bike}
+          tint="bg-sky-500/10 text-sky-600"
+          loading={loading}
+          failed={!!error}
+        />
+        <StatCard
+          label="Available now"
+          value={String(active.filter((r) => r.status === 'available').length)}
+          hint="Ready for a delivery"
+          icon={CircleDot}
+          tint="bg-emerald-500/10 text-emerald-600"
+          loading={loading}
+          failed={!!error}
+        />
         <StatCard
           label="On delivery"
           value={String(active.filter((r) => r.status === 'on_delivery').length)}
@@ -96,7 +113,15 @@ export default function RidersTab() {
           loading={loading}
           failed={!!error}
         />
-        <StatCard label="Without a zone" value={String(unzoned)} hint={unzoned ? 'Assign them to start deliveries' : 'Every rider has a zone'} icon={MapPinOff} tint="bg-amber-500/10 text-amber-600" loading={loading} failed={!!error} />
+        <StatCard
+          label="Without a zone"
+          value={String(unzoned)}
+          hint={unzoned ? 'Assign them to start deliveries' : 'Every rider has a zone'}
+          icon={MapPinOff}
+          tint="bg-amber-500/10 text-amber-600"
+          loading={loading}
+          failed={!!error}
+        />
       </div>
 
       {error && (
@@ -133,10 +158,12 @@ export default function RidersTab() {
         }}
         emptyMessage={riders.length === 0 ? 'No riders yet. Add your first one.' : 'No riders match these filters.'}
         toolbarActions={
-          <Button size="sm" className="h-8" onClick={() => setCreateOpen(true)}>
-            <Plus />
-            Add rider
-          </Button>
+          can('riders.manage') && (
+            <Button size="sm" className="h-8" onClick={() => setCreateOpen(true)}>
+              <Plus />
+              Add rider
+            </Button>
+          )
         }
       />
 

@@ -18,6 +18,7 @@ import { useOrders } from './orders/useOrders';
 import type { Order } from './orders/OrderTypes';
 import { formatGhs, ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES } from './orders/order-status';
 import { downloadOrdersCsv } from './orders/export-csv';
+import { can } from '../config/permissions';
 
 type DateRange = 'today' | '7d' | '30d' | 'all';
 
@@ -134,10 +135,12 @@ const OrdersPage: React.FC = () => {
           </div>
           <p className="text-sm text-muted-foreground">Track, assign, and update every DWOM order.</p>
         </div>
-        <Button onClick={() => setCreateOpen(true)}>
-          <Plus />
-          Create order
-        </Button>
+        {can('orders.create') && (
+          <Button onClick={() => setCreateOpen(true)}>
+            <Plus />
+            Create order
+          </Button>
+        )}
       </div>
 
       <OrdersKpiCards refreshKey={statsKey} />
@@ -182,31 +185,35 @@ const OrdersPage: React.FC = () => {
             </SelectContent>
           </Select>
         }
-        toolbarActions={(table) => (
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8"
-            disabled={loading || table.getFilteredRowModel().rows.length === 0}
-            onClick={() => downloadOrdersCsv(table.getFilteredRowModel().rows.map((r) => r.original))}
-          >
-            <Download />
-            Export
-          </Button>
-        )}
-        bulkActions={(rows, clear) => (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => {
-              downloadOrdersCsv(rows);
-              clear();
-            }}
-          >
-            <Download />
-            Export {rows.length}
-          </Button>
-        )}
+        toolbarActions={(table) =>
+          can('orders.export') && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8"
+              disabled={loading || table.getFilteredRowModel().rows.length === 0}
+              onClick={() => downloadOrdersCsv(table.getFilteredRowModel().rows.map((r) => r.original))}
+            >
+              <Download />
+              Export
+            </Button>
+          )
+        }
+        bulkActions={(rows, clear) =>
+          can('orders.export') && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                downloadOrdersCsv(rows);
+                clear();
+              }}
+            >
+              <Download />
+              Export {rows.length}
+            </Button>
+          )
+        }
       />
 
       <OrderDetailsSheet

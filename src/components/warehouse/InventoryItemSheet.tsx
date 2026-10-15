@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { formatDateTime } from '../orders/order-status';
 import type { StockAction } from './StockDialogs';
 import { LEVELS, levelOf, movementMeta, type InventoryRow } from './inventory-meta';
+import { can } from '../../config/permissions';
 
 interface InventoryItemSheetProps {
   row: InventoryRow;
@@ -68,18 +69,24 @@ export default function InventoryItemSheet({ row, open, onOpenChange, onAction }
         </div>
 
         <SheetFooter className="flex-row flex-wrap justify-end gap-2 border-t p-4">
-          <Button variant="ghost" onClick={() => onAction('levels')}>
-            <SlidersHorizontal />
-            Reorder levels
-          </Button>
-          <Button variant="outline" onClick={() => onAction('move')}>
-            <ArrowLeftRight />
-            Record a change
-          </Button>
-          <Button onClick={() => onAction('receive')}>
-            <PackagePlus />
-            Receive
-          </Button>
+          {can('warehouse.reorderLevels') && (
+            <Button variant="ghost" onClick={() => onAction('levels')}>
+              <SlidersHorizontal />
+              Reorder levels
+            </Button>
+          )}
+          {can('warehouse.adjustStock') && (
+            <Button variant="outline" onClick={() => onAction('move')}>
+              <ArrowLeftRight />
+              Record a change
+            </Button>
+          )}
+          {can('warehouse.adjustStock') && (
+            <Button onClick={() => onAction('receive')}>
+              <PackagePlus />
+              Receive
+            </Button>
+          )}
         </SheetFooter>
       </SheetContent>
     </Sheet>

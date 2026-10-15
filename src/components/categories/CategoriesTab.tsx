@@ -12,13 +12,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -27,6 +21,7 @@ import categoriesService from '../../services/categoriesService';
 import { logger } from '../../utils/logger';
 import type { CategoryRecord } from '../products/useCatalogData';
 import CategoryDialog from './CategoryDialog';
+import { can } from '../../config/permissions';
 
 interface CategoriesTabProps {
   categories: CategoryRecord[];
@@ -36,8 +31,7 @@ interface CategoriesTabProps {
 }
 
 // The API accepts sortOrder; the service's DTO type just doesn't list it.
-const setSortOrder = (id: number, sortOrder: number) =>
-  categoriesService.update(id, { sortOrder } as Parameters<typeof categoriesService.update>[1]);
+const setSortOrder = (id: number, sortOrder: number) => categoriesService.update(id, { sortOrder } as Parameters<typeof categoriesService.update>[1]);
 
 function productCounts(c: CategoryRecord) {
   const all = c.Product ?? [];
@@ -73,9 +67,7 @@ export default function CategoriesTab({ categories, loading, error, refresh }: C
     setOrder(next.map((c) => c.id));
 
     // Renumber with gaps so later moves only touch the categories that changed.
-    const changes = next
-      .map((c, i) => ({ c, sortOrder: (i + 1) * 10 }))
-      .filter(({ c, sortOrder }) => (c.sortOrder ?? 0) !== sortOrder);
+    const changes = next.map((c, i) => ({ c, sortOrder: (i + 1) * 10 })).filter(({ c, sortOrder }) => (c.sortOrder ?? 0) !== sortOrder);
     try {
       setReordering(true);
       await Promise.all(changes.map(({ c, sortOrder }) => setSortOrder(c.id, sortOrder)));
@@ -117,10 +109,12 @@ export default function CategoriesTab({ categories, loading, error, refresh }: C
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search categories…" className="h-8 pl-8" />
         </div>
-        <Button size="sm" className="h-8" onClick={() => openDialog(null)}>
-          <Plus />
-          New category
-        </Button>
+        {can('categories.manage') && (
+          <Button size="sm" className="h-8" onClick={() => openDialog(null)}>
+            <Plus />
+            New category
+          </Button>
+        )}
       </div>
 
       {error && (
@@ -175,13 +169,7 @@ export default function CategoriesTab({ categories, loading, error, refresh }: C
                   <TableRow key={c.id}>
                     <TableCell>
                       <div className="flex items-center gap-0.5">
-                        <Button
-                          variant="ghost"
-                          size="icon-xs"
-                          disabled={reordering || !!q || index === 0}
-                          onClick={() => void move(index, -1)}
-                          aria-label={`Move ${c.name} up`}
-                        >
+                        <Button variant="ghost" size="icon-xs" disabled={reordering || !!q || index === 0} onClick={() => void move(index, -1)} aria-label={`Move ${c.name} up`}>
                           <ArrowUp />
                         </Button>
                         <Button
@@ -222,15 +210,19 @@ export default function CategoriesTab({ categories, loading, error, refresh }: C
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56">
-                          <DropdownMenuItem onSelect={() => openDialog(c)}>
-                            <Pencil />
-                            Edit
-                          </DropdownMenuItem>
+                          {can('categories.manage') && (
+                            <DropdownMenuItem onSelect={() => openDialog(c)}>
+                              <Pencil />
+                              Edit
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem variant="destructive" disabled={counts.total > 0} onSelect={() => setToDelete(c)}>
-                            <Trash2 />
-                            {counts.total > 0 ? 'Delete (not empty)' : 'Delete'}
-                          </DropdownMenuItem>
+                          {can('categories.delete') && (
+                            <DropdownMenuItem variant="destructive" disabled={counts.total > 0} onSelect={() => setToDelete(c)}>
+                              <Trash2 />
+                              {counts.total > 0 ? 'Delete (not empty)' : 'Delete'}
+                            </DropdownMenuItem>
+                          )}
                           {counts.total > 0 && (
                             <p className="px-2 pb-1.5 text-xs text-muted-foreground">
                               {counts.live > 0
@@ -255,14 +247,7 @@ export default function CategoriesTab({ categories, loading, error, refresh }: C
       )}
 
       {dialog && (
-        <CategoryDialog
-          key={dialog.token}
-          category={dialog.category}
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          nextSortOrder={nextSortOrder}
-          onSaved={() => void refresh()}
-        />
+        <CategoryDialog key={dialog.token} category={dialog.category} open={dialogOpen} onOpenChange={setDialogOpen} nextSortOrder={nextSortOrder} onSaved={() => void refresh()} />
       )}
 
       <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>

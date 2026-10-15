@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { logger } from '../utils/logger';
 import adminAuthService from '../services/authService';
-import { canAccessRoute, resolveUiRole, DEFAULT_ROUTE } from '../config/permissions';
+import { canAccessRoute, resolveUiRole, landingRoute } from '../config/permissions';
+import { usePermissions } from '@/hooks/use-permissions';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -12,6 +13,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isVerifying, setIsVerifying] = useState(true);
   const location = useLocation();
+  usePermissions();
 
   useEffect(() => {
     const checkAuth = () => {
@@ -21,7 +23,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       logger.log('🔐 [ProtectedRoute] Checking auth:', {
         hasToken: !!token,
         hasUser: !!adminUser,
-        path: location.pathname
+        path: location.pathname,
       });
 
       const authenticated = !!(token && adminUser);
@@ -59,8 +61,30 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const role = resolveUiRole(currentAdmin);
 
   if (!canAccessRoute(role, location.pathname)) {
+    const landing = landingRoute(role);
+    // No page ticked at all: say so rather than redirecting in a loop.
+    if (!canAccessRoute(role, landing)) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-background p-6 text-center">
+          <div className="max-w-sm space-y-2">
+            <p className="text-lg font-semibold">No pages assigned yet</p>
+            <p className="text-sm text-muted-foreground">Your account doesn’t have access to any part of the dashboard. Ask a Super Admin to tick the pages you need.</p>
+            <button
+              type="button"
+              className="text-sm underline underline-offset-4"
+              onClick={() => {
+                adminAuthService.logout();
+                window.location.assign('/login');
+              }}
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
+      );
+    }
     logger.log(`⛔ [ProtectedRoute] Role "${role}" cannot access ${location.pathname}, redirecting`);
-    return <Navigate to={DEFAULT_ROUTE} replace />;
+    return <Navigate to={landing} replace />;
   }
 
   return <>{children}</>;

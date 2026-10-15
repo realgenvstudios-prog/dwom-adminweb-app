@@ -24,6 +24,7 @@ import { formatGhs } from '../orders/order-status';
 import CreatePickerDialog from './CreatePickerDialog';
 import { buildRosterColumns, buildTripColumns } from './columns';
 import { PICKER_TYPES, buildPickerRows, dayKey, tripPay, type PickerRow } from './picker-meta';
+import { can } from '../../config/permissions';
 
 interface PayRule {
   rate: number;
@@ -127,10 +128,42 @@ export default function PickersTab() {
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Active pickers" value={String(workers.filter((w) => w.active).length)} hint={`${workers.length} on the roster`} icon={Users} tint="bg-sky-500/10 text-sky-600" loading={loading} failed={!!error} />
-        <StatCard label="Orders picked today" value={String(todayTrips.reduce((s, t) => s + t.TripOrder.length, 0))} hint={`${new Set(todayTrips.map((t) => t.workerId)).size} pickers working`} icon={ShoppingBasket} tint="bg-emerald-500/10 text-emerald-600" loading={loading} failed={!!error} />
-        <StatCard label="Picker pay today" value={formatGhs(todayTrips.reduce((s, t) => s + tripPay(t), 0))} hint="For today’s trips" icon={Wallet} tint="bg-amber-500/10 text-amber-600" loading={loading} failed={!!error} />
-        <StatCard label="Pay, last 7 days" value={formatGhs(weekTrips.reduce((s, t) => s + tripPay(t), 0))} hint={`${weekTrips.reduce((s, t) => s + t.TripOrder.length, 0)} orders`} icon={CalendarDays} tint="bg-violet-500/10 text-violet-600" loading={loading} failed={!!error} />
+        <StatCard
+          label="Active pickers"
+          value={String(workers.filter((w) => w.active).length)}
+          hint={`${workers.length} on the roster`}
+          icon={Users}
+          tint="bg-sky-500/10 text-sky-600"
+          loading={loading}
+          failed={!!error}
+        />
+        <StatCard
+          label="Orders picked today"
+          value={String(todayTrips.reduce((s, t) => s + t.TripOrder.length, 0))}
+          hint={`${new Set(todayTrips.map((t) => t.workerId)).size} pickers working`}
+          icon={ShoppingBasket}
+          tint="bg-emerald-500/10 text-emerald-600"
+          loading={loading}
+          failed={!!error}
+        />
+        <StatCard
+          label="Picker pay today"
+          value={formatGhs(todayTrips.reduce((s, t) => s + tripPay(t), 0))}
+          hint="For today’s trips"
+          icon={Wallet}
+          tint="bg-amber-500/10 text-amber-600"
+          loading={loading}
+          failed={!!error}
+        />
+        <StatCard
+          label="Pay, last 7 days"
+          value={formatGhs(weekTrips.reduce((s, t) => s + tripPay(t), 0))}
+          hint={`${weekTrips.reduce((s, t) => s + t.TripOrder.length, 0)} orders`}
+          icon={CalendarDays}
+          tint="bg-violet-500/10 text-violet-600"
+          loading={loading}
+          failed={!!error}
+        />
       </div>
 
       {rule && (
@@ -138,8 +171,8 @@ export default function PickersTab() {
           <Info className="mt-0.5 size-4 shrink-0" />
           <span>
             Pay is worked out per picker, per day: <strong className="text-foreground">{rule.threshold}+ orders</strong> earns{' '}
-            <strong className="text-foreground">{formatGhs(rule.rate)} per order</strong>; fewer earns a{' '}
-            <strong className="text-foreground">{formatGhs(rule.minimum)}</strong> minimum for the day, split across those orders. Change it in Finance › Settings.
+            <strong className="text-foreground">{formatGhs(rule.rate)} per order</strong>; fewer earns a <strong className="text-foreground">{formatGhs(rule.minimum)}</strong>{' '}
+            minimum for the day, split across those orders. Change it in Finance › Settings.
           </span>
         </p>
       )}
@@ -178,10 +211,12 @@ export default function PickersTab() {
             ]}
             emptyMessage={workers.length === 0 ? 'No pickers yet. Add your first one.' : 'No pickers match these filters.'}
             toolbarActions={
-              <Button size="sm" className="h-8" onClick={() => setCreateOpen(true)}>
-                <Plus />
-                Add picker
-              </Button>
+              can('pickers.manage') && (
+                <Button size="sm" className="h-8" onClick={() => setCreateOpen(true)}>
+                  <Plus />
+                  Add picker
+                </Button>
+              )
             }
           />
         </TabsContent>
@@ -206,9 +241,7 @@ export default function PickersTab() {
           <AlertDialogHeader>
             <AlertDialogTitle>{toggleFor?.active ? `Deactivate ${toggleFor?.name}?` : `Reactivate ${toggleFor?.name}?`}</AlertDialogTitle>
             <AlertDialogDescription>
-              {toggleFor?.active
-                ? 'They won’t appear when assigning pickers to orders. Past trips and pay are kept.'
-                : 'They’ll be available to assign to orders again.'}
+              {toggleFor?.active ? 'They won’t appear when assigning pickers to orders. Past trips and pay are kept.' : 'They’ll be available to assign to orders again.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -226,15 +259,19 @@ export default function PickersTab() {
             <AlertDialogTitle>Remove this trip?</AlertDialogTitle>
             <AlertDialogDescription>
               This unassigns {removeTrip?.Worker?.name ?? 'the picker'} from{' '}
-              {removeTrip?.TripOrder.length === 1 ? `order #${removeTrip.TripOrder[0].orderId}` : `all ${removeTrip?.TripOrder.length} orders on it (${removeTrip?.TripOrder.map((o) => `#${o.orderId}`).join(', ')})`}
+              {removeTrip?.TripOrder.length === 1
+                ? `order #${removeTrip.TripOrder[0].orderId}`
+                : `all ${removeTrip?.TripOrder.length} orders on it (${removeTrip?.TripOrder.map((o) => `#${o.orderId}`).join(', ')})`}
               , and recalculates their pay for that day.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Keep trip</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={() => void confirmRemoveTrip()}>
-              Remove trip
-            </AlertDialogAction>
+            {can('pickers.deleteTrips') && (
+              <AlertDialogAction variant="destructive" onClick={() => void confirmRemoveTrip()}>
+                Remove trip
+              </AlertDialogAction>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

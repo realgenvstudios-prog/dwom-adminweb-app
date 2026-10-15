@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
-import { AlertCircle, Ban, Copy, KeyRound, Loader2, Mail, MailX, MoreHorizontal, RotateCw, ShieldCheck, UserCheck, UserCog, UserPlus, Users } from 'lucide-react';
+import { AlertCircle, Ban, Copy, KeyRound, ListChecks, Loader2, Mail, MailX, MoreHorizontal, RotateCw, ShieldCheck, UserCheck, UserCog, UserPlus, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -28,6 +28,7 @@ import { ALL_ROLES } from '../config/permissions';
 import { logger } from '../utils/logger';
 import InviteAdminDialog from './admins/InviteAdminDialog';
 import RoleSelect from './admins/RoleSelect';
+import PermissionsDialog from './admins/PermissionsDialog';
 import { ROLE_BLURB, ROLE_PAGES, ROLE_TINT, STATUS_TINT, initials } from './admins/role-meta';
 
 const when = (iso?: string | null) => {
@@ -46,6 +47,7 @@ export default function AdminsPage() {
   const [error, setError] = useState<string | null>(null);
   const [inviteToken, setInviteToken] = useState<number | null>(null);
   const [roleFor, setRoleFor] = useState<{ admin: Admin; role: AdminRole } | null>(null);
+  const [permsFor, setPermsFor] = useState<{ admin: Admin; token: number } | null>(null);
   const [confirm, setConfirm] = useState<{ admin: Admin; action: 'suspend' | 'reactivate' | 'cancel' } | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   // A link to pass on directly: always after an invite, and for a reset only when email isn't set up.
@@ -156,9 +158,16 @@ export default function AdminsPage() {
         enableSorting: false,
         enableGlobalFilter: false,
         cell: ({ row }) => (
-          <Badge variant="outline" className={ROLE_TINT[row.original.role]}>
-            {row.original.role}
-          </Badge>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Badge variant="outline" className={ROLE_TINT[row.original.role]}>
+              {row.original.role}
+            </Badge>
+            {row.original.customPermissions && row.original.role !== 'Super Admin' && (
+              <Badge variant="outline" className="font-normal text-muted-foreground" title="Permissions customised from the role's defaults">
+                Custom
+              </Badge>
+            )}
+          </div>
         ),
         meta: { title: 'Role' },
       },
@@ -228,6 +237,12 @@ export default function AdminsPage() {
                       <UserCog />
                       Change role
                     </DropdownMenuItem>
+                    {!self && a.role !== 'Super Admin' && (
+                      <DropdownMenuItem onSelect={() => setPermsFor({ admin: a, token: Date.now() })}>
+                        <ListChecks />
+                        Permissions
+                      </DropdownMenuItem>
+                    )}
                     {!self && a.status === 'Active' && (
                       <DropdownMenuItem onSelect={() => void sendReset(a)}>
                         <KeyRound />
@@ -389,6 +404,7 @@ export default function AdminsPage() {
         </div>
       </div>
 
+      {permsFor && <PermissionsDialog key={permsFor.token} admin={permsFor.admin} open={!!permsFor} onOpenChange={(o) => !o && setPermsFor(null)} onSaved={() => void load()} />}
       {inviteToken && (
         <InviteAdminDialog
           key={inviteToken}
@@ -405,7 +421,9 @@ export default function AdminsPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Change {roleFor?.admin.name}’s role</DialogTitle>
-            <DialogDescription>Takes effect on their next page load.</DialogDescription>
+            <DialogDescription>
+              Takes effect on their next action. {roleFor?.admin.customPermissions ? 'Their customised permissions are replaced by the new role’s defaults.' : ''}
+            </DialogDescription>
           </DialogHeader>
           {roleFor && <RoleSelect id="cr-role" value={roleFor.role} onChange={(role) => setRoleFor({ ...roleFor, role })} />}
           <DialogFooter>

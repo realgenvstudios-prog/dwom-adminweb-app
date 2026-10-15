@@ -23,6 +23,7 @@ import { logger } from '../../utils/logger';
 import { formatGhs } from '../orders/order-status';
 import ExpenseDialog from './ExpenseDialog';
 import { EXPENSE_METHODS, amountOf, methodLabel, monthKey } from './expense-meta';
+import { can } from '../../config/permissions';
 
 type Range = 'month' | 'lastMonth' | '90d' | 'all';
 const RANGES: { value: Range; label: string }[] = [
@@ -218,15 +219,19 @@ const ExpensesTab: React.FC = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-36">
-              <DropdownMenuItem onSelect={() => openDialog(row.original)}>
-                <Pencil />
-                Edit
-              </DropdownMenuItem>
+              {can('expenses.manage') && (
+                <DropdownMenuItem onSelect={() => openDialog(row.original)}>
+                  <Pencil />
+                  Edit
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive" onSelect={() => setToDelete(row.original)}>
-                <Trash2 />
-                Delete
-              </DropdownMenuItem>
+              {can('expenses.delete') && (
+                <DropdownMenuItem variant="destructive" onSelect={() => setToDelete(row.original)}>
+                  <Trash2 />
+                  Delete
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         ),
@@ -348,10 +353,12 @@ const ExpensesTab: React.FC = () => {
                 <Download />
                 Export
               </Button>
-              <Button size="sm" className="h-8" onClick={() => openDialog(null)}>
-                <Plus />
-                Add expense
-              </Button>
+              {can('expenses.manage') && (
+                <Button size="sm" className="h-8" onClick={() => openDialog(null)}>
+                  <Plus />
+                  Add expense
+                </Button>
+              )}
             </>
           );
         }}

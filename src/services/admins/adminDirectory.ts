@@ -3,6 +3,8 @@ import type { Admin } from './adminTypes';
 import { mapRole } from './adminRoleMapping';
 
 interface RawUser {
+  permissions?: string[];
+  customPermissions?: boolean;
   id: number;
   name?: string | null;
   email?: string | null;
@@ -16,6 +18,8 @@ interface RawUser {
 }
 
 interface RawInvite {
+  permissions?: string[];
+  customPermissions?: boolean;
   id: string | number; // "invite-5"
   name?: string;
   email?: string;
@@ -42,6 +46,8 @@ export class AdminDirectoryService {
         phone: u.phoneNumber || u.phone || null,
         role: mapRole(u.adminRole || 'viewer'),
         status: u.isActive === false ? 'Suspended' : 'Active',
+        permissions: u.permissions,
+        customPermissions: u.customPermissions,
         lastLoginAt: u.lastLoginAt ?? null,
         createdAt: u.createdAt,
       }));
@@ -54,6 +60,8 @@ export class AdminDirectoryService {
       phone: null,
       role: mapRole(i.adminRole || 'viewer'),
       status: i.status === 'expired' ? 'Expired' : 'Invited',
+      permissions: i.permissions,
+      customPermissions: i.customPermissions,
       lastLoginAt: null,
       createdAt: i.createdAt,
       expiresAt: i.expiresAt,

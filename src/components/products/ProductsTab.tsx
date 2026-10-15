@@ -16,6 +16,7 @@ import { downloadProductsCsv } from './export-csv';
 import SeasonalRotationDialog from './SeasonalRotationDialog';
 import { STOCK_STATUSES, discountOf, stockMeta } from './product-meta';
 import type { Product, ProductCategory } from './ProductTypes';
+import { can } from '../../config/permissions';
 
 interface ProductsTabProps {
   products: Product[];
@@ -211,50 +212,59 @@ export default function ProductsTab({ products, categories, loading, error, refr
         toolbarActions={(table) => (
           <>
             {/* Exports what's shown: search and filters apply. */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8"
-              disabled={loading || products.length === 0}
-              onClick={() => {
-                const rows = table.getFilteredRowModel().rows.map((r) => r.original);
-                downloadProductsCsv(rows, categories);
-                toast.success(`Exported ${rows.length} product${rows.length === 1 ? '' : 's'}`);
-              }}
-            >
-              <Download />
-              Export
-            </Button>
-            <Button variant="outline" size="sm" className="h-8" onClick={() => setArchivedKey(Date.now())}>
-              <Archive />
-              Archived
-            </Button>
-            <Button variant="outline" size="sm" className="h-8" onClick={() => setSeasonalOpen(true)}>
-              <Leaf />
-              Seasonal
-            </Button>
+            {can('products.export') && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8"
+                disabled={loading || products.length === 0}
+                onClick={() => {
+                  const rows = table.getFilteredRowModel().rows.map((r) => r.original);
+                  downloadProductsCsv(rows, categories);
+                  toast.success(`Exported ${rows.length} product${rows.length === 1 ? '' : 's'}`);
+                }}
+              >
+                <Download />
+                Export
+              </Button>
+            )}
+            {can('products.archive') ||
+              (can('products.deletePermanently') && (
+                <Button variant="outline" size="sm" className="h-8" onClick={() => setArchivedKey(Date.now())}>
+                  <Archive />
+                  Archived
+                </Button>
+              ))}
+            {can('products.seasonal') && (
+              <Button variant="outline" size="sm" className="h-8" onClick={() => setSeasonalOpen(true)}>
+                <Leaf />
+                Seasonal
+              </Button>
+            )}
           </>
         )}
-        bulkActions={(rows, clear) => (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="sm" variant="outline">
-                Set stock
-                <ChevronDown />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="center" side="top">
-              <DropdownMenuLabel>Mark {rows.length} as…</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {STOCK_STATUSES.map((s) => (
-                <DropdownMenuItem key={s.value} onSelect={() => void setStockFor(rows, s.value, clear)}>
-                  <s.icon className={s.tone} />
-                  {s.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+        bulkActions={(rows, clear) =>
+          can('products.stockStatus') && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline">
+                  Set stock
+                  <ChevronDown />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" side="top">
+                <DropdownMenuLabel>Mark {rows.length} as…</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {STOCK_STATUSES.map((s) => (
+                  <DropdownMenuItem key={s.value} onSelect={() => void setStockFor(rows, s.value, clear)}>
+                    <s.icon className={s.tone} />
+                    {s.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )
+        }
       />
 
       {sheet && sheetProduct && (

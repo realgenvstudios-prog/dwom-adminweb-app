@@ -3,13 +3,7 @@ import { MapPin, MoreHorizontal, Power, PowerOff, Star } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DataTableColumnHeader, facetedFilterFn } from '@/components/data-table';
 import { cn } from '@/lib/utils';
@@ -17,6 +11,7 @@ import { formatGhs } from '../orders/order-status';
 import { initialsOf } from '../customers/CustomerTypes';
 import { NO_ZONE, RIDER_STATUSES, num, riderStatusMeta, vehicleMeta } from './rider-meta';
 import type { Rider } from './useRidersData';
+import { can } from '../../config/permissions';
 
 export interface RiderActions {
   onView: (r: Rider) => void;
@@ -162,24 +157,27 @@ export function buildRiderColumns(a: RiderActions): ColumnDef<Rider>[] {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-44">
               <DropdownMenuItem onSelect={() => a.onView(r)}>View details</DropdownMenuItem>
-              {r.isActive && (
-                <DropdownMenuItem onSelect={() => a.onAssignZone(r)}>
-                  <MapPin />
-                  {r.zoneId == null ? 'Assign zone' : 'Change zone'}
-                </DropdownMenuItem>
-              )}
+              {r.isActive &&
+                (can('riders.manage') ? (
+                  <DropdownMenuItem onSelect={() => a.onAssignZone(r)}>
+                    <MapPin />
+                    {r.zoneId == null ? 'Assign zone' : 'Change zone'}
+                  </DropdownMenuItem>
+                ) : null)}
               <DropdownMenuSeparator />
               {r.isActive ? (
-                <DropdownMenuItem variant="destructive" onSelect={() => a.onToggleActive(r)}>
-                  <PowerOff />
-                  Deactivate
-                </DropdownMenuItem>
-              ) : (
+                can('riders.deactivate') ? (
+                  <DropdownMenuItem variant="destructive" onSelect={() => a.onToggleActive(r)}>
+                    <PowerOff />
+                    Deactivate
+                  </DropdownMenuItem>
+                ) : null
+              ) : can('riders.deactivate') ? (
                 <DropdownMenuItem onSelect={() => a.onToggleActive(r)}>
                   <Power />
                   Reactivate
                 </DropdownMenuItem>
-              )}
+              ) : null}
             </DropdownMenuContent>
           </DropdownMenu>
         );

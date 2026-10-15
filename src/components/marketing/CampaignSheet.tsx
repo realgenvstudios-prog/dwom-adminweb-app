@@ -25,6 +25,7 @@ import { AUDIENCES, channelOf, num, objectiveLabel, statusOf } from './campaign-
 import customerGroupsService from '../../services/marketing/customerGroupsService';
 import { useCustomerDirectory } from './customer-directory';
 import { fmtRun } from './schedule-rules';
+import { can } from '../../config/permissions';
 
 interface CampaignSheetProps {
   campaign: Campaign;
@@ -285,10 +286,12 @@ export default function CampaignSheet({ campaign: c, zones, open, onOpenChange, 
                   : 'Orders and revenue are tracked automatically. Spend is what you paid (ads, SMS credit).'}
               </p>
               <div>
-                <Button size="sm" variant="outline" onClick={saveResults} disabled={!!busy}>
-                  {busy === 'results' && <Loader2 className="animate-spin" />}
-                  Save results
-                </Button>
+                {can('campaigns.manage') && (
+                  <Button size="sm" variant="outline" onClick={saveResults} disabled={!!busy}>
+                    {busy === 'results' && <Loader2 className="animate-spin" />}
+                    Save results
+                  </Button>
+                )}
               </div>
             </section>
           )}
@@ -347,19 +350,25 @@ export default function CampaignSheet({ campaign: c, zones, open, onOpenChange, 
         <SheetFooter className="flex-row flex-wrap items-center gap-2 border-t p-4">
           {c.status === 'draft' ? (
             <>
-              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setConfirm('delete')} disabled={!!busy}>
-                <Trash2 />
-                Delete
-              </Button>
+              {can('campaigns.delete') && (
+                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setConfirm('delete')} disabled={!!busy}>
+                  <Trash2 />
+                  Delete
+                </Button>
+              )}
               <div className="ml-auto flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => onEdit(c)} disabled={!!busy}>
-                  <Pencil />
-                  Edit
-                </Button>
-                <Button size="sm" onClick={() => setConfirm('launch')} disabled={!!busy}>
-                  {busy === 'launch' ? <Loader2 className="animate-spin" /> : <Rocket />}
-                  {c.channel === 'social' ? 'Mark as live' : 'Launch'}
-                </Button>
+                {can('campaigns.manage') && (
+                  <Button variant="outline" size="sm" onClick={() => onEdit(c)} disabled={!!busy}>
+                    <Pencil />
+                    Edit
+                  </Button>
+                )}
+                {can('campaigns.launch') && (
+                  <Button size="sm" onClick={() => setConfirm('launch')} disabled={!!busy}>
+                    {busy === 'launch' ? <Loader2 className="animate-spin" /> : <Rocket />}
+                    {c.channel === 'social' ? 'Mark as live' : 'Launch'}
+                  </Button>
+                )}
               </div>
             </>
           ) : c.status === 'ended' ? (
@@ -367,20 +376,24 @@ export default function CampaignSheet({ campaign: c, zones, open, onOpenChange, 
           ) : (
             <div className="ml-auto flex gap-2">
               {c.status === 'active' ? (
-                <Button variant="outline" size="sm" onClick={() => void setStatus('paused', 'Campaign paused')} disabled={!!busy}>
-                  {busy === 'paused' ? <Loader2 className="animate-spin" /> : <Pause />}
-                  Pause
-                </Button>
-              ) : (
+                can('campaigns.launch') ? (
+                  <Button variant="outline" size="sm" onClick={() => void setStatus('paused', 'Campaign paused')} disabled={!!busy}>
+                    {busy === 'paused' ? <Loader2 className="animate-spin" /> : <Pause />}
+                    Pause
+                  </Button>
+                ) : null
+              ) : can('campaigns.launch') ? (
                 <Button variant="outline" size="sm" onClick={() => void setStatus('active', 'Campaign resumed')} disabled={!!busy}>
                   {busy === 'active' ? <Loader2 className="animate-spin" /> : <Play />}
                   Resume
                 </Button>
+              ) : null}
+              {can('campaigns.launch') && (
+                <Button variant="outline" size="sm" onClick={() => void setStatus('ended', 'Campaign ended')} disabled={!!busy}>
+                  {busy === 'ended' ? <Loader2 className="animate-spin" /> : <Square />}
+                  End
+                </Button>
               )}
-              <Button variant="outline" size="sm" onClick={() => void setStatus('ended', 'Campaign ended')} disabled={!!busy}>
-                {busy === 'ended' ? <Loader2 className="animate-spin" /> : <Square />}
-                End
-              </Button>
             </div>
           )}
         </SheetFooter>

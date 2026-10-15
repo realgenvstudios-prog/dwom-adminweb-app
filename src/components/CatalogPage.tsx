@@ -8,23 +8,16 @@ import CreateProductDialog from './products/CreateProductDialog';
 import CategoriesTab from './categories/CategoriesTab';
 import BundlesTab from './bundles/BundlesTab';
 import { useCatalogData } from './products/useCatalogData';
+import { allowedTabs, can, canTab } from '../config/permissions';
+import { usePermissions } from '@/hooks/use-permissions';
 
 const TABS = ['products', 'categories', 'bundles'] as const;
 
 const CatalogPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useTabParam(TABS, 'products');
-  const {
-    products,
-    categories,
-    categoryRecords,
-    loading,
-    error,
-    categoriesLoading,
-    categoriesError,
-    refreshProducts,
-    refreshCategories,
-    patchProduct,
-  } = useCatalogData();
+  usePermissions();
+  const allowed = allowedTabs('/catalog', TABS);
+  const [activeTab, setActiveTab] = useTabParam(allowed, allowed[0] ?? 'products');
+  const { products, categories, categoryRecords, loading, error, categoriesLoading, categoriesError, refreshProducts, refreshCategories, patchProduct } = useCatalogData();
   // Product edits/archives change category product counts too.
   const refreshAll = async () => {
     await Promise.all([refreshProducts(), refreshCategories()]);
@@ -38,7 +31,7 @@ const CatalogPage: React.FC = () => {
           <h1 className="text-2xl font-semibold tracking-tight">Catalog</h1>
           <p className="text-sm text-muted-foreground">Products, categories and bundles: everything DWOM sells.</p>
         </div>
-        {activeTab === 'products' && (
+        {activeTab === 'products' && can('products.create') && (
           <Button onClick={() => setCreateOpen(true)}>
             <Plus />
             Add product
@@ -48,33 +41,36 @@ const CatalogPage: React.FC = () => {
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as (typeof TABS)[number])} className="gap-6">
         <TabsList>
-          <TabsTrigger value="products">
-            Products
-            {!loading && <span className="ml-1 text-xs text-muted-foreground tabular-nums">{products.length}</span>}
-          </TabsTrigger>
-          <TabsTrigger value="categories">
-            Categories
-            {categories.length > 0 && <span className="ml-1 text-xs text-muted-foreground tabular-nums">{categories.length}</span>}
-          </TabsTrigger>
-          <TabsTrigger value="bundles">Bundles</TabsTrigger>
+          {canTab('/catalog', 'products') && (
+            <TabsTrigger value="products">
+              Products
+              {!loading && <span className="ml-1 text-xs text-muted-foreground tabular-nums">{products.length}</span>}
+            </TabsTrigger>
+          )}
+          {canTab('/catalog', 'categories') && (
+            <TabsTrigger value="categories">
+              Categories
+              {categories.length > 0 && <span className="ml-1 text-xs text-muted-foreground tabular-nums">{categories.length}</span>}
+            </TabsTrigger>
+          )}
+          {canTab('/catalog', 'bundles') && <TabsTrigger value="bundles">Bundles</TabsTrigger>}
         </TabsList>
 
-        <TabsContent value="products">
-          <ProductsTab
-            products={products}
-            categories={categories}
-            loading={loading}
-            error={error}
-            refresh={refreshAll}
-            patchProduct={patchProduct}
-          />
-        </TabsContent>
-        <TabsContent value="categories">
-          <CategoriesTab categories={categoryRecords} loading={categoriesLoading} error={categoriesError} refresh={refreshCategories} />
-        </TabsContent>
-        <TabsContent value="bundles">
-          <BundlesTab products={products} categories={categories} />
-        </TabsContent>
+        {canTab('/catalog', 'products') && (
+          <TabsContent value="products">
+            <ProductsTab products={products} categories={categories} loading={loading} error={error} refresh={refreshAll} patchProduct={patchProduct} />
+          </TabsContent>
+        )}
+        {canTab('/catalog', 'categories') && (
+          <TabsContent value="categories">
+            <CategoriesTab categories={categoryRecords} loading={categoriesLoading} error={categoriesError} refresh={refreshCategories} />
+          </TabsContent>
+        )}
+        {canTab('/catalog', 'bundles') && (
+          <TabsContent value="bundles">
+            <BundlesTab products={products} categories={categories} />
+          </TabsContent>
+        )}
       </Tabs>
 
       <CreateProductDialog open={createOpen} onOpenChange={setCreateOpen} categories={categories} onCreated={() => void refreshAll()} />

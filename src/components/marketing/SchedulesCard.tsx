@@ -19,6 +19,7 @@ import type { MessageSchedule } from '../../services/marketingService';
 import schedulesService from '../../services/marketing/schedulesService';
 import { logger } from '../../utils/logger';
 import { fmtRun } from './schedule-rules';
+import { can } from '../../config/permissions';
 
 const nameOf = (s: MessageSchedule) => (s.Campaign ? s.Campaign.name : s.name || s.title || 'Notification');
 
@@ -127,16 +128,18 @@ export default function SchedulesCard({ refreshKey, onChanged }: { refreshKey: n
                   {!draft && st.label !== 'Finished' && (
                     <div className="flex shrink-0 gap-1.5">
                       {s.active ? (
-                        <Button size="sm" variant="outline" disabled={busy === s.id} onClick={() => void setActive(s, false)}>
-                          {busy === s.id ? <Loader2 className="animate-spin" /> : <Pause />}
-                          Pause
-                        </Button>
-                      ) : (
+                        can('notifications.send') || can('campaigns.launch') ? (
+                          <Button size="sm" variant="outline" disabled={busy === s.id} onClick={() => void setActive(s, false)}>
+                            {busy === s.id ? <Loader2 className="animate-spin" /> : <Pause />}
+                            Pause
+                          </Button>
+                        ) : null
+                      ) : can('notifications.send') || can('campaigns.launch') ? (
                         <Button size="sm" variant="outline" disabled={busy === s.id} onClick={() => void setActive(s, true)}>
                           {busy === s.id ? <Loader2 className="animate-spin" /> : <Play />}
                           Resume
                         </Button>
-                      )}
+                      ) : null}
                       <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" disabled={busy === s.id} onClick={() => setToStop(s)}>
                         <Square />
                         Stop

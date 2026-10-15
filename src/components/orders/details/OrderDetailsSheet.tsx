@@ -28,19 +28,13 @@ import { cn } from '@/lib/utils';
 import ordersService from '../../../services/ordersService';
 import { logger } from '../../../utils/logger';
 import type { Order } from '../OrderTypes';
-import {
-  ORDER_STATUSES,
-  PAYMENT_STATUSES,
-  formatDateTime,
-  formatGhs,
-  orderStatusMeta,
-  paymentStatusMeta,
-} from '../order-status';
+import { ORDER_STATUSES, PAYMENT_STATUSES, formatDateTime, formatGhs, orderStatusMeta, paymentStatusMeta } from '../order-status';
 import ActivityTab from './ActivityTab';
 import FeedbackTab from './FeedbackTab';
 import ItemsTab from './ItemsTab';
 import OverviewTab from './OverviewTab';
 import { useOrderDetails } from './useOrderDetails';
+import { can } from '../../../config/permissions';
 
 // Same options the old drawer offered. The backend would also accept
 // 'cancelled' (which restocks items) — deliberately not exposed as a manual action.
@@ -55,14 +49,7 @@ interface OrderDetailsSheetProps {
   onAssignPicker: (order: Order) => void;
 }
 
-export default function OrderDetailsSheet({
-  order: incoming,
-  open,
-  onOpenChange,
-  onOrderChange,
-  onAssignRider,
-  onAssignPicker,
-}: OrderDetailsSheetProps) {
+export default function OrderDetailsSheet({ order: incoming, open, onOpenChange, onOrderChange, onAssignRider, onAssignPicker }: OrderDetailsSheetProps) {
   // Keep showing the last order while the sheet animates closed.
   const [lastOrder, setLastOrder] = useState(incoming);
   if (incoming && incoming !== lastOrder) setLastOrder(incoming);
@@ -134,57 +121,65 @@ export default function OrderDetailsSheet({
             </SheetDescription>
 
             <div className="flex flex-wrap gap-2 pt-1">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="sm" disabled={busy !== null}>
-                    {busy === 'status' ? <Loader2 className="animate-spin" /> : <status.icon />}
-                    Status
-                    <ChevronDown className="opacity-60" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
-                  <DropdownMenuLabel>Order status</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuRadioGroup value={order.orderStatus} onValueChange={onPickStatus}>
-                    {ORDER_STATUSES.map((s) => (
-                      <DropdownMenuRadioItem key={s.value} value={s.value}>
-                        <s.icon className={s.tone} />
-                        {s.label}
-                      </DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {can('orders.updateStatus') && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" disabled={busy !== null}>
+                      {busy === 'status' ? <Loader2 className="animate-spin" /> : <status.icon />}
+                      Status
+                      <ChevronDown className="opacity-60" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuLabel>Order status</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuRadioGroup value={order.orderStatus} onValueChange={onPickStatus}>
+                      {ORDER_STATUSES.map((s) => (
+                        <DropdownMenuRadioItem key={s.value} value={s.value}>
+                          <s.icon className={s.tone} />
+                          {s.label}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="sm" variant="outline" disabled={busy !== null}>
-                    {busy === 'payment' ? <Loader2 className="animate-spin" /> : <CircleDollarSign />}
-                    Payment
-                    <ChevronDown className="opacity-60" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-44">
-                  <DropdownMenuLabel>Payment status</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuRadioGroup value={order.paymentStatus} onValueChange={updatePayment}>
-                    {SETTABLE_PAYMENT.map((p) => (
-                      <DropdownMenuRadioItem key={p.value} value={p.value}>
-                        {p.label}
-                      </DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {can('orders.updatePayment') && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" variant="outline" disabled={busy !== null}>
+                      {busy === 'payment' ? <Loader2 className="animate-spin" /> : <CircleDollarSign />}
+                      Payment
+                      <ChevronDown className="opacity-60" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-44">
+                    <DropdownMenuLabel>Payment status</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuRadioGroup value={order.paymentStatus} onValueChange={updatePayment}>
+                      {SETTABLE_PAYMENT.map((p) => (
+                        <DropdownMenuRadioItem key={p.value} value={p.value}>
+                          {p.label}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
 
-              <Button size="sm" variant="outline" onClick={() => onAssignRider(order)} disabled={busy !== null}>
-                <Bike />
-                {order.rider ? 'Reassign rider' : 'Assign rider'}
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => onAssignPicker(order)} disabled={busy !== null}>
-                <ShoppingBasket />
-                {order.picker ? 'Reassign picker' : 'Assign picker'}
-              </Button>
+              {can('orders.assignRider') && (
+                <Button size="sm" variant="outline" onClick={() => onAssignRider(order)} disabled={busy !== null}>
+                  <Bike />
+                  {order.rider ? 'Reassign rider' : 'Assign rider'}
+                </Button>
+              )}
+              {can('orders.assignPicker') && (
+                <Button size="sm" variant="outline" onClick={() => onAssignPicker(order)} disabled={busy !== null}>
+                  <ShoppingBasket />
+                  {order.picker ? 'Reassign picker' : 'Assign picker'}
+                </Button>
+              )}
             </div>
           </SheetHeader>
 
@@ -223,8 +218,8 @@ export default function OrderDetailsSheet({
           <AlertDialogHeader>
             <AlertDialogTitle>Cancel order #{order.id}?</AlertDialogTitle>
             <AlertDialogDescription>
-              The customer gets a notification that their order was cancelled, and the items’ stock is put back.
-              You can change the status again later, but the notification can’t be unsent.
+              The customer gets a notification that their order was cancelled, and the items’ stock is put back. You can change the status again later, but the notification can’t
+              be unsent.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

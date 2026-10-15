@@ -13,6 +13,7 @@ import { formatGhs } from '../orders/order-status';
 import CampaignDialog from './CampaignDialog';
 import CampaignSheet from './CampaignSheet';
 import { CHANNELS, STATUSES, channelOf, num, statusOf } from './campaign-meta';
+import { can } from '../../config/permissions';
 
 const csvCell = (v: unknown) => {
   const s = String(v ?? '');
@@ -297,10 +298,12 @@ export default function CampaignsTab() {
                 <Download />
                 Export
               </Button>
-              <Button size="sm" className="h-8" onClick={() => openDialog(null)}>
-                <Plus />
-                New campaign
-              </Button>
+              {can('campaigns.manage') && (
+                <Button size="sm" className="h-8" onClick={() => openDialog(null)}>
+                  <Plus />
+                  New campaign
+                </Button>
+              )}
             </>
           );
         }}

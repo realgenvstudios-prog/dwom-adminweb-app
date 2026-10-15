@@ -1,8 +1,8 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTabParam } from '@/hooks/use-tab-param';
-import adminAuthService from '../services/authService';
-import { resolveUiRole } from '../config/permissions';
+import { allowedTabs } from '../config/permissions';
+import { usePermissions } from '@/hooks/use-permissions';
 import OverviewTab from './finance/OverviewTab';
 import ProductCostsTab from './finance/ProductCostsTab';
 import ExpensesTab from './finance/ExpensesTab';
@@ -13,16 +13,19 @@ const TAB_KEYS = ['overview', 'productCosts', 'expenses', 'founderLedger', 'sett
 type TabKey = (typeof TAB_KEYS)[number];
 
 const FinanceHubPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useTabParam(TAB_KEYS, 'overview');
-  const isSuperAdmin = resolveUiRole(adminAuthService.getCurrentAdmin()) === 'Super Admin';
+  usePermissions();
+  const allowed = allowedTabs('/finance', TAB_KEYS);
+  const [activeTab, setActiveTab] = useTabParam(allowed, allowed[0] ?? 'overview');
 
-  const tabs: { key: TabKey; label: string }[] = [
-    { key: 'overview', label: 'Overview & P&L' },
-    { key: 'productCosts', label: 'Product Costs' },
-    { key: 'expenses', label: 'Expenses' },
-    ...(isSuperAdmin ? [{ key: 'founderLedger' as TabKey, label: 'Founder Ledger' }] : []),
-    { key: 'settings', label: 'Settings' },
-  ];
+  const tabs = (
+    [
+      { key: 'overview', label: 'Overview & P&L' },
+      { key: 'productCosts', label: 'Product Costs' },
+      { key: 'expenses', label: 'Expenses' },
+      { key: 'founderLedger', label: 'Founder Ledger' },
+      { key: 'settings', label: 'Settings' },
+    ] as { key: TabKey; label: string }[]
+  ).filter((t) => allowed.includes(t.key));
 
   return (
     <div className="flex flex-col gap-6">
@@ -41,23 +44,31 @@ const FinanceHubPage: React.FC = () => {
             ))}
           </TabsList>
         </div>
-        <TabsContent value="overview">
-          <OverviewTab />
-        </TabsContent>
-        <TabsContent value="productCosts">
-          <ProductCostsTab />
-        </TabsContent>
-        <TabsContent value="expenses">
-          <ExpensesTab />
-        </TabsContent>
-        {isSuperAdmin && (
+        {allowed.includes('overview') && (
+          <TabsContent value="overview">
+            <OverviewTab />
+          </TabsContent>
+        )}
+        {allowed.includes('productCosts') && (
+          <TabsContent value="productCosts">
+            <ProductCostsTab />
+          </TabsContent>
+        )}
+        {allowed.includes('expenses') && (
+          <TabsContent value="expenses">
+            <ExpensesTab />
+          </TabsContent>
+        )}
+        {allowed.includes('founderLedger') && (
           <TabsContent value="founderLedger">
             <FounderLedgerTab />
           </TabsContent>
         )}
-        <TabsContent value="settings">
-          <SettingsTab />
-        </TabsContent>
+        {allowed.includes('settings') && (
+          <TabsContent value="settings">
+            <SettingsTab />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

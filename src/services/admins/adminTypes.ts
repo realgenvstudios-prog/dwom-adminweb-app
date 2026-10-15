@@ -15,6 +15,18 @@ export interface Admin {
   createdAt?: string;
   /** Invites only: when the link stops working. */
   expiresAt?: string;
+  /** What they're allowed to do (permission keys). */
+  permissions?: string[];
+  /** True when a Super Admin ticked boxes that differ from the role's defaults. */
+  customPermissions?: boolean;
+}
+
+/** GET /auth/admin/permissions: the checkbox list, each role's defaults, and the caller's own. */
+export interface PermissionCatalog {
+  groups: { path: string; label: string; permissions: { key: string; label: string }[] }[];
+  /** Keyed by backend role (operations, finance…). Super Admin isn't listed: it has everything. */
+  presets: Record<string, string[]>;
+  mine: string[];
 }
 
 export interface AdminMetrics {

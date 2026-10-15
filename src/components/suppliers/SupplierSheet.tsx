@@ -14,6 +14,7 @@ import type { Product } from '../../services/productsService';
 import { logger } from '../../utils/logger';
 import { formatDate } from '../customers/CustomerTypes';
 import { formatGhs } from '../orders/order-status';
+import { can } from '../../config/permissions';
 
 interface SupplierSheetProps {
   /** null = new supplier. Mount with a fresh `key` per open. */
@@ -157,11 +158,13 @@ export default function SupplierSheet({ supplier, products, open, onOpenChange, 
               <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Products they supply ({supplier ? (links?.length ?? '…') : picked.size})</h3>
               <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
                 <PopoverTrigger asChild>
-                  <Button size="sm" variant="outline" disabled={links === null}>
-                    <Plus />
-                    Add products
-                    <ChevronsUpDown className="opacity-50" />
-                  </Button>
+                  {can('suppliers.manage') && (
+                    <Button size="sm" variant="outline" disabled={links === null}>
+                      <Plus />
+                      Add products
+                      <ChevronsUpDown className="opacity-50" />
+                    </Button>
+                  )}
                 </PopoverTrigger>
                 <PopoverContent className="w-80 p-0" align="end">
                   <Command>

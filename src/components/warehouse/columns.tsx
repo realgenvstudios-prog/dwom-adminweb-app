@@ -9,6 +9,7 @@ import { timeAgo } from '../customers/CustomerTypes';
 import type { StockAction } from './StockDialogs';
 import { LEVELS, levelOf, type InventoryRow } from './inventory-meta';
 import { stockMeta } from '../products/product-meta';
+import { can } from '../../config/permissions';
 
 export function buildInventoryColumns(onAction: (row: InventoryRow, action: StockAction | 'history') => void): ColumnDef<InventoryRow>[] {
   return [
@@ -123,18 +124,24 @@ export function buildInventoryColumns(onAction: (row: InventoryRow, action: Stoc
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onSelect={() => onAction(row.original, 'receive')}>
-              <PackagePlus />
-              Receive stock
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onAction(row.original, 'move')}>
-              <ArrowLeftRight />
-              Record a change
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onAction(row.original, 'levels')}>
-              <SlidersHorizontal />
-              Reorder levels
-            </DropdownMenuItem>
+            {can('warehouse.adjustStock') && (
+              <DropdownMenuItem onSelect={() => onAction(row.original, 'receive')}>
+                <PackagePlus />
+                Receive stock
+              </DropdownMenuItem>
+            )}
+            {can('warehouse.adjustStock') && (
+              <DropdownMenuItem onSelect={() => onAction(row.original, 'move')}>
+                <ArrowLeftRight />
+                Record a change
+              </DropdownMenuItem>
+            )}
+            {can('warehouse.reorderLevels') && (
+              <DropdownMenuItem onSelect={() => onAction(row.original, 'levels')}>
+                <SlidersHorizontal />
+                Reorder levels
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => onAction(row.original, 'history')}>
               <History />

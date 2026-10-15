@@ -20,6 +20,7 @@ import { logger } from '../../utils/logger';
 import { formatDate } from '../customers/CustomerTypes';
 import { formatGhs } from '../orders/order-status';
 import { BILLING_STATUS, basketValue, customerName, monthlyValue, num, paymentFailing, scheduleLabel, statusOf } from './subscription-meta';
+import { can } from '../../config/permissions';
 
 interface SubscriptionSheetProps {
   /** List row; the sheet loads full detail (items, billing history) itself. */
@@ -141,7 +142,12 @@ export default function SubscriptionSheet({ subscription: row, open, onOpenChang
                     <span className="font-medium">{i.quantity}×</span> {i.Product?.nameEnglish ?? `Product #${i.productId}`}
                     {i.Product?.active === false && <span className="ml-1.5 text-xs text-amber-700">(archived)</span>}
                     {Array.isArray(i.selectedVariations) && i.selectedVariations.some((v) => v?.label) && (
-                      <span className="ml-1.5 text-xs text-sky-700">{i.selectedVariations.map((v) => v?.label).filter(Boolean).join(' · ')}</span>
+                      <span className="ml-1.5 text-xs text-sky-700">
+                        {i.selectedVariations
+                          .map((v) => v?.label)
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </span>
                     )}
                   </span>
                   <span className="shrink-0 text-muted-foreground tabular-nums">
@@ -213,16 +219,18 @@ export default function SubscriptionSheet({ subscription: row, open, onOpenChang
             </Button>
             <div className="ml-auto">
               {s.status === 'active' ? (
-                <Button variant="outline" size="sm" onClick={() => void change('paused')} disabled={!!busy}>
-                  {busy === 'paused' ? <Loader2 className="animate-spin" /> : <Pause />}
-                  Pause
-                </Button>
-              ) : (
+                can('subscriptions.changeStatus') ? (
+                  <Button variant="outline" size="sm" onClick={() => void change('paused')} disabled={!!busy}>
+                    {busy === 'paused' ? <Loader2 className="animate-spin" /> : <Pause />}
+                    Pause
+                  </Button>
+                ) : null
+              ) : can('subscriptions.changeStatus') ? (
                 <Button size="sm" onClick={() => void change('active')} disabled={!!busy}>
                   {busy === 'active' ? <Loader2 className="animate-spin" /> : <Play />}
                   Resume
                 </Button>
-              )}
+              ) : null}
             </div>
           </SheetFooter>
         )}
@@ -233,8 +241,8 @@ export default function SubscriptionSheet({ subscription: row, open, onOpenChang
           <AlertDialogHeader>
             <AlertDialogTitle>Cancel this subscription?</AlertDialogTitle>
             <AlertDialogDescription>
-              {customerName(s)} won’t be charged or receive deliveries again, and gets a notification. A cancelled subscription can’t be restarted; they’d need to
-              create a new one. Pausing is reversible.
+              {customerName(s)} won’t be charged or receive deliveries again, and gets a notification. A cancelled subscription can’t be restarted; they’d need to create a new one.
+              Pausing is reversible.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

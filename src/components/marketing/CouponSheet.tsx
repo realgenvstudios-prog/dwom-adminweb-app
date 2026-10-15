@@ -24,6 +24,7 @@ import { formatGhs } from '../orders/order-status';
 import { num } from './campaign-meta';
 import { couponState, discountLabel, stateOf } from './coupon-meta';
 import SendNotificationDialog from './SendNotificationDialog';
+import { can } from '../../config/permissions';
 
 interface CouponSheetProps {
   coupon: Coupon;
@@ -230,21 +231,26 @@ export default function CouponSheet({ coupon: c, campaign, open, onOpenChange, o
         </div>
 
         <SheetFooter className="flex-row flex-wrap items-center gap-2 border-t p-4">
-          {c.usageCount === 0 && (
-            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setConfirmDelete(true)} disabled={!!busy}>
-              <Trash2 />
-              Delete
-            </Button>
-          )}
+          {c.usageCount === 0 &&
+            (can('coupons.delete') ? (
+              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setConfirmDelete(true)} disabled={!!busy}>
+                <Trash2 />
+                Delete
+              </Button>
+            ) : null)}
           <div className="ml-auto flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => void toggle()} disabled={!!busy}>
-              {busy === 'toggle' ? <Loader2 className="animate-spin" /> : c.active ? <Pause /> : <Play />}
-              {c.active ? 'Pause' : 'Resume'}
-            </Button>
-            <Button size="sm" onClick={() => onEdit(c)} disabled={!!busy}>
-              <Pencil />
-              Edit
-            </Button>
+            {can('coupons.manage') && (
+              <Button variant="outline" size="sm" onClick={() => void toggle()} disabled={!!busy}>
+                {busy === 'toggle' ? <Loader2 className="animate-spin" /> : c.active ? <Pause /> : <Play />}
+                {c.active ? 'Pause' : 'Resume'}
+              </Button>
+            )}
+            {can('coupons.manage') && (
+              <Button size="sm" onClick={() => onEdit(c)} disabled={!!busy}>
+                <Pencil />
+                Edit
+              </Button>
+            )}
           </div>
         </SheetFooter>
       </SheetContent>
