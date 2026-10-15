@@ -1,15 +1,16 @@
 import adminApiClient from '../apiClient';
 import { reverseMapRole } from './adminRoleMapping';
 import { logger } from '../../utils/logger';
+import type { InviteResult } from './adminTypes';
 
 // Inviting, role changes, suspend/reactivate, and invite management — all
 // Super Admin only server-side. Each throws ApiError with the server's
 // message (e.g. "You can't suspend yourself"), so the UI can show it.
 export class AdminLifecycleService {
   /** Emails an invite link; the account is created when they accept (they set their own phone/password). */
-  async inviteAdmin(data: { name: string; email: string; role: string }): Promise<void> {
+  async inviteAdmin(data: { name: string; email: string; role: string }): Promise<InviteResult> {
     try {
-      await adminApiClient.post('/users', { name: data.name, email: data.email, role: reverseMapRole(data.role) });
+      return await adminApiClient.post<InviteResult>('/users', { name: data.name, email: data.email, role: reverseMapRole(data.role) });
     } catch (error) {
       logger.error('❌ [AdminsService] Error inviting admin:', error);
       throw error;
@@ -35,9 +36,9 @@ export class AdminLifecycleService {
     }
   }
 
-  /** Issues a fresh link and invalidates the old one. */
-  async resendInvite(inviteId: number): Promise<void> {
-    await adminApiClient.post(`/users/invites/${inviteId}/resend`);
+  /** Issues a fresh 7-day link (also for an expired invite) and invalidates the old one. */
+  async resendInvite(inviteId: number): Promise<InviteResult> {
+    return adminApiClient.post<InviteResult>(`/users/invites/${inviteId}/resend`);
   }
 
   /** The link stops working immediately. */

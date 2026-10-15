@@ -29,6 +29,7 @@ export const ROLE_PAGES: Record<string, string[]> = Object.fromEntries(getRoleAc
 export const STATUS_TINT = {
   Active: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-700',
   Invited: 'border-sky-500/20 bg-sky-500/10 text-sky-700',
+  Expired: 'border-amber-500/20 bg-amber-500/10 text-amber-700',
   Suspended: 'border-red-500/20 bg-red-500/10 text-red-700',
 } as const;
 

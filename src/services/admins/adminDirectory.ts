@@ -22,15 +22,13 @@ interface RawInvite {
   adminRole?: string;
   createdAt?: string;
   expiresAt?: string;
+  status?: 'pending' | 'expired';
 }
 
 export class AdminDirectoryService {
   /** Admin accounts plus still-pending invites (an invite has no account until accepted). */
   async getAllAdmins(): Promise<Admin[]> {
-    const [usersResponse, invites] = await Promise.all([
-      adminApiClient.get<{ data?: RawUser[] } | RawUser[]>('/users'),
-      adminApiClient.get<RawInvite[]>('/users/invites/pending'),
-    ]);
+    const [usersResponse, invites] = await Promise.all([adminApiClient.get<{ data?: RawUser[] } | RawUser[]>('/users'), adminApiClient.get<RawInvite[]>('/users/invites/pending')]);
     const users = Array.isArray(usersResponse) ? usersResponse : usersResponse?.data || [];
 
     // Only real admin accounts — riders (role 'rider') used to show up as "Viewer" admins.
@@ -55,7 +53,7 @@ export class AdminDirectoryService {
       email: i.email || '',
       phone: null,
       role: mapRole(i.adminRole || 'viewer'),
-      status: 'Invited',
+      status: i.status === 'expired' ? 'Expired' : 'Invited',
       lastLoginAt: null,
       createdAt: i.createdAt,
       expiresAt: i.expiresAt,

@@ -17,7 +17,7 @@ class AdminsService {
     return this.directory.getAllAdmins();
   }
 
-  inviteAdmin(data: { name: string; email: string; role: string }): Promise<void> {
+  inviteAdmin(data: { name: string; email: string; role: string }): ReturnType<AdminLifecycleService['inviteAdmin']> {
     return this.lifecycle.inviteAdmin(data);
   }
 
@@ -29,7 +29,7 @@ class AdminsService {
     return this.lifecycle.setSuspended(adminId, suspended);
   }
 
-  resendInvite(inviteId: number): Promise<void> {
+  resendInvite(inviteId: number): ReturnType<AdminLifecycleService['resendInvite']> {
     return this.lifecycle.resendInvite(inviteId);
   }
 

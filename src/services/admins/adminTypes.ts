@@ -10,7 +10,7 @@ export interface Admin {
   phone: string | null;
   role: AdminRole;
   /** Invited = sent, not yet accepted. Admin accounts are Active or Suspended. */
-  status: 'Active' | 'Invited' | 'Suspended';
+  status: 'Active' | 'Invited' | 'Expired' | 'Suspended';
   lastLoginAt: string | null;
   createdAt?: string;
   /** Invites only: when the link stops working. */
@@ -24,4 +24,14 @@ export interface AdminMetrics {
   pendingAdmins: number;
   suspendedAdmins: number;
   roleCounts: Record<string, number>;
+}
+
+/** What the server says after sending an invite link. */
+export interface InviteResult {
+  email: string;
+  expiresAt: string;
+  /** Whether the email actually went out (false when email isn't set up on the server). */
+  emailed?: boolean;
+  /** The link itself, so a Super Admin can share it directly. Missing on older servers. */
+  inviteUrl?: string;
 }

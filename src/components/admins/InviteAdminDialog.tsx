@@ -1,17 +1,18 @@
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import adminsService, { type AdminRole } from '../../services/adminsService';
+import type { InviteResult } from '../../services/admins/adminTypes';
 import RoleSelect from './RoleSelect';
 
 interface InviteAdminDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onInvited: () => void;
+  /** Called with the server's result so the page can show the link. */
+  onInvited: (name: string, result: InviteResult) => void;
 }
 
 export default function InviteAdminDialog({ open, onOpenChange, onInvited }: InviteAdminDialogProps) {
@@ -26,9 +27,8 @@ export default function InviteAdminDialog({ open, onOpenChange, onInvited }: Inv
     setProblem(null);
     try {
       setSaving(true);
-      await adminsService.inviteAdmin({ name: form.name.trim(), email, role: form.role });
-      toast.success(`Invite sent to ${email}`, { description: 'The link works for 7 days. They set their own phone number and password.' });
-      onInvited();
+      const r = await adminsService.inviteAdmin({ name: form.name.trim(), email, role: form.role });
+      onInvited(form.name.trim(), r);
       onOpenChange(false);
     } catch (err) {
       setProblem(err instanceof Error ? err.message : 'Couldn’t send the invite.');
@@ -42,7 +42,7 @@ export default function InviteAdminDialog({ open, onOpenChange, onInvited }: Inv
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Invite an admin</DialogTitle>
-          <DialogDescription>They get an email link to set up their account.</DialogDescription>
+          <DialogDescription>They get a link to set up their account. If they were invited before, this sends a fresh one and the old link stops working.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4">
           <div className="grid gap-1.5">

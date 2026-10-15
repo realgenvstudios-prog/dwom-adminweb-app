@@ -15,7 +15,7 @@ export class AdminInsightsService {
     return {
       totalAdmins: admins.filter((a) => a.kind === 'admin').length,
       activeAdmins: admins.filter((a) => a.status === 'Active').length,
-      pendingAdmins: admins.filter((a) => a.status === 'Invited').length,
+      pendingAdmins: admins.filter((a) => a.status === 'Invited' || a.status === 'Expired').length,
       suspendedAdmins: admins.filter((a) => a.status === 'Suspended').length,
       roleCounts,
     };

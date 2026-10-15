@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input';
 import { DataTable, DataTableColumnHeader, facetedFilterFn } from '@/components/data-table';
 import { StatCard } from '@/components/stat-card';
 import adminsService, { type Admin, type AdminRole } from '../services/adminsService';
+import type { InviteResult } from '../services/admins/adminTypes';
 import adminAuthService from '../services/authService';
 import { ALL_ROLES } from '../config/permissions';
 import { logger } from '../utils/logger';
@@ -47,7 +48,12 @@ export default function AdminsPage() {
   const [roleFor, setRoleFor] = useState<{ admin: Admin; role: AdminRole } | null>(null);
   const [confirm, setConfirm] = useState<{ admin: Admin; action: 'suspend' | 'reactivate' | 'cancel' } | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
-  const [resetLink, setResetLink] = useState<{ name: string; email: string; url: string } | null>(null);
+  // A link to pass on directly: always after an invite, and for a reset only when email isn't set up.
+  const [resetLink, setResetLink] = useState<{ name: string; email: string; url: string; kind: 'reset' | 'invite'; emailed: boolean } | null>(null);
+  const showInviteLink = useCallback((name: string, r: InviteResult) => {
+    if (r.inviteUrl) setResetLink({ name, email: r.email, url: r.inviteUrl, kind: 'invite', emailed: !!r.emailed });
+    else toast.success(`Invite sent to ${r.email}`, { description: 'The link works for 7 days.' });
+  }, []);
   const me = Number(adminAuthService.getCurrentAdmin()?.id);
 
   const load = useCallback(async () => {
@@ -61,6 +67,23 @@ export default function AdminsPage() {
       setLoading(false);
     }
   }, []);
+
+  // Fresh 7-day link for a pending or expired invite; the old link stops working.
+  const resend = useCallback(
+    async (a: Admin) => {
+      try {
+        setBusy(rowKey(a));
+        const r = await adminsService.resendInvite(a.id);
+        showInviteLink(a.name, r);
+        void load();
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Couldn’t send a new link.');
+      } finally {
+        setBusy(null);
+      }
+    },
+    [load, showInviteLink],
+  );
 
   useEffect(() => {
     const t = setTimeout(() => void load(), 0);
@@ -90,7 +113,7 @@ export default function AdminsPage() {
       setBusy(rowKey(a));
       const r = await adminsService.sendPasswordReset(a.id);
       if (r.emailed) toast.success(`Reset link sent to ${r.email}`, { description: 'It works once and expires in 24 hours.' });
-      else if (r.resetUrl) setResetLink({ name: a.name, email: r.email, url: r.resetUrl });
+      else if (r.resetUrl) setResetLink({ name: a.name, email: r.email, url: r.resetUrl, kind: 'reset', emailed: false });
       else toast.error('The reset link couldn’t be emailed.');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Couldn’t send the reset link.');
@@ -161,6 +184,7 @@ export default function AdminsPage() {
         cell: ({ row }) => {
           const a = row.original;
           if (a.kind === 'invite') {
+            if (a.status === 'Expired') return <span className="text-amber-700">Link expired. Send a new one</span>;
             const exp = a.expiresAt ? Math.ceil((new Date(a.expiresAt).getTime() - Date.now()) / 86400000) : null;
             return <span className="text-muted-foreground">{exp !== null ? `Invite expires in ${exp} day${exp === 1 ? '' : 's'}` : 'Invite sent'}</span>;
           }
@@ -188,9 +212,9 @@ export default function AdminsPage() {
               <DropdownMenuContent align="end" className="w-44">
                 {a.kind === 'invite' ? (
                   <>
-                    <DropdownMenuItem onSelect={() => void run(key, () => adminsService.resendInvite(a.id), `New invite link sent to ${a.email}`)}>
+                    <DropdownMenuItem onSelect={() => void resend(a)}>
                       <Mail />
-                      Resend invite
+                      {a.status === 'Expired' ? 'Send a new link' : 'Resend invite'}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem variant="destructive" onSelect={() => setConfirm({ admin: a, action: 'cancel' })}>
@@ -230,7 +254,7 @@ export default function AdminsPage() {
         },
       },
     ],
-    [busy, me, run, sendReset],
+    [busy, me, sendReset, resend],
   );
 
   const accounts = admins.filter((a) => a.kind === 'admin');
@@ -239,15 +263,17 @@ export default function AdminsPage() {
   const invites = admins.filter((a) => a.kind === 'invite').length;
   const suspended = accounts.filter((a) => a.status === 'Suspended').length;
 
-  const confirmCopy = confirm && {
-    suspend: {
-      title: `Suspend ${confirm.admin.name}?`,
-      body: 'They’re signed out on their next action and can’t sign in again until reactivated. Nothing they did is undone.',
-      cta: 'Suspend',
-    },
-    reactivate: { title: `Reactivate ${confirm.admin.name}?`, body: `They can sign in again with their ${confirm.admin.role} access.`, cta: 'Reactivate' },
-    cancel: { title: `Cancel the invite to ${confirm.admin.email}?`, body: 'The link they were sent stops working. You can invite them again later.', cta: 'Cancel invite' },
-  }[confirm.action];
+  const confirmCopy =
+    confirm &&
+    {
+      suspend: {
+        title: `Suspend ${confirm.admin.name}?`,
+        body: 'They’re signed out on their next action and can’t sign in again until reactivated. Nothing they did is undone.',
+        cta: 'Suspend',
+      },
+      reactivate: { title: `Reactivate ${confirm.admin.name}?`, body: `They can sign in again with their ${confirm.admin.role} access.`, cta: 'Reactivate' },
+      cancel: { title: `Cancel the invite to ${confirm.admin.email}?`, body: 'The link they were sent stops working. You can invite them again later.', cta: 'Cancel invite' },
+    }[confirm.action];
 
   const doConfirm = () => {
     if (!confirm) return;
@@ -266,7 +292,15 @@ export default function AdminsPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Active admins" value={String(active)} hint={`${accounts.length} accounts in total`} icon={Users} tint="bg-sky-500/10 text-sky-600" loading={loading} failed={!!error} />
+        <StatCard
+          label="Active admins"
+          value={String(active)}
+          hint={`${accounts.length} accounts in total`}
+          icon={Users}
+          tint="bg-sky-500/10 text-sky-600"
+          loading={loading}
+          failed={!!error}
+        />
         <StatCard
           label="Super Admins"
           value={String(supers)}
@@ -276,7 +310,15 @@ export default function AdminsPage() {
           loading={loading}
           failed={!!error}
         />
-        <StatCard label="Invites waiting" value={String(invites)} hint="Sent, not yet accepted" icon={Mail} tint="bg-amber-500/10 text-amber-600" loading={loading} failed={!!error} />
+        <StatCard
+          label="Invites waiting"
+          value={String(invites)}
+          hint="Sent, not yet accepted"
+          icon={Mail}
+          tint="bg-amber-500/10 text-amber-600"
+          loading={loading}
+          failed={!!error}
+        />
         <StatCard label="Suspended" value={String(suspended)} hint="Can’t sign in" icon={Ban} tint="bg-red-500/10 text-red-600" loading={loading} failed={!!error} />
       </div>
 
@@ -309,6 +351,7 @@ export default function AdminsPage() {
               options: [
                 { value: 'Active', label: 'Active' },
                 { value: 'Invited', label: 'Invited' },
+                { value: 'Expired', label: 'Invite expired' },
                 { value: 'Suspended', label: 'Suspended' },
               ],
             },
@@ -346,7 +389,17 @@ export default function AdminsPage() {
         </div>
       </div>
 
-      {inviteToken && <InviteAdminDialog key={inviteToken} open={!!inviteToken} onOpenChange={(o) => !o && setInviteToken(null)} onInvited={() => void load()} />}
+      {inviteToken && (
+        <InviteAdminDialog
+          key={inviteToken}
+          open={!!inviteToken}
+          onOpenChange={(o) => !o && setInviteToken(null)}
+          onInvited={(name, r) => {
+            showInviteLink(name, r);
+            void load();
+          }}
+        />
+      )}
 
       <Dialog open={!!roleFor} onOpenChange={(o) => !o && setRoleFor(null)}>
         <DialogContent className="sm:max-w-md">
@@ -377,9 +430,12 @@ export default function AdminsPage() {
       <Dialog open={!!resetLink} onOpenChange={(o) => !o && setResetLink(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Send this link to {resetLink?.name}</DialogTitle>
+            <DialogTitle>{resetLink?.kind === 'invite' ? `Invite link for ${resetLink?.name}` : `Send this link to ${resetLink?.name}`}</DialogTitle>
             <DialogDescription>
-              Email isn’t set up on the server, so it wasn’t sent. Share it with {resetLink?.email} privately (e.g. WhatsApp). It works once and expires in 24 hours.
+              {resetLink?.emailed
+                ? `Emailed to ${resetLink?.email}. If it doesn’t arrive, share this link with them directly (e.g. WhatsApp).`
+                : `Email isn’t set up on the server, so it wasn’t sent. Share it with ${resetLink?.email} privately (e.g. WhatsApp).`}{' '}
+              It works once and expires in {resetLink?.kind === 'invite' ? '7 days' : '24 hours'}.
             </DialogDescription>
           </DialogHeader>
           <div className="flex gap-2">
