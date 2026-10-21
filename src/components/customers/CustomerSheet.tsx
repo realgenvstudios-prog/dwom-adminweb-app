@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, ChevronDown, ExternalLink, Mail, MapPin, Package, Phone } from 'lucide-react';
+import { Calendar, ChevronDown, ExternalLink, Mail, Package, Phone } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -10,16 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import apiClient from '../../services/apiClient';
 import { logger } from '../../utils/logger';
-import {
-  formatDateTime,
-  formatGhs,
-  normalizeOrderStatus,
-  normalizePaymentStatus,
-  orderStatusMeta,
-  paymentMethodMeta,
-  paymentStatusMeta,
-} from '../orders/order-status';
+import { formatDateTime, formatGhs, normalizeOrderStatus, normalizePaymentStatus, orderStatusMeta, paymentMethodMeta, paymentStatusMeta } from '../orders/order-status';
 import { customerStatusMeta, formatDate, initialsOf, timeAgo, type Customer, type CustomerOrder } from './CustomerTypes';
+import AddressBlock from '../address/AddressBlock';
 
 interface CustomerSheetProps {
   customer: Customer;
@@ -198,11 +191,14 @@ export default function CustomerSheet({ customer, open, onOpenChange, canOpenOrd
               )}
             </TabsContent>
             <TabsContent value="profile" className="mt-0">
+              <div className="mb-3 rounded-lg border p-4 text-sm">
+                <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">First saved address</p>
+                <AddressBlock addressText={customer.address} place={customer.addressPlace} empty="No address saved" />
+              </div>
               <dl className="divide-y rounded-lg border text-sm">
                 {[
                   { icon: Phone, label: 'Phone', value: customer.phone || 'None' },
                   { icon: Mail, label: 'Email', value: customer.email || 'No email' },
-                  { icon: MapPin, label: 'First saved address', value: customer.address || 'No address saved' },
                   { icon: Calendar, label: 'Joined', value: formatDate(customer.createdAt) },
                 ].map((r) => (
                   <div key={r.label} className="flex items-start gap-3 px-4 py-3">

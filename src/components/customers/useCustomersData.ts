@@ -23,6 +23,7 @@ export function useCustomersData() {
           phone: u.phone || u.phoneNumber || '',
           createdAt: u.createdAt ?? '',
           address: u.address || null,
+          addressPlace: (u as { addressPlace?: Customer['addressPlace'] }).addressPlace ?? null,
           totalOrders: u.totalOrders ?? 0,
           totalSpend: u.totalSpend ?? 0,
           lastOrder: u.lastOrder || null,

@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import type { Order } from './OrderTypes';
 import { formatDateTime, formatGhs, orderStatusMeta, paymentMethodMeta, paymentStatusMeta } from './order-status';
 import { can } from '../../config/permissions';
+import { addressLine, withoutPlusCode } from '../address/address-utils';
 
 export interface OrderRowActions {
   onView: (order: Order) => void;
@@ -62,9 +63,12 @@ export function buildOrderColumns({ onView, onAssignRider, onAssignPicker }: Ord
         row.original.address ? (
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="block max-w-[220px] truncate text-muted-foreground">{row.original.address}</span>
+              <span className="block max-w-[220px] truncate text-muted-foreground">
+                {row.original.place?.placeName && <span className="font-medium text-foreground">{row.original.place.placeName} · </span>}
+                {withoutPlusCode(row.original.address)}
+              </span>
             </TooltipTrigger>
-            <TooltipContent className="max-w-xs">{row.original.address}</TooltipContent>
+            <TooltipContent className="max-w-xs">{addressLine(row.original.address, row.original.place)}</TooltipContent>
           </Tooltip>
         ) : (
           <span className="text-muted-foreground">None</span>

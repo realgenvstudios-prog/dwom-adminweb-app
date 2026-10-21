@@ -1,3 +1,5 @@
+import type { AddressPlace } from '../address/address-utils';
+
 // Statuses are normalized lowercase — see order-status.ts.
 
 export interface PersonSummary {
@@ -23,6 +25,8 @@ export interface Order {
   customer: string;
   phone: string;
   address: string;
+  /** Place name, Plus Code and pin for the delivery address. */
+  place: AddressPlace | null;
   /** Delivery zone name, when the order recorded one. */
   zone: string | null;
   rider: PersonSummary | null;

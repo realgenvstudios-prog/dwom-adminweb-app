@@ -31,7 +31,7 @@ export interface AdminOrderSummary {
   createdAt: string;
   updatedAt: string;
   User?: { id: number; name: string; phoneNumber: string };
-  Address?: { id: number; addressText: string; label: string };
+  Address?: { id: number; addressText: string; label: string; placeName?: string | null; plusCode?: string | null; lat?: number | null; lng?: number | null };
   /** Delivery zone resolved at checkout (null for orders placed before zones were saved). */
   Zone?: { id: number; name: string } | null;
   Rider?: { id: number; rating: number | null; User?: { name: string } };

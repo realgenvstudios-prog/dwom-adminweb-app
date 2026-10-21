@@ -1,9 +1,10 @@
-import { Bike, MapPin, MessageSquareText, Phone, ShoppingBasket, User } from 'lucide-react';
+import { Bike, MessageSquareText, Phone, ShoppingBasket, User } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Order } from '../OrderTypes';
 import { formatGhs, paymentMethodMeta } from '../order-status';
 import type { OrderDetails } from './useOrderDetails';
 import OrderEconomics from './OrderEconomics';
+import AddressBlock from '../../address/AddressBlock';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -14,19 +15,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Person({
-  icon: Icon,
-  label,
-  name,
-  sub,
-  empty,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  name?: string;
-  sub?: string;
-  empty: string;
-}) {
+function Person({ icon: Icon, label, name, sub, empty }: { icon: React.ComponentType<{ className?: string }>; label: string; name?: string; sub?: string; empty: string }) {
   return (
     <div className="flex items-start gap-3 rounded-lg border p-3">
       <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted">
@@ -74,10 +63,7 @@ export default function OverviewTab({ order, details, detailsLoading }: Overview
 
       <Section title="Delivery">
         <div className="space-y-3 rounded-lg border p-4 text-sm">
-          <div className="flex gap-3">
-            <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-            <p>{order.address || 'No address on file'}</p>
-          </div>
+          <AddressBlock addressText={order.address} place={order.place} />
           {detailsLoading ? (
             <Skeleton className="h-4 w-48" />
           ) : (

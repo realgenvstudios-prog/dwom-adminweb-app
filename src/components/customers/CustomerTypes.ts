@@ -1,3 +1,5 @@
+import type { AddressPlace } from '../address/address-utils';
+
 // Shapes returned by /users/admin/customers and /users/admin/customers/:id/orders.
 
 export type CustomerStatus = 'Active' | 'At Risk' | 'Churned' | 'New';
@@ -10,6 +12,8 @@ export interface Customer {
   createdAt: string;
   /** The customer's first saved address (oldest by id). */
   address: string | null;
+  /** Place name, Plus Code and pin of their first saved address. */
+  addressPlace?: AddressPlace | null;
   totalOrders: number;
   /** Sum of paid orders only. */
   totalSpend: number;

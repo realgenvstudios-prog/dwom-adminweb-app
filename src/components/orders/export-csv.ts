@@ -1,5 +1,6 @@
 import type { Order } from './OrderTypes';
 import { orderStatusMeta, paymentMethodMeta, paymentStatusMeta } from './order-status';
+import { addressLine, mapsUrl, plusCodeOf } from '../address/address-utils';
 
 function cell(value: string | number): string {
   let s = String(value);
@@ -11,15 +12,34 @@ function cell(value: string | number): string {
 /** Download the given orders as a CSV file, built entirely from data already loaded on the page. */
 export function downloadOrdersCsv(orders: Order[]): void {
   const header = [
-    'Order ID', 'Placed', 'Customer', 'Phone', 'Delivery address', 'Zone', 'Rider', 'Picker', 'Items',
-    'Subtotal', 'Delivery fee', 'Service fee', 'Discount', 'Total', 'Payment status', 'Payment method', 'Status',
+    'Order ID',
+    'Placed',
+    'Customer',
+    'Phone',
+    'Delivery address',
+    'Plus Code',
+    'Map link',
+    'Zone',
+    'Rider',
+    'Picker',
+    'Items',
+    'Subtotal',
+    'Delivery fee',
+    'Service fee',
+    'Discount',
+    'Total',
+    'Payment status',
+    'Payment method',
+    'Status',
   ];
   const rows = orders.map((o) => [
     o.id,
     new Date(o.createdAt).toISOString(),
     o.customer,
     o.phone,
-    o.address,
+    addressLine(o.address, o.place),
+    plusCodeOf(o.address, o.place) ?? '',
+    mapsUrl(o.place, plusCodeOf(o.address, o.place)) ?? '',
     o.zone ?? '',
     o.rider?.name ?? '',
     o.picker?.name ?? '',

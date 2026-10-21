@@ -19,6 +19,7 @@ export function toOrder(o: ListOrder): Order {
     customer: o.User?.name || `User ${o.userId}`,
     phone: o.User?.phoneNumber || '',
     address: o.Address?.addressText || '',
+    place: o.Address ? { placeName: o.Address.placeName ?? null, plusCode: o.Address.plusCode ?? null, lat: o.Address.lat ?? null, lng: o.Address.lng ?? null } : null,
     zone: o.Zone?.name ?? null,
     rider: o.Rider ? { id: String(o.Rider.id), name: o.Rider.User?.name || `Rider ${o.Rider.id}` } : null,
     picker: worker ? { id: String(worker.id), name: worker.name } : null,
