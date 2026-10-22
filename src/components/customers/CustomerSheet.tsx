@@ -13,6 +13,7 @@ import { logger } from '../../utils/logger';
 import { formatDateTime, formatGhs, normalizeOrderStatus, normalizePaymentStatus, orderStatusMeta, paymentMethodMeta, paymentStatusMeta } from '../orders/order-status';
 import { customerStatusMeta, formatDate, initialsOf, timeAgo, type Customer, type CustomerOrder } from './CustomerTypes';
 import AddressBlock from '../address/AddressBlock';
+import CustomerActivity from './CustomerActivity';
 
 interface CustomerSheetProps {
   customer: Customer;
@@ -159,6 +160,7 @@ export default function CustomerSheet({ customer, open, onOpenChange, canOpenOrd
                 Orders
                 <span className="ml-1 text-xs text-muted-foreground tabular-nums">{customer.totalOrders}</span>
               </TabsTrigger>
+              <TabsTrigger value="activity">Activity</TabsTrigger>
               <TabsTrigger value="profile">Profile</TabsTrigger>
             </TabsList>
           </div>
@@ -189,6 +191,9 @@ export default function CustomerSheet({ customer, open, onOpenChange, canOpenOrd
                   ))}
                 </ul>
               )}
+            </TabsContent>
+            <TabsContent value="activity" className="mt-0">
+              <CustomerActivity customerId={customer.id} />
             </TabsContent>
             <TabsContent value="profile" className="mt-0">
               <div className="mb-3 rounded-lg border p-4 text-sm">

@@ -11,6 +11,10 @@ import { customerColumns } from './customers/columns';
 import CustomerSheet from './customers/CustomerSheet';
 import { CUSTOMER_STATUSES } from './customers/CustomerTypes';
 import { useCustomersData } from './customers/useCustomersData';
+import SignupsPanel from './customers/SignupsPanel';
+import { joinedIn } from './customers/signups';
+import { rangeOf } from './finance/overview/period';
+import { usePeriodParam } from './finance/overview/use-period-param';
 
 const CustomersPage: React.FC = () => {
   const { customers, loading, error, refresh } = useCustomersData();
@@ -39,6 +43,11 @@ const CustomersPage: React.FC = () => {
     return () => clearTimeout(t);
   }, [linked, loading, customers, setParams]);
   const [monthAgo] = useState(() => Date.now() - 30 * 86_400_000);
+  // Sign-ups panel: its period lives in the URL like Finance's, so a link opens the same view.
+  const [period, setPeriod] = usePeriodParam();
+  const [onlyThese, setOnlyThese] = useState(false);
+  const range = rangeOf(period);
+  const tableData = onlyThese ? joinedIn(customers, range.start, range.end) : customers;
   const canOpenOrders = canAccessRoute(resolveUiRole(adminAuthService.getCurrentAdmin()), '/orders');
 
   const selected = customers.find((c) => c.id === selectedId) ?? null;
@@ -93,6 +102,8 @@ const CustomersPage: React.FC = () => {
         />
       </div>
 
+      <SignupsPanel customers={customers} period={period} onPeriodChange={setPeriod} onlyThese={onlyThese} onOnlyTheseChange={setOnlyThese} loading={loading} />
+
       {error && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
           <div className="flex items-center gap-2 text-destructive">
@@ -108,7 +119,7 @@ const CustomersPage: React.FC = () => {
 
       <DataTable
         columns={customerColumns}
-        data={customers}
+        data={tableData}
         isLoading={loading}
         getRowId={(c) => String(c.id)}
         initialSorting={[{ id: 'joined', desc: true }]}
