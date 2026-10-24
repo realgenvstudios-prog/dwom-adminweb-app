@@ -6,6 +6,7 @@ import {
   Megaphone,
   Repeat,
   Settings,
+  Share2,
   ShieldCheck,
   ShoppingCart,
   Store,
@@ -42,7 +43,7 @@ const GROUPS: { label: string; paths: string[] }[] = [
   { label: 'Overview', paths: ['/dashboard', '/analytics'] },
   { label: 'Sales', paths: ['/orders', '/subscriptions', '/customers', '/support'] },
   { label: 'Operations', paths: ['/catalog', '/warehouse', '/field-operations'] },
-  { label: 'Business', paths: ['/marketing', '/finance'] },
+  { label: 'Business', paths: ['/marketing', '/social', '/finance'] },
   { label: 'Administration', paths: ['/admins', '/data-deletion-requests', '/settings'] },
 ];
 
@@ -57,6 +58,7 @@ const ICONS: Record<string, LucideIcon> = {
   '/warehouse': Warehouse,
   '/field-operations': Bike,
   '/marketing': Megaphone,
+  '/social': Share2,
   '/finance': Wallet,
   '/admins': ShieldCheck,
   '/data-deletion-requests': UserX,
@@ -66,6 +68,7 @@ const ICONS: Record<string, LucideIcon> = {
 const SHORT_LABELS: Record<string, string> = {
   '/warehouse': 'Warehouse',
   '/data-deletion-requests': 'Data Deletion',
+  '/social': 'Social',
 };
 
 // Tabs inside a page, surfaced as expandable sub-items. `tab` must match the

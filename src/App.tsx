@@ -14,6 +14,7 @@ import SubscriptionsPage from './components/SubscriptionsPage';
 import FieldOperationsPage from './components/FieldOperationsPage';
 import FinanceHubPage from './components/FinanceHubPage';
 import MarketingPage from './components/MarketingPage';
+import SocialPage from './components/SocialPage';
 import CustomersPage from './components/CustomersPage';
 import SettingsPage from './components/SettingsPage';
 import SupportPage from './components/SupportPage';
@@ -134,6 +135,16 @@ const App: React.FC = () => {
           <ProtectedRoute>
             <Layout>
               <MarketingPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/social"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <SocialPage />
             </Layout>
           </ProtectedRoute>
         }

@@ -24,6 +24,7 @@ const ROUTE_ROLES: Record<string, UiRole[]> = {
   '/customers': ['Support', 'Marketing'],
   '/finance': ['Finance'],
   '/marketing': ['Marketing', 'Finance'],
+  '/social': ['Marketing'],
   '/support': ['Support'],
 };
 
@@ -45,6 +46,7 @@ export const ALL_PAGES: { path: string; label: string }[] = [
   { path: '/customers', label: 'Customers' },
   { path: '/finance', label: 'Finance' },
   { path: '/marketing', label: 'Marketing' },
+  { path: '/social', label: 'Social Media' },
   { path: '/admins', label: 'Admins' },
   { path: '/data-deletion-requests', label: 'Data Deletion Requests' },
   { path: '/support', label: 'Support' },
@@ -79,6 +81,7 @@ const PAGE_PREFIXES: Record<string, string[]> = {
   '/customers': ['customers.'],
   '/finance': ['finance.', 'expenses.'],
   '/marketing': ['campaigns.', 'notifications.', 'customerGroups.', 'coupons.'],
+  '/social': ['social.'],
   '/support': ['support.'],
 };
 
