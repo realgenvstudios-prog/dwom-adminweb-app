@@ -11,6 +11,15 @@ import { formatGhs } from '../orders/order-status';
 import { initialsOf } from '../customers/CustomerTypes';
 import { NO_ZONE, RIDER_STATUSES, num, riderStatusMeta, vehicleMeta } from './rider-meta';
 import type { Rider } from './useRidersData';
+
+/** "12 min", "3 h", "2 days". */
+function sinceLabel(iso: string) {
+  const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
+  if (mins < 60) return `${mins} min`;
+  const hours = Math.round(mins / 60);
+  if (hours < 48) return `${hours} h`;
+  return `${Math.round(hours / 24)} days`;
+}
 import { can } from '../../config/permissions';
 
 export interface RiderActions {
@@ -102,6 +111,18 @@ export function buildRiderColumns(a: RiderActions): ColumnDef<Rider>[] {
         );
       },
       meta: { title: 'Status' },
+    },
+    {
+      id: 'seen',
+      accessorFn: (r) => (r.onlineSince ? Date.now() - new Date(r.onlineSince).getTime() : -1),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Online" />,
+      enableGlobalFilter: false,
+      cell: ({ row }) => {
+        const r = row.original;
+        if (r.onlineSince) return <span className="whitespace-nowrap text-emerald-700">For {sinceLabel(r.onlineSince)}</span>;
+        return <span className="whitespace-nowrap text-muted-foreground">{r.lastSeenAt ? `Seen ${sinceLabel(r.lastSeenAt)} ago` : 'Never'}</span>;
+      },
+      meta: { title: 'Online' },
     },
     {
       id: 'activeOrders',

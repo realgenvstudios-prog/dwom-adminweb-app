@@ -28,7 +28,14 @@ export function useRidersData() {
 
   useEffect(() => {
     const t = setTimeout(() => void load(), 0);
-    return () => clearTimeout(t);
+    // Online status changes all day; keep it current while the tab is open.
+    const every = setInterval(() => {
+      if (document.visibilityState === 'visible') void load();
+    }, 30_000);
+    return () => {
+      clearTimeout(t);
+      clearInterval(every);
+    };
   }, [load]);
 
   const patchRider = useCallback((id: number, patch: Partial<Rider>) => {

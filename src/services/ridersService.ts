@@ -23,6 +23,11 @@ export interface RiderData {
   currentLat?: number;
   currentLng?: number;
   createdAt: string;
+  /** Last time the rider's phone reported in. */
+  lastSeenAt?: string | null;
+  /** When the current online stretch began; null while offline. */
+  onlineSince?: string | null;
+  activeOrderId?: number | null;
   activeOrders: number;
 }
 
