@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { formatGhs } from '../orders/order-status';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ export default function ZoneDialog({ zone, open, onOpenChange, onSaved }: ZoneDi
   const [name, setName] = useState(zone?.name ?? '');
   const [description, setDescription] = useState(zone?.description ?? '');
   const [fee, setFee] = useState(zone ? String(num(zone.deliveryFee)) : '');
+  const [riderPay, setRiderPay] = useState(zone?.riderPay != null ? String(num(zone.riderPay)) : '');
   // Circle-only zones open as an equivalent polygon the admin can reshape.
   const [initialShape] = useState<LatLng[] | null>(() =>
     zone ? (zone.polygon && zone.polygon.length >= 3 ? zone.polygon : circlePolygon({ lat: zone.lat, lng: zone.lng }, zone.radius)) : null,
@@ -37,6 +39,8 @@ export default function ZoneDialog({ zone, open, onOpenChange, onSaved }: ZoneDi
     if (!name.trim()) return setProblem('Name the zone.');
     if (!shape || shape.length < 3) return setProblem('Search for a place and shape the zone on the map.');
     if (!Number.isFinite(feeNum) || feeNum < 0) return setProblem('Enter a delivery fee (0 for free delivery).');
+    const payNum = riderPay.trim() === '' ? null : Number.parseFloat(riderPay);
+    if (payNum !== null && (!Number.isFinite(payNum) || payNum < 0)) return setProblem('Enter what riders earn here, or leave it empty for the default.');
     setProblem(null);
     // The API derives these from the corners too; sent because create requires them.
     const { lat, lng } = centroid(shape);
@@ -49,15 +53,17 @@ export default function ZoneDialog({ zone, open, onOpenChange, onSaved }: ZoneDi
           description: description.trim(),
           ...geometry,
           deliveryFee: feeNum,
+          riderPay: payNum,
         });
         toast.success(`${name.trim()} saved`);
       } else {
-        await ridersService.createZone({
+        const created = await ridersService.createZone({
           name: name.trim(),
           description: description.trim() || undefined,
           ...geometry,
           deliveryFee: feeNum,
         });
+        if (payNum !== null) await deliveryService.updateZone(created.id, { riderPay: payNum });
         toast.success(`${name.trim()} created. Deliveries there are live`);
       }
       onSaved();
@@ -78,7 +84,7 @@ export default function ZoneDialog({ zone, open, onOpenChange, onSaved }: ZoneDi
           <DialogDescription>Customers whose address falls inside the shape can order, and pay this zone’s delivery fee.</DialogDescription>
         </DialogHeader>
         <div className="grid min-h-0 flex-1 gap-4 overflow-y-auto p-6">
-          <div className="grid gap-4 sm:grid-cols-[1fr_160px]">
+          <div className="grid gap-4 sm:grid-cols-[1fr_140px_140px]">
             <div className="grid gap-1.5">
               <Label htmlFor="z-name">Name</Label>
               <Input id="z-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. East Legon" autoFocus />
@@ -90,7 +96,19 @@ export default function ZoneDialog({ zone, open, onOpenChange, onSaved }: ZoneDi
                 <Input id="z-fee" type="number" min={0} step={0.5} value={fee} onChange={(e) => setFee(e.target.value)} placeholder="8.00" className="pl-11 tabular-nums" />
               </div>
             </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="z-pay">Rider pay</Label>
+              <div className="relative">
+                <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">GH₵</span>
+                <Input id="z-pay" type="number" min={0} step={0.5} value={riderPay} onChange={(e) => setRiderPay(e.target.value)} placeholder="Default" className="pl-11 tabular-nums" />
+              </div>
+            </div>
           </div>
+          {fee !== '' && riderPay !== '' && Number.isFinite(Number(fee) - Number(riderPay)) && (
+            <p className="-mt-2 text-xs text-muted-foreground">
+              Customer pays {formatGhs(Number(fee))} · rider gets {formatGhs(Number(riderPay))} · DWOM keeps {formatGhs(Number(fee) - Number(riderPay))} per delivery.
+            </p>
+          )}
           <div className="grid gap-1.5">
             <Label htmlFor="z-desc">Description</Label>
             <Input id="z-desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Optional, e.g. neighbourhoods it covers" />

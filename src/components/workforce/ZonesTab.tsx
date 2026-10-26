@@ -223,10 +223,14 @@ export default function ZonesTab() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                  <dl className="grid grid-cols-3 gap-2 border-t px-4 py-3 text-sm">
+                  <dl className="grid grid-cols-4 gap-2 border-t px-4 py-3 text-sm">
                     <div>
                       <dt className="text-xs text-muted-foreground">Fee</dt>
                       <dd className="font-semibold tabular-nums">{formatGhs(num(z.deliveryFee))}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Rider pay</dt>
+                      <dd className="font-semibold tabular-nums">{z.riderPay != null ? formatGhs(num(z.riderPay)) : <span className="font-normal text-muted-foreground">Default</span>}</dd>
                     </div>
                     <div>
                       <dt className="text-xs text-muted-foreground">{z.polygon && z.polygon.length >= 3 ? 'Area' : 'Area (circle)'}</dt>

@@ -77,7 +77,7 @@ const PAGE_PREFIXES: Record<string, string[]> = {
   '/warehouse': ['warehouse.', 'suppliers.', 'purchases.'],
   '/catalog': ['products.', 'categories.', 'bundles.'],
   '/subscriptions': ['subscriptions.'],
-  '/field-operations': ['riders.', 'pickers.', 'zones.', 'pickupPoints.'],
+  '/field-operations': ['riders.', 'pickers.', 'zones.', 'pickupPoints.', 'riderPay.'],
   '/customers': ['customers.'],
   '/finance': ['finance.', 'expenses.'],
   '/marketing': ['campaigns.', 'notifications.', 'customerGroups.', 'coupons.'],
@@ -147,7 +147,7 @@ export function getAccessibleMenuPaths(role: UiRole, allPaths: string[]): string
 const TAB_ACCESS: Record<string, Record<string, string[]>> = {
   '/catalog': { products: ['products.'], categories: ['categories.', 'products.view'], bundles: ['bundles.', 'products.view'] },
   '/warehouse': { operations: ['warehouse.'], suppliers: ['suppliers.', 'purchases.record'] },
-  '/field-operations': { riders: ['riders.'], applications: ['riders.review', 'riders.view', 'riders.documentRules'], pickers: ['pickers.'], zones: ['zones.'], pickup: ['pickupPoints.', 'zones.view', 'riders.view'] },
+  '/field-operations': { riders: ['riders.'], applications: ['riders.review', 'riders.view', 'riders.documentRules'], pickers: ['pickers.'], zones: ['zones.'], pickup: ['pickupPoints.', 'zones.view', 'riders.view'], pay: ['riderPay.'] },
   '/marketing': { campaigns: ['campaigns.'], notifications: ['notifications.', 'customerGroups.manage'], coupons: ['coupons.'] },
   '/finance': { overview: ['finance.view'], productCosts: ['finance.productCosts'], expenses: ['expenses.'], founderLedger: [], settings: ['finance.settings'] },
 };

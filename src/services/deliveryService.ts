@@ -11,6 +11,8 @@ export interface DeliveryZone {
   /** Free-form boundary; when present it defines the zone instead of the circle. */
   polygon?: { lat: number; lng: number }[] | null;
   deliveryFee: number;
+  /** What a rider earns per delivery here; the default rider pay when empty. */
+  riderPay?: number | string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
