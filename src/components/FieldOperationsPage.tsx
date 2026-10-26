@@ -2,12 +2,13 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTabParam } from '@/hooks/use-tab-param';
 import RidersTab from './riders/RidersTab';
+import ApplicationsTab from './riders/applications/ApplicationsTab';
 import PickersTab from './workers/PickersTab';
 import ZonesTab from './workforce/ZonesTab';
 import { allowedTabs, canTab } from '../config/permissions';
 import { usePermissions } from '@/hooks/use-permissions';
 
-const TABS = ['riders', 'pickers', 'zones'] as const;
+const TABS = ['riders', 'applications', 'pickers', 'zones'] as const;
 
 // Everyone and everything working outside the building: riders deliver,
 // pickers buy from suppliers, zones define where (and for how much) DWOM
@@ -27,12 +28,18 @@ const FieldOperationsPage: React.FC = () => {
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as (typeof TABS)[number])} className="gap-6">
         <TabsList>
           {canTab('/field-operations', 'riders') && <TabsTrigger value="riders">Riders</TabsTrigger>}
+          {canTab('/field-operations', 'applications') && <TabsTrigger value="applications">Applications</TabsTrigger>}
           {canTab('/field-operations', 'pickers') && <TabsTrigger value="pickers">Pickers</TabsTrigger>}
           {canTab('/field-operations', 'zones') && <TabsTrigger value="zones">Delivery Zones</TabsTrigger>}
         </TabsList>
         {canTab('/field-operations', 'riders') && (
           <TabsContent value="riders">
             <RidersTab />
+          </TabsContent>
+        )}
+        {canTab('/field-operations', 'applications') && (
+          <TabsContent value="applications">
+            <ApplicationsTab />
           </TabsContent>
         )}
         {canTab('/field-operations', 'pickers') && (

@@ -147,7 +147,7 @@ export function getAccessibleMenuPaths(role: UiRole, allPaths: string[]): string
 const TAB_ACCESS: Record<string, Record<string, string[]>> = {
   '/catalog': { products: ['products.'], categories: ['categories.', 'products.view'], bundles: ['bundles.', 'products.view'] },
   '/warehouse': { operations: ['warehouse.'], suppliers: ['suppliers.', 'purchases.record'] },
-  '/field-operations': { riders: ['riders.'], pickers: ['pickers.'], zones: ['zones.'] },
+  '/field-operations': { riders: ['riders.'], applications: ['riders.review', 'riders.view', 'riders.documentRules'], pickers: ['pickers.'], zones: ['zones.'] },
   '/marketing': { campaigns: ['campaigns.'], notifications: ['notifications.', 'customerGroups.manage'], coupons: ['coupons.'] },
   '/finance': { overview: ['finance.view'], productCosts: ['finance.productCosts'], expenses: ['expenses.'], founderLedger: [], settings: ['finance.settings'] },
 };

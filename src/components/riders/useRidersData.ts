@@ -15,7 +15,8 @@ export function useRidersData() {
     try {
       setError(null);
       const [r, z] = await Promise.all([ridersService.getAllRiders(), ridersService.getAllZones()]);
-      setRiders((r ?? []) as Rider[]);
+      // Applicants live in the Applications tab until they're approved.
+      setRiders(((r ?? []) as Rider[]).filter((x) => !x.approvalStatus || x.approvalStatus === 'approved'));
       setZones(z ?? []);
     } catch (err) {
       logger.error('❌ [RidersTab] Failed to fetch riders:', err);

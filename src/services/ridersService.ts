@@ -13,6 +13,8 @@ export interface RiderData {
   zoneId: number;
   status: 'offline' | 'available' | 'busy' | 'on_delivery';
   isActive: boolean;
+  /** 'approved' for working riders; anything else is still an application. */
+  approvalStatus?: string;
   bankAccount?: string;
   accountName?: string;
   rating: number;
