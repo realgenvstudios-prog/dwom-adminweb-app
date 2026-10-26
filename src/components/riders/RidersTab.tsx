@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { AlertCircle, Bike, CircleDot, MapPinOff, Navigation, Plus, RotateCw } from 'lucide-react';
+import { AlertCircle, Bike, CircleDot, MapPinOff, Navigation, Plus, Radar, RotateCw } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -18,6 +18,7 @@ import ridersService from '../../services/ridersService';
 import { logger } from '../../utils/logger';
 import AssignZoneDialog from './AssignZoneDialog';
 import CreateRiderDialog from './CreateRiderDialog';
+import DispatchSettingsDialog from './DispatchSettingsDialog';
 import RiderSheet from './RiderSheet';
 import { buildRiderColumns } from './columns';
 import { NO_ZONE, RIDER_STATUSES, riderStatusMeta } from './rider-meta';
@@ -32,6 +33,7 @@ export default function RidersTab() {
   const [zoneOpen, setZoneOpen] = useState(false);
   const [toggleFor, setToggleFor] = useState<Rider | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [dispatchOpen, setDispatchOpen] = useState(false);
 
   const viewing = riders.find((r) => r.id === viewId) ?? null;
   const zoneRider = zoneFor ? (riders.find((r) => r.id === zoneFor.id) ?? null) : null;
@@ -159,10 +161,16 @@ export default function RidersTab() {
         emptyMessage={riders.length === 0 ? 'No riders yet. Add your first one.' : 'No riders match these filters.'}
         toolbarActions={
           can('riders.manage') && (
-            <Button size="sm" className="h-8" onClick={() => setCreateOpen(true)}>
-              <Plus />
-              Add rider
-            </Button>
+            <>
+              <Button size="sm" variant="outline" className="h-8" onClick={() => setDispatchOpen(true)}>
+                <Radar />
+                Dispatch settings
+              </Button>
+              <Button size="sm" className="h-8" onClick={() => setCreateOpen(true)}>
+                <Plus />
+                Add rider
+              </Button>
+            </>
           )
         }
       />
@@ -192,6 +200,7 @@ export default function RidersTab() {
         />
       )}
 
+      {dispatchOpen && <DispatchSettingsDialog onClose={() => setDispatchOpen(false)} />}
       <CreateRiderDialog open={createOpen} onOpenChange={setCreateOpen} zones={zones} onCreated={() => void refresh()} />
 
       <AlertDialog open={!!toggleFor} onOpenChange={(o) => !o && setToggleFor(null)}>

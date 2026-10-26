@@ -35,7 +35,8 @@ async function loadOptions(kind: Kind): Promise<Option[]> {
   if (kind === 'rider') {
     const riders = await ridersService.getAllRiders();
     return riders
-      .filter((r) => r.isActive)
+      // Only approved riders who can work; applicants stay in Field Operations → Applications.
+      .filter((r) => r.isActive && (!r.approvalStatus || r.approvalStatus === 'approved'))
       .map((r) => ({ id: r.id, name: r.name, detail: [r.status?.replace('_', ' '), r.zone].filter(Boolean).join(' · ') }));
   }
   const workers = await workersService.getAll();

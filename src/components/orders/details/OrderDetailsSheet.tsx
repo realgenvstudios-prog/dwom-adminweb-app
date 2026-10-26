@@ -35,6 +35,7 @@ import FeedbackTab from './FeedbackTab';
 import ItemsTab from './ItemsTab';
 import OverviewTab from './OverviewTab';
 import { useOrderDetails } from './useOrderDetails';
+import DispatchPanel from './DispatchPanel';
 import { can } from '../../../config/permissions';
 
 // Same options the old drawer offered. The backend would also accept
@@ -152,6 +153,7 @@ export default function OrderDetailsSheet({ order: incoming, open, onOpenChange,
               </div>
             )}
             {details?.handlingNote && <p className="text-sm text-muted-foreground">Note for the rider: {details.handlingNote}</p>}
+            <DispatchPanel orderId={order.id} status={order.orderStatus} hasRider={!!order.rider} onChanged={() => setReloadKey((k) => k + 1)} />
 
             <div className="flex flex-wrap gap-2 pt-1">
               {can('orders.updateStatus') && (
