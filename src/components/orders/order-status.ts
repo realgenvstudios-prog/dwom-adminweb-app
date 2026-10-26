@@ -23,10 +23,10 @@ export interface StatusMeta {
 }
 
 export const ORDER_STATUSES: StatusMeta[] = [
-  { value: 'sorting', label: 'Sorting', icon: Package, tone: 'text-sky-600' },
-  { value: 'ready', label: 'Ready', icon: PackageCheck, tone: 'text-amber-600' },
-  { value: 'rider on the way', label: 'On the way', icon: Bike, tone: 'text-violet-600' },
-  { value: 'rider has arrived', label: 'Rider arrived', icon: MapPin, tone: 'text-orange-600' },
+  { value: 'sorting', label: 'Being packed', icon: Package, tone: 'text-sky-600' },
+  { value: 'ready', label: 'Ready for pickup', icon: PackageCheck, tone: 'text-amber-600' },
+  { value: 'rider on the way', label: 'On the way to customer', icon: Bike, tone: 'text-violet-600' },
+  { value: 'rider has arrived', label: 'Rider has arrived', icon: MapPin, tone: 'text-orange-600' },
   { value: 'delivered', label: 'Delivered', icon: CircleCheck, tone: 'text-emerald-600' },
   { value: 'cancelled', label: 'Cancelled', icon: CircleX, tone: 'text-red-600' },
 ];

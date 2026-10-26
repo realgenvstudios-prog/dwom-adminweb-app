@@ -44,7 +44,7 @@ function StatusTimeline({ history, loading }: { history: StatusChange[]; loading
               <p className={cn('text-sm', latest && 'font-medium')}>{meta.label}</p>
               <time className="text-xs text-muted-foreground">{formatDateTime(h.changedAt)}</time>
             </div>
-            <p className="text-xs text-muted-foreground capitalize">by {h.changedBy}</p>
+            <p className="text-xs text-muted-foreground">by {h.changedBy === 'rider' ? 'the rider' : h.changedBy === 'admin' ? 'an admin' : h.changedBy}</p>
             {h.notes && <p className="text-xs text-muted-foreground italic">{h.notes}</p>}
           </li>
         );

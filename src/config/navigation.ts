@@ -94,6 +94,7 @@ const SUB_PAGES: Record<string, { label: string; tab: string; superAdminOnly?: b
     { label: 'Rider applications', tab: 'applications' },
     { label: 'Pickers', tab: 'pickers' },
     { label: 'Delivery Zones', tab: 'zones' },
+    { label: 'Pickup points', tab: 'pickup' },
   ],
   '/marketing': [
     { label: 'Campaigns', tab: 'campaigns' },

@@ -120,10 +120,21 @@ export const ordersService = {
   /**
    * Update order status
    */
-  async updateStatus(id: number, status: string): Promise<unknown> {
+  /** Cancelled after pickup: the groceries are back at the pickup point. */
+  async goodsReturned(id: number): Promise<unknown> {
+    return adminApiClient.post(`/orders/${id}/goods-returned`);
+  },
+
+  /** Packed and waiting for the rider; the note is shown to the rider (e.g. "fish, keep cold"). */
+  async markReady(id: number, handlingNote?: string): Promise<unknown> {
+    return adminApiClient.post(`/orders/${id}/ready`, { handlingNote: handlingNote || undefined });
+  },
+
+  async updateStatus(id: number, status: string, notes?: string): Promise<unknown> {
     try {
       const response = await adminApiClient.patch(`/orders/${id}/status`, {
         status,
+        ...(notes ? { notes } : {}),
       });
       return response;
     } catch (error) {

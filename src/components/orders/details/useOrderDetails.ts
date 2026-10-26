@@ -16,6 +16,11 @@ export interface OrderDetails {
   items: OrderItem[];
   recipient: { name?: string; phone?: string } | null;
   riderNotes?: string;
+  /** Note from packing for the rider, e.g. "fish, keep cold". */
+  handlingNote?: string;
+  /** Cancelled after pickup and the groceries aren't back yet. */
+  goodsWithRider: boolean;
+  cancelledBy?: string;
   statusHistory: StatusChange[];
   riderRating: { rating: number; comment?: string } | null;
   productReviews: Array<{ productId: number; productName: string; rating: number; comment?: string }>;
@@ -43,6 +48,11 @@ interface RawOrder {
   recipientName?: string | null;
   recipientPhone?: string | null;
   riderNotes?: string | null;
+  handlingNote?: string | null;
+  status?: string;
+  pickedUpAt?: string | null;
+  goodsReturnedAt?: string | null;
+  cancelledBy?: string | null;
   StatusHistory?: StatusChange[];
   RiderRating?: Array<{ rating: number; comment?: string | null }>;
   ProductReview?: Array<{ productId: number; rating: number; comment?: string | null; Product?: { nameEnglish?: string } }>;
@@ -99,6 +109,9 @@ export function useOrderDetails(orderId: string | null, reloadKey = 0) {
                 ? { name: raw.recipientName ?? undefined, phone: raw.recipientPhone ?? undefined }
                 : null,
             riderNotes: raw.riderNotes ?? undefined,
+            handlingNote: raw.handlingNote ?? undefined,
+            goodsWithRider: raw.status === 'cancelled' && !!raw.pickedUpAt && !raw.goodsReturnedAt,
+            cancelledBy: raw.cancelledBy ?? undefined,
             statusHistory: (raw.StatusHistory ?? []).map((h) => ({ ...h, status: normalizeOrderStatus(h.status) })),
             riderRating: raw.RiderRating?.[0]
               ? { rating: raw.RiderRating[0].rating, comment: raw.RiderRating[0].comment ?? undefined }

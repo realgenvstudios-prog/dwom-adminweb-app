@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bike, ChevronDown, CircleDollarSign, Loader2, ShoppingBasket } from 'lucide-react';
+import { Bike, ChevronDown, CircleDollarSign, Loader2, PackageCheck, ShoppingBasket } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -22,6 +22,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Textarea } from '@/components/ui/textarea';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
@@ -59,17 +60,21 @@ export default function OrderDetailsSheet({ order: incoming, open, onOpenChange,
   const { details, loading: detailsLoading, error: detailsError } = useOrderDetails(order ? order.id : null, reloadKey);
   const [busy, setBusy] = useState<null | 'status' | 'payment'>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [readyOpen, setReadyOpen] = useState(false);
+  const [handlingNote, setHandlingNote] = useState('');
 
   if (!order) return null;
 
   const status = orderStatusMeta(order.orderStatus);
   const payment = paymentStatusMeta(order.paymentStatus);
 
-  const updateStatus = async (next: string) => {
+  const updateStatus = async (next: string, notes?: string) => {
     if (next === order.orderStatus) return;
     try {
       setBusy('status');
-      await ordersService.updateStatus(Number.parseInt(order.id, 10), next);
+      if (next === 'ready') await ordersService.markReady(Number.parseInt(order.id, 10), notes);
+      else await ordersService.updateStatus(Number.parseInt(order.id, 10), next, notes);
       onOrderChange(order.id, { orderStatus: next });
       setReloadKey((k) => k + 1);
       toast.success(`Order #${order.id} marked ${orderStatusMeta(next).label.toLowerCase()}`);
@@ -98,6 +103,8 @@ export default function OrderDetailsSheet({ order: incoming, open, onOpenChange,
 
   const onPickStatus = (next: string) => {
     if (next === 'cancelled' && order.orderStatus !== 'cancelled') setConfirmCancel(true);
+    // Ready goes through its own step so packers can leave a note for the rider.
+    else if (next === 'ready') setReadyOpen(true);
     else updateStatus(next);
   };
 
@@ -119,6 +126,32 @@ export default function OrderDetailsSheet({ order: incoming, open, onOpenChange,
             <SheetDescription>
               {order.customer} · placed {formatDateTime(order.createdAt)} · {formatGhs(order.total)}
             </SheetDescription>
+
+            {details?.goodsWithRider && (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-800">
+                <span>
+                  {details.cancelledBy === 'rider_no_show' ? 'Customer unreachable. ' : ''}The groceries are still with the rider, on their way back to the pickup point.
+                </span>
+                {can('orders.updateStatus') && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        await ordersService.goodsReturned(Number.parseInt(order.id, 10));
+                        setReloadKey((k) => k + 1);
+                        toast.success('Marked as received back');
+                      } catch (err) {
+                        toast.error(err instanceof Error ? err.message : 'Couldn’t update it');
+                      }
+                    }}
+                  >
+                    Received back
+                  </Button>
+                )}
+              </div>
+            )}
+            {details?.handlingNote && <p className="text-sm text-muted-foreground">Note for the rider: {details.handlingNote}</p>}
 
             <div className="flex flex-wrap gap-2 pt-1">
               {can('orders.updateStatus') && (
@@ -143,6 +176,13 @@ export default function OrderDetailsSheet({ order: incoming, open, onOpenChange,
                     </DropdownMenuRadioGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
+              )}
+
+              {can('orders.updateStatus') && ['sorting', 'pending'].includes(order.orderStatus) && (
+                <Button size="sm" variant="outline" onClick={() => setReadyOpen(true)} disabled={busy !== null}>
+                  <PackageCheck />
+                  Mark ready for pickup
+                </Button>
               )}
 
               {can('orders.updatePayment') && (
@@ -222,11 +262,26 @@ export default function OrderDetailsSheet({ order: incoming, open, onOpenChange,
               be unsent.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <Textarea rows={2} value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} placeholder="Reason (optional). The rider sees this if one is assigned." />
           <AlertDialogFooter>
             <AlertDialogCancel>Keep order</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={() => updateStatus('cancelled')}>
+            <AlertDialogAction variant="destructive" onClick={() => updateStatus('cancelled', cancelReason.trim() || undefined)}>
               Cancel order
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={readyOpen} onOpenChange={setReadyOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Order #{order.id} is packed?</AlertDialogTitle>
+            <AlertDialogDescription>The assigned rider can confirm pickup once it’s ready, and the customer is told their order is ready.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <Textarea rows={2} value={handlingNote} onChange={(e) => setHandlingNote(e.target.value)} placeholder="Note for the rider (optional), e.g. Fish, keep cold. 3 bags." />
+          <AlertDialogFooter>
+            <AlertDialogCancel>Not yet</AlertDialogCancel>
+            <AlertDialogAction onClick={() => updateStatus('ready', handlingNote.trim() || undefined)}>Mark ready</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
