@@ -75,9 +75,11 @@ export interface DocumentType {
   rules: Partial<Record<Vehicle, DocRule>>;
   sortOrder: number;
   active: boolean;
+  /** One of DWOM's standard documents: can be switched off, not deleted. */
+  builtIn: boolean;
 }
 
-export type DocumentTypeInput = Partial<Omit<DocumentType, 'id' | 'key'>>;
+export type DocumentTypeInput = Partial<Omit<DocumentType, 'id' | 'key' | 'builtIn'>>;
 
 const riderApplicationsService = {
   list: (status?: string) => adminApiClient.get<ApplicationRow[]>(`/riders/admin/applications${status ? `?status=${status}` : ''}`),
@@ -90,6 +92,7 @@ const riderApplicationsService = {
   documentTypes: () => adminApiClient.get<DocumentType[]>('/riders/admin/document-types'),
   createDocumentType: (input: DocumentTypeInput & { name: string }) => adminApiClient.post<DocumentType>('/riders/admin/document-types', input),
   updateDocumentType: (id: number, input: DocumentTypeInput) => adminApiClient.patch<DocumentType>(`/riders/admin/document-types/${id}`, input),
+  deleteDocumentType: (id: number) => adminApiClient.delete<{ deleted: boolean }>(`/riders/admin/document-types/${id}`),
 };
 
 export default riderApplicationsService;

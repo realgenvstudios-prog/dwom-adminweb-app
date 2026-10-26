@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -23,6 +33,8 @@ export default function DocumentRulesDialog({ onOpenChange }: { onOpenChange: (o
   const [savingId, setSavingId] = useState<number | null>(null);
   const [newName, setNewName] = useState('');
   const [adding, setAdding] = useState(false);
+  const [deleting, setDeleting] = useState<DocumentType | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
   useEffect(() => {
     riderApplicationsService
@@ -66,6 +78,23 @@ export default function DocumentRulesDialog({ onOpenChange }: { onOpenChange: (o
     }
   };
 
+  const remove = async () => {
+    if (!deleting) return;
+    setDeleteBusy(true);
+    try {
+      await riderApplicationsService.deleteDocumentType(deleting.id);
+      setTypes((list) => list?.filter((x) => x.id !== deleting.id) ?? null);
+      toast.success(`${deleting.name} deleted`);
+      setDeleting(null);
+    } catch (err) {
+      // e.g. riders already uploaded it: the server says so and suggests switching it off.
+      toast.error(err instanceof Error ? err.message : 'Couldn’t delete it');
+      setDeleting(null);
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
+
   return (
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-4xl">
@@ -87,12 +116,15 @@ export default function DocumentRulesDialog({ onOpenChange }: { onOpenChange: (o
                 <TableHead>Photos</TableHead>
                 <TableHead className="text-center">Number</TableHead>
                 <TableHead className="text-center">Expiry date</TableHead>
+                <TableHead className="w-[90px]">
+                  <span className="sr-only">Delete</span>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {!types && (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
+                  <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
                     Loading…
                   </TableCell>
                 </TableRow>
@@ -147,6 +179,17 @@ export default function DocumentRulesDialog({ onOpenChange }: { onOpenChange: (o
                   <TableCell className="text-center">
                     <Switch checked={t.hasExpiry} onCheckedChange={(v) => void save(t, { hasExpiry: v })} aria-label={`${t.name} has an expiry date`} />
                   </TableCell>
+                  <TableCell className="text-right">
+                    {t.builtIn ? (
+                      <span className="text-xs text-muted-foreground" title="A standard DWOM document. Switch it off instead of deleting it.">
+                        Built in
+                      </span>
+                    ) : (
+                      <Button variant="ghost" size="icon" onClick={() => setDeleting(t)} aria-label={`Delete ${t.name}`} title="Delete">
+                        <Trash2 className="text-destructive" />
+                      </Button>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -164,6 +207,29 @@ export default function DocumentRulesDialog({ onOpenChange }: { onOpenChange: (o
           Payout account (MoMo or bank) and the safety briefing are always required; they aren’t documents. A newly required document doesn’t block riders already approved; they’re asked to add it from their profile.
         </p>
       </DialogContent>
+
+      <AlertDialog open={!!deleting} onOpenChange={(o) => !o && !deleteBusy && setDeleting(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {deleting?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>Riders won’t be asked for it any more. If any rider has already uploaded it, it can’t be deleted; switch it off for every vehicle instead.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteBusy}>Keep it</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                void remove();
+              }}
+              disabled={deleteBusy}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
+              {deleteBusy && <Loader2 className="animate-spin" />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
