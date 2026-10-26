@@ -11,6 +11,7 @@ import { logger } from '../../../utils/logger';
 import { APPROVAL, vehicleLabel, when } from './application-meta';
 import ApplicationSheet from './ApplicationSheet';
 import DocumentRulesDialog from './DocumentRulesDialog';
+import ExpiringDocuments from './ExpiringDocuments';
 
 const FILTERS: { key: ApprovalStatus | 'open'; label: string }[] = [
   { key: 'pending', label: 'Waiting for review' },
@@ -58,6 +59,7 @@ export default function ApplicationsTab() {
 
   return (
     <div className="flex flex-col gap-4">
+      <ExpiringDocuments onOpen={setOpenId} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
           {FILTERS.map((f) => (
