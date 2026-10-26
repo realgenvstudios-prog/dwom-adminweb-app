@@ -189,7 +189,7 @@ export default function ApplicationSheet({ riderId, onOpenChange, onChanged }: P
                     <li key={e.id} className="flex justify-between gap-4">
                       <span>
                         {EVENT_LABELS[e.type] ?? e.type}
-                        {typeof e.data?.reason === 'string' && <span className="text-muted-foreground"> — {e.data.reason}</span>}
+                        {typeof e.data?.reason === 'string' && <span className="text-muted-foreground">: {e.data.reason}</span>}
                       </span>
                       <span className="shrink-0 text-muted-foreground tabular-nums">{when(e.createdAt)}</span>
                     </li>

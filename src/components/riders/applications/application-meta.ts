@@ -45,4 +45,4 @@ export const EVENT_LABELS: Record<string, string> = {
 };
 
 export const when = (iso: string | null | undefined) =>
-  iso ? new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
+  iso ? new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Not yet';
