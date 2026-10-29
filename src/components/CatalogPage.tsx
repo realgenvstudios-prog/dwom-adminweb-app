@@ -7,11 +7,12 @@ import ProductsTab from './products/ProductsTab';
 import CreateProductDialog from './products/CreateProductDialog';
 import CategoriesTab from './categories/CategoriesTab';
 import BundlesTab from './bundles/BundlesTab';
+import RequestsTab from './products/RequestsTab';
 import { useCatalogData } from './products/useCatalogData';
 import { allowedTabs, can, canTab } from '../config/permissions';
 import { usePermissions } from '@/hooks/use-permissions';
 
-const TABS = ['products', 'categories', 'bundles'] as const;
+const TABS = ['products', 'categories', 'bundles', 'requests'] as const;
 
 const CatalogPage: React.FC = () => {
   usePermissions();
@@ -29,7 +30,7 @@ const CatalogPage: React.FC = () => {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">Catalog</h1>
-          <p className="text-sm text-muted-foreground">Products, categories and bundles: everything DWOM sells.</p>
+          <p className="text-sm text-muted-foreground">Products, categories and bundles: everything DWOM sells, and what customers ask for.</p>
         </div>
         {activeTab === 'products' && can('products.create') && (
           <Button onClick={() => setCreateOpen(true)}>
@@ -54,6 +55,7 @@ const CatalogPage: React.FC = () => {
             </TabsTrigger>
           )}
           {canTab('/catalog', 'bundles') && <TabsTrigger value="bundles">Bundles</TabsTrigger>}
+          {canTab('/catalog', 'requests') && <TabsTrigger value="requests">Requests</TabsTrigger>}
         </TabsList>
 
         {canTab('/catalog', 'products') && (
@@ -69,6 +71,11 @@ const CatalogPage: React.FC = () => {
         {canTab('/catalog', 'bundles') && (
           <TabsContent value="bundles">
             <BundlesTab products={products} categories={categories} />
+          </TabsContent>
+        )}
+        {canTab('/catalog', 'requests') && (
+          <TabsContent value="requests">
+            <RequestsTab products={products} />
           </TabsContent>
         )}
       </Tabs>
