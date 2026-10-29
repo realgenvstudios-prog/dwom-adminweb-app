@@ -145,7 +145,7 @@ export function getAccessibleMenuPaths(role: UiRole, allPaths: string[]): string
 // Which boxes open each tab of a multi-tab page. Entries ending in "." are
 // prefixes ("riders." = any riders box). An empty list = Super Admin only.
 const TAB_ACCESS: Record<string, Record<string, string[]>> = {
-  '/catalog': { products: ['products.'], categories: ['categories.', 'products.view'], bundles: ['bundles.', 'products.view'], requests: ['products.view', 'products.edit'] },
+  '/catalog': { products: ['products.'], categories: ['categories.', 'products.view'], bundles: ['bundles.', 'products.view'] },
   '/warehouse': { operations: ['warehouse.'], suppliers: ['suppliers.', 'purchases.record'] },
   '/field-operations': { riders: ['riders.'], applications: ['riders.review', 'riders.view', 'riders.documentRules'], pickers: ['pickers.'], zones: ['zones.'], pickup: ['pickupPoints.', 'zones.view', 'riders.view'], pay: ['riderPay.'] },
   '/marketing': { campaigns: ['campaigns.'], notifications: ['notifications.', 'customerGroups.manage'], coupons: ['coupons.'] },
