@@ -3,14 +3,15 @@ import { CalendarDays, Info } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTabParam } from '@/hooks/use-tab-param';
-import analyticsService, { type AnalyticsInsights, type OrderInsights } from '../services/analyticsService';
+import analyticsService, { type AnalyticsInsights, type OrderInsights, type SignupInsights } from '../services/analyticsService';
 import notesService, { type NotesAnalytics } from '../services/notesService';
 import { logger } from '../utils/logger';
 import NotesTrackingTab from './analytics/NotesTrackingTab';
 import OrdersInsightsTab from './analytics/OrdersInsightsTab';
 import OverviewTab from './analytics/OverviewTab';
+import SignupsTab from './analytics/SignupsTab';
 
-const TAB_KEYS = ['orders', 'overview', 'notes'] as const;
+const TAB_KEYS = ['orders', 'overview', 'signups', 'notes'] as const;
 type TabKey = (typeof TAB_KEYS)[number];
 const RANGES = [7, 30, 90, 365] as const;
 type Range = (typeof RANGES)[number];
@@ -24,22 +25,30 @@ export default function AnalyticsPage() {
   const [insights, setInsights] = useState<AnalyticsInsights | null>(null);
   const [orders, setOrders] = useState<OrderInsights | null>(null);
   const [notes, setNotes] = useState<NotesAnalytics | null>(null);
+  const [signups, setSignups] = useState<SignupInsights | null>(null);
   const [loading, setLoading] = useState(true);
-  const [failed, setFailed] = useState({ insights: false, notes: false, orders: false });
+  const [failed, setFailed] = useState({ insights: false, notes: false, orders: false, signups: false });
 
   const load = useCallback(async (days: Range) => {
     setLoading(true);
     const to = new Date();
     const from = new Date(to.getTime() - days * 86400000);
     const eventFrom = new Date(to.getTime() - eventDays(days) * 86400000);
-    const [i, n, o] = await Promise.allSettled([analyticsService.getInsights(eventFrom, to), notesService.getAnalytics(), analyticsService.getOrderInsights(from, to)]);
+    const [i, n, o, s] = await Promise.allSettled([
+      analyticsService.getInsights(eventFrom, to),
+      notesService.getAnalytics(),
+      analyticsService.getOrderInsights(from, to),
+      analyticsService.getSignups(eventFrom, to),
+    ]);
     if (i.status === 'rejected') logger.error('Failed to load analytics insights:', i.reason);
+    if (s.status === 'rejected') logger.error('Failed to load sign-up insights:', s.reason);
     if (n.status === 'rejected') logger.error('Failed to load notes analytics:', n.reason);
     if (o.status === 'rejected') logger.error('Failed to load order insights:', o.reason);
     setInsights(i.status === 'fulfilled' ? i.value : null);
     setNotes(n.status === 'fulfilled' ? n.value : null);
     setOrders(o.status === 'fulfilled' ? o.value : null);
-    setFailed({ insights: i.status === 'rejected', notes: n.status === 'rejected', orders: o.status === 'rejected' });
+    setSignups(s.status === 'fulfilled' ? s.value : null);
+    setFailed({ insights: i.status === 'rejected', notes: n.status === 'rejected', orders: o.status === 'rejected', signups: s.status === 'rejected' });
     setLoading(false);
   }, []);
 
@@ -55,7 +64,7 @@ export default function AnalyticsPage() {
     <div className="flex flex-col gap-6">
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
-        <p className="text-sm text-muted-foreground">When and how customers order, and how they use the app.</p>
+        <p className="text-sm text-muted-foreground">When and how customers order, how they use the app, and how guests become customers.</p>
       </div>
 
       {noAppActivity && (
@@ -70,6 +79,7 @@ export default function AnalyticsPage() {
           <TabsList>
             <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="overview">App usage</TabsTrigger>
+            <TabsTrigger value="signups">Sign-ups</TabsTrigger>
             <TabsTrigger value="notes">Shopping notes</TabsTrigger>
           </TabsList>
           {activeTab !== 'notes' && (
@@ -93,6 +103,9 @@ export default function AnalyticsPage() {
         </TabsContent>
         <TabsContent value="overview">
           <OverviewTab data={insights} loading={loading} failed={failed.insights} />
+        </TabsContent>
+        <TabsContent value="signups">
+          <SignupsTab data={signups} loading={loading} failed={failed.signups} />
         </TabsContent>
         <TabsContent value="notes">
           <NotesTrackingTab data={notes} loading={loading} failed={failed.notes} />

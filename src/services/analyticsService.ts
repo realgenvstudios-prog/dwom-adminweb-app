@@ -60,6 +60,51 @@ export interface OrderInsights {
   paymentMethods: { method: string; orders: number; revenue: number }[];
 }
 
+/** GET /analytics/signups — guests becoming customers, and where sign-in stalls. */
+export interface SignupInsights {
+  from: string;
+  to: string;
+  /** Distinct app installs reaching each sign-up step. */
+  signupFunnel: { step: string; label: string; sessions: number }[];
+  login: { codeRequested: number; codeVerified: number };
+  guests: {
+    guestInstalls: number;
+    becameCustomers: number;
+    signedInToExisting: number;
+    medianMinutesToSignUp: number | null;
+    hadCartBeforeSignUp: number;
+  };
+  /** From the server's record of each phone number's attempt. */
+  attempts: {
+    total: number;
+    signedIn: number;
+    stuck: number;
+    stuckSignup: number;
+    stuckLogin: number;
+    neededMoreThanOneCode: number;
+    typedAWrongCode: number;
+    askedForHelp: number;
+  };
+  reasons: { reason: string; count: number }[];
+  networks: { network: string; attempts: number; stuck: number }[];
+}
+
+/** GET /analytics/signups/stuck — Support only: people who never got in. */
+export interface StuckSignIn {
+  id: number;
+  phoneNumber: string;
+  network: string;
+  flow: 'signup' | 'login';
+  reason: string;
+  codesSent: number;
+  wrongCodes: number;
+  askedForHelp: boolean;
+  firstTriedAt: string;
+  lastTriedAt: string;
+  contactedAt: string | null;
+  contactedBy: string | null;
+}
+
 class AnalyticsService {
   /**
    * Event counts by name for a date range. Defaults to the last 7 days —
@@ -81,6 +126,19 @@ class AnalyticsService {
   async getOrderInsights(from: Date, to: Date): Promise<OrderInsights> {
     const params = new URLSearchParams({ from: from.toISOString(), to: to.toISOString() });
     return adminApiClient.get<OrderInsights>(`/analytics/orders?${params.toString()}`);
+  }
+
+  async getSignups(from: Date, to: Date): Promise<SignupInsights> {
+    const params = new URLSearchParams({ from: from.toISOString(), to: to.toISOString() });
+    return adminApiClient.get<SignupInsights>(`/analytics/signups?${params.toString()}`);
+  }
+
+  async getStuckSignIns(): Promise<StuckSignIn[]> {
+    return adminApiClient.get<StuckSignIn[]>('/analytics/signups/stuck');
+  }
+
+  async markContacted(id: number): Promise<{ id: number; contactedAt: string }> {
+    return adminApiClient.post(`/analytics/signups/stuck/${id}/contacted`, {});
   }
 
   async getInsights(from: Date, to: Date): Promise<AnalyticsInsights> {
