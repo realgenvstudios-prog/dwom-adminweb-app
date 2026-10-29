@@ -89,6 +89,18 @@ export interface SignupInsights {
   networks: { network: string; attempts: number; stuck: number }[];
 }
 
+/** GET /analytics/discovery — "How did you hear about DWOM?" answers in a range. */
+export interface DiscoveryInsights {
+  from: string;
+  to: string;
+  asked: number;
+  answered: number;
+  skipped: number;
+  /** Orders and revenue are everything those customers have ordered (not cancelled). */
+  sources: { source: string; customers: number; orders: number; revenue: number }[];
+  otherAnswers: { text: string; count: number }[];
+}
+
 /** GET /analytics/signups/stuck — Support only: people who never got in. */
 export interface StuckSignIn {
   id: number;
@@ -131,6 +143,11 @@ class AnalyticsService {
   async getSignups(from: Date, to: Date): Promise<SignupInsights> {
     const params = new URLSearchParams({ from: from.toISOString(), to: to.toISOString() });
     return adminApiClient.get<SignupInsights>(`/analytics/signups?${params.toString()}`);
+  }
+
+  async getDiscovery(from: Date, to: Date): Promise<DiscoveryInsights> {
+    const params = new URLSearchParams({ from: from.toISOString(), to: to.toISOString() });
+    return adminApiClient.get<DiscoveryInsights>(`/analytics/discovery?${params.toString()}`);
   }
 
   async getStuckSignIns(): Promise<StuckSignIn[]> {

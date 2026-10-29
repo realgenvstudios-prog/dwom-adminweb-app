@@ -3,7 +3,7 @@ import { CalendarDays, Info } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTabParam } from '@/hooks/use-tab-param';
-import analyticsService, { type AnalyticsInsights, type OrderInsights, type SignupInsights } from '../services/analyticsService';
+import analyticsService, { type AnalyticsInsights, type DiscoveryInsights, type OrderInsights, type SignupInsights } from '../services/analyticsService';
 import notesService, { type NotesAnalytics } from '../services/notesService';
 import { logger } from '../utils/logger';
 import NotesTrackingTab from './analytics/NotesTrackingTab';
@@ -26,20 +26,23 @@ export default function AnalyticsPage() {
   const [orders, setOrders] = useState<OrderInsights | null>(null);
   const [notes, setNotes] = useState<NotesAnalytics | null>(null);
   const [signups, setSignups] = useState<SignupInsights | null>(null);
+  const [discovery, setDiscovery] = useState<DiscoveryInsights | null>(null);
   const [loading, setLoading] = useState(true);
-  const [failed, setFailed] = useState({ insights: false, notes: false, orders: false, signups: false });
+  const [failed, setFailed] = useState({ insights: false, notes: false, orders: false, signups: false, discovery: false });
 
   const load = useCallback(async (days: Range) => {
     setLoading(true);
     const to = new Date();
     const from = new Date(to.getTime() - days * 86400000);
     const eventFrom = new Date(to.getTime() - eventDays(days) * 86400000);
-    const [i, n, o, s] = await Promise.allSettled([
+    const [i, n, o, s, d] = await Promise.allSettled([
       analyticsService.getInsights(eventFrom, to),
       notesService.getAnalytics(),
       analyticsService.getOrderInsights(from, to),
       analyticsService.getSignups(eventFrom, to),
+      analyticsService.getDiscovery(eventFrom, to),
     ]);
+    if (d.status === 'rejected') logger.error('Failed to load discovery answers:', d.reason);
     if (i.status === 'rejected') logger.error('Failed to load analytics insights:', i.reason);
     if (s.status === 'rejected') logger.error('Failed to load sign-up insights:', s.reason);
     if (n.status === 'rejected') logger.error('Failed to load notes analytics:', n.reason);
@@ -48,7 +51,8 @@ export default function AnalyticsPage() {
     setNotes(n.status === 'fulfilled' ? n.value : null);
     setOrders(o.status === 'fulfilled' ? o.value : null);
     setSignups(s.status === 'fulfilled' ? s.value : null);
-    setFailed({ insights: i.status === 'rejected', notes: n.status === 'rejected', orders: o.status === 'rejected', signups: s.status === 'rejected' });
+    setDiscovery(d.status === 'fulfilled' ? d.value : null);
+    setFailed({ insights: i.status === 'rejected', notes: n.status === 'rejected', orders: o.status === 'rejected', signups: s.status === 'rejected', discovery: d.status === 'rejected' });
     setLoading(false);
   }, []);
 
@@ -105,7 +109,7 @@ export default function AnalyticsPage() {
           <OverviewTab data={insights} loading={loading} failed={failed.insights} />
         </TabsContent>
         <TabsContent value="signups">
-          <SignupsTab data={signups} loading={loading} failed={failed.signups} />
+          <SignupsTab data={signups} discovery={discovery} loading={loading} failed={failed.signups} discoveryFailed={failed.discovery} />
         </TabsContent>
         <TabsContent value="notes">
           <NotesTrackingTab data={notes} loading={loading} failed={failed.notes} />

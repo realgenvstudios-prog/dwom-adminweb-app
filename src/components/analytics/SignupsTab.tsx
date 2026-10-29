@@ -8,7 +8,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { StatCard } from '@/components/stat-card';
 import { usePermissions } from '@/hooks/use-permissions';
-import analyticsService, { type SignupInsights, type StuckSignIn } from '../../services/analyticsService';
+import analyticsService, { type DiscoveryInsights, type SignupInsights, type StuckSignIn } from '../../services/analyticsService';
+import { formatGhs } from '../orders/order-status';
 import { logger } from '../../utils/logger';
 
 const pct = (a: number, b: number) => (b > 0 ? Math.round((a / b) * 1000) / 10 : 0);
@@ -30,6 +31,95 @@ function duration(mins: number | null) {
 
 function Unavailable() {
   return <p className="py-8 text-center text-sm text-muted-foreground">Couldn’t load this. Refresh to try again.</p>;
+}
+
+const SOURCE_NAMES: Record<string, string> = {
+  friend_family: 'Friend or family',
+  whatsapp: 'WhatsApp',
+  instagram: 'Instagram',
+  tiktok: 'TikTok',
+  facebook: 'Facebook',
+  rider_flyer: 'Saw a rider or flyer',
+  google: 'Google',
+  other: 'Other',
+};
+
+/** "How did you hear about DWOM?" — asked once after a customer's order. */
+function WhereCustomersComeFrom({ data, loading, failed }: { data: DiscoveryInsights | null; loading: boolean; failed: boolean }) {
+  const top = data?.sources[0]?.customers ?? 0;
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Where customers come from</CardTitle>
+        <CardDescription>
+          {data && data.asked > 0
+            ? `${data.answered.toLocaleString()} answered “How did you hear about DWOM?” after an order, ${data.skipped.toLocaleString()} skipped. Orders and spend are everything those customers have ordered.`
+            : 'Asked once after a customer’s order, from app 1.5.0.'}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <Skeleton className="h-48 w-full" />
+        ) : failed || !data ? (
+          <Unavailable />
+        ) : data.sources.length === 0 ? (
+          <p className="py-8 text-center text-sm text-muted-foreground">No answers in this range yet.</p>
+        ) : (
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="overflow-x-auto lg:col-span-2">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Source</TableHead>
+                    <TableHead className="text-right">Customers</TableHead>
+                    <TableHead className="text-right">Orders</TableHead>
+                    <TableHead className="text-right">Spent</TableHead>
+                    <TableHead className="text-right">Per customer</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.sources.map((s) => (
+                    <TableRow key={s.source}>
+                      <TableCell className="min-w-[180px]">
+                        <div className="grid gap-1">
+                          <span>{SOURCE_NAMES[s.source] ?? s.source}</span>
+                          <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                            <div className="h-full rounded-full bg-primary" style={{ width: `${top > 0 ? Math.max(3, (s.customers / top) * 100) : 0}%` }} />
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {s.customers.toLocaleString()}
+                        <span className="ml-1.5 text-xs text-muted-foreground">{pct(s.customers, data.answered)}%</span>
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">{s.orders.toLocaleString()}</TableCell>
+                      <TableCell className="text-right tabular-nums">{formatGhs(s.revenue)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{formatGhs(s.customers > 0 ? s.revenue / s.customers : 0)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <div>
+              <p className="mb-2 text-sm font-medium">In their own words</p>
+              {data.otherAnswers.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nothing typed under “Other” yet.</p>
+              ) : (
+                <ul className="grid gap-1.5 text-sm">
+                  {data.otherAnswers.map((o) => (
+                    <li key={o.text} className="flex items-baseline justify-between gap-3">
+                      <span className="truncate capitalize">{o.text}</span>
+                      <span className="shrink-0 tabular-nums text-muted-foreground">{o.count}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
 
 /** People who tried to sign in or up and never got in. Support only: shows phone numbers. */
@@ -140,7 +230,19 @@ function PeopleToCall() {
   );
 }
 
-export default function SignupsTab({ data, loading, failed }: { data: SignupInsights | null; loading: boolean; failed: boolean }) {
+export default function SignupsTab({
+  data,
+  discovery,
+  loading,
+  failed,
+  discoveryFailed,
+}: {
+  data: SignupInsights | null;
+  discovery: DiscoveryInsights | null;
+  loading: boolean;
+  failed: boolean;
+  discoveryFailed: boolean;
+}) {
   const can = usePermissions();
   const g = data?.guests;
   const a = data?.attempts;
@@ -300,6 +402,8 @@ export default function SignupsTab({ data, loading, failed }: { data: SignupInsi
           </Card>
         </div>
       </div>
+
+      <WhereCustomersComeFrom data={discovery} loading={loading} failed={discoveryFailed} />
 
       {can('support.view') && <PeopleToCall />}
     </div>
