@@ -13,6 +13,8 @@ import supportService, { OUTDATED_SERVER, type ConversationState, type SupportCo
 import { logger } from '../utils/logger';
 import { ago, displayName, initials, minutesLabel, stateMeta } from './support/support-meta';
 import ThreadPane from './support/ThreadPane';
+import SignInHelpPanel from './support/SignInHelpPanel';
+import { useSignInHelpCount } from '../hooks/use-signin-help';
 
 type View = ConversationState | 'all';
 const VIEWS: { value: View; label: string }[] = [
@@ -28,6 +30,8 @@ export default function SupportPage() {
   const [params, setParams] = useSearchParams();
   const view = (VIEWS.some((v) => v.value === params.get('view')) ? params.get('view') : 'needs_reply') as View;
   const selected = Number(params.get('customer')) || null;
+  const tab = params.get('tab') === 'signin' ? 'signin' : 'chats';
+  const signInWaiting = useSignInHelpCount();
 
   const [conversations, setConversations] = useState<SupportConversation[] | null>(null);
   const [metrics, setMetrics] = useState<SupportMetrics | null>(null);
@@ -104,8 +108,23 @@ export default function SupportPage() {
     <div className="flex flex-col gap-6">
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">Support</h1>
-        <p className="text-sm text-muted-foreground">Chats from the app’s Support screen. Replies reach the customer’s app with a notification.</p>
+        <p className="text-sm text-muted-foreground">Chats from the app’s Support screen, and customers who need help signing in.</p>
       </div>
+
+      <Tabs value={tab} onValueChange={(v) => setParam({ tab: v === 'signin' ? 'signin' : null, customer: null })}>
+        <TabsList>
+          <TabsTrigger value="chats">Conversations</TabsTrigger>
+          <TabsTrigger value="signin" className="gap-1.5">
+            Sign-in help
+            {signInWaiting > 0 && <span className="rounded-md bg-red-600 px-1.5 text-xs font-medium text-white tabular-nums">{signInWaiting}</span>}
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      {tab === 'signin' ? (
+        <SignInHelpPanel />
+      ) : (
+      <>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
@@ -226,6 +245,8 @@ export default function SupportPage() {
           )}
         </div>
       </Card>
+      </>
+      )}
     </div>
   );
 }

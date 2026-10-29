@@ -9,6 +9,7 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -28,6 +29,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { activeSubTab, type NavGroup, type NavItem } from '@/config/navigation';
 import NavUser from './NavUser';
+import { useSignInHelpCount } from '@/hooks/use-signin-help';
 
 interface AppSidebarProps {
   groups: NavGroup[];
@@ -41,14 +43,18 @@ function isOnPage(pathname: string, item: NavItem) {
 }
 
 function NavLinkItem({ item, active }: { item: NavItem; active: boolean }) {
+  const signInHelp = useSignInHelpCount();
+  // Customers stuck on the code screen show as a count on Support.
+  const badge = item.path === '/support' ? signInHelp : 0;
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild isActive={active} tooltip={item.label}>
-        <Link to={item.path}>
+      <SidebarMenuButton asChild isActive={active} tooltip={badge ? `${item.label} (${badge} waiting to sign in)` : item.label}>
+        <Link to={badge ? `${item.path}?tab=signin` : item.path}>
           <item.icon />
           <span>{item.label}</span>
         </Link>
       </SidebarMenuButton>
+      {badge > 0 && <SidebarMenuBadge className="bg-red-600 text-white peer-hover/menu-button:text-white peer-data-active/menu-button:text-white">{badge}</SidebarMenuBadge>}
     </SidebarMenuItem>
   );
 }

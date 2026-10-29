@@ -4,6 +4,7 @@ import adminAuthService from '../services/authService';
 import { canAccessRoute, resolveUiRole } from '../config/permissions';
 import { getNavGroups } from '../config/navigation';
 import { usePermissions, useRefreshPermissions } from '@/hooks/use-permissions';
+import { useSignInHelpAlerts } from '@/hooks/use-signin-help';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import AppSidebar from './layout/AppSidebar';
 import SiteHeader from './layout/SiteHeader';
@@ -25,6 +26,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [searchOpen, setSearchOpen] = useState(false);
   // Ticked permissions are re-read from the server on open and on tab focus.
   useRefreshPermissions();
+  useSignInHelpAlerts();
   usePermissions();
 
   const currentAdmin = adminAuthService.getCurrentAdmin();
