@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bike, ChevronDown, CircleDollarSign, Loader2, PackageCheck, ShoppingBasket } from 'lucide-react';
+import { Bike, ChevronDown, CircleDollarSign, Loader2, Package, PackageCheck, ShoppingBasket, ThumbsUp } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -178,6 +178,20 @@ export default function OrderDetailsSheet({ order: incoming, open, onOpenChange,
                     </DropdownMenuRadioGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
+              )}
+
+              {can('orders.updateStatus') && order.orderStatus === 'placed' && (
+                <Button size="sm" variant="outline" onClick={() => void updateStatus('accepted')} disabled={busy !== null}>
+                  <ThumbsUp />
+                  Accept order
+                </Button>
+              )}
+
+              {can('orders.updateStatus') && order.orderStatus === 'accepted' && (
+                <Button size="sm" variant="outline" onClick={() => void updateStatus('sorting')} disabled={busy !== null}>
+                  <Package />
+                  Start sorting
+                </Button>
               )}
 
               {can('orders.updateStatus') && ['sorting', 'pending'].includes(order.orderStatus) && (

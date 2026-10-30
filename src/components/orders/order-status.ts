@@ -4,10 +4,12 @@ import {
   CircleCheck,
   CircleX,
   CreditCard,
+  Inbox,
   MapPin,
   Package,
   PackageCheck,
   Smartphone,
+  ThumbsUp,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -23,7 +25,9 @@ export interface StatusMeta {
 }
 
 export const ORDER_STATUSES: StatusMeta[] = [
-  { value: 'sorting', label: 'Being packed', icon: Package, tone: 'text-sky-600' },
+  { value: 'placed', label: 'Order placed', icon: Inbox, tone: 'text-slate-600' },
+  { value: 'accepted', label: 'Accepted', icon: ThumbsUp, tone: 'text-teal-600' },
+  { value: 'sorting', label: 'Sorting', icon: Package, tone: 'text-sky-600' },
   { value: 'ready', label: 'Ready for pickup', icon: PackageCheck, tone: 'text-amber-600' },
   { value: 'rider on the way', label: 'On the way to customer', icon: Bike, tone: 'text-violet-600' },
   { value: 'rider has arrived', label: 'Rider has arrived', icon: MapPin, tone: 'text-orange-600' },
@@ -67,7 +71,7 @@ export function paymentMethodMeta(value: string) {
 // the status rename; the backend accepts both, the UI shows one.
 export function normalizeOrderStatus(status: string | null | undefined): string {
   const legacy: Record<string, string> = { on_the_way: 'rider on the way', arrived: 'rider has arrived' };
-  const s = (status ?? '').trim().toLowerCase() || 'sorting';
+  const s = (status ?? '').trim().toLowerCase() || 'placed';
   return legacy[s] ?? s;
 }
 

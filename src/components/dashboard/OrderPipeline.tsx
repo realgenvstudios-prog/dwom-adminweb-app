@@ -5,8 +5,10 @@ import { cn } from '@/lib/utils';
 import type { Order } from '../orders/OrderTypes';
 import { orderStatusMeta } from '../orders/order-status';
 
-const STAGES = ['sorting', 'ready', 'rider on the way', 'rider has arrived'];
+const STAGES = ['placed', 'accepted', 'sorting', 'ready', 'rider on the way', 'rider has arrived'];
 const BAR: Record<string, string> = {
+  placed: 'bg-slate-500',
+  accepted: 'bg-teal-500',
   sorting: 'bg-sky-500',
   ready: 'bg-amber-500',
   'rider on the way': 'bg-violet-500',
@@ -65,7 +67,7 @@ export default function OrderPipeline({ orders, loading, error, linkable }: Orde
                     ),
                 )}
             </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {counts.map(({ stage, count }) => {
                 const s = orderStatusMeta(stage);
                 return (
