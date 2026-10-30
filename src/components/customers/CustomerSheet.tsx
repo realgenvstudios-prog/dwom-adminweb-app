@@ -37,7 +37,8 @@ function OrderRow({ order, canOpenOrders }: { order: CustomerOrder; canOpenOrder
   const payment = paymentStatusMeta(normalizePaymentStatus(order.paymentStatus));
   const method = paymentMethodMeta(order.paymentMethod);
   // The history endpoint doesn't return couponDiscount; show whatever the fees don't explain.
-  const discount = order.subtotal + order.deliveryFee + order.serviceFee - order.total;
+  const smallOrderFee = order.smallOrderFee ?? 0;
+  const discount = order.subtotal + order.deliveryFee + order.serviceFee + smallOrderFee - order.total;
 
   return (
     <Collapsible asChild>
@@ -77,6 +78,7 @@ function OrderRow({ order, canOpenOrders }: { order: CustomerOrder; canOpenOrder
                 ['Subtotal', order.subtotal],
                 ['Delivery', order.deliveryFee],
                 ['Service fee', order.serviceFee],
+                ...(smallOrderFee > 0 ? [['Small order fee', smallOrderFee] as const] : []),
                 ...(discount >= 0.01 ? [['Discount', -discount] as const] : []),
               ].map(([label, value]) => (
                 <div key={label} className="flex justify-between text-muted-foreground">

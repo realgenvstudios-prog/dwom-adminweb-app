@@ -16,7 +16,6 @@ type Key =
   | 'defaultServiceFee'
   | 'defaultDeliveryFee'
   | 'minimumOrderValue'
-  | 'maxSmallOrderFee'
   | 'paystackFeePercent'
   | 'packagingCostPerOrder'
   | 'grossProfitMarginPercent'
@@ -43,18 +42,17 @@ const SECTIONS: { title: string; description: string; affectsCustomers?: boolean
       {
         key: 'defaultDeliveryFee',
         label: 'Standard delivery fee',
-        hint: 'Subscription deliveries, and addresses outside your zones. Zone orders use the zone’s fee.',
+        hint: 'Subscription deliveries. Orders use their delivery zone’s fee; addresses outside your zones can’t order.',
         unit: '₵',
       },
     ],
   },
   {
     title: 'Small-order fee',
-    description: 'Charged at checkout: a basket below the minimum pays the difference, up to the cap.',
+    description: 'Tops an order up to this minimum at checkout. Items, delivery and service fee all count towards it.',
     affectsCustomers: true,
     fields: [
-      { key: 'minimumOrderValue', label: 'Minimum basket', hint: 'At or above this, no small-order fee.', unit: '₵' },
-      { key: 'maxSmallOrderFee', label: 'Fee cap', hint: 'The most a small basket is ever charged.', unit: '₵' },
+      { key: 'minimumOrderValue', label: 'Minimum order', hint: 'At or above this, no small-order fee. ₵0 turns the fee off.', unit: '₵' },
     ],
   },
   {
@@ -151,7 +149,7 @@ const SettingsTab: React.FC = () => {
       await settingsService.updateSettings(payload);
       setSaved(form);
       toast.success(
-        changed.some((k) => ['minimumOrderValue', 'maxSmallOrderFee', 'defaultServiceFee', 'defaultDeliveryFee'].includes(k))
+        changed.some((k) => ['minimumOrderValue', 'defaultServiceFee', 'defaultDeliveryFee'].includes(k))
           ? 'Saved. Checkout uses the new fees now'
           : 'Settings saved',
       );
@@ -189,8 +187,8 @@ const SettingsTab: React.FC = () => {
   }
 
   // Worked examples, using the numbers as currently typed.
-  const sampleBasket = Math.max(0, Math.round(n('minimumOrderValue') * 0.6));
-  const sampleFee = Math.min(Math.max(0, n('minimumOrderValue') - sampleBasket), n('maxSmallOrderFee'));
+  const sampleOrder = Math.max(0, Math.round(n('minimumOrderValue') * 0.76));
+  const sampleFee = Math.max(0, n('minimumOrderValue') - sampleOrder);
   const busyDay = Math.max(1, Math.round(n('pickerDailyThreshold')));
 
   return (
@@ -221,7 +219,7 @@ const SettingsTab: React.FC = () => {
               </div>
               {section.title === 'Small-order fee' && !unavailable('minimumOrderValue') && n('minimumOrderValue') > 0 && (
                 <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
-                  Example: a {formatGhs(sampleBasket)} basket is charged a <span className="font-medium text-foreground">{formatGhs(sampleFee)}</span> small-order fee.
+                  Example: an order of {formatGhs(sampleOrder)} including delivery pays a <span className="font-medium text-foreground">{formatGhs(sampleFee)}</span> small-order fee, making it {formatGhs(n('minimumOrderValue'))}.
                 </p>
               )}
               {section.title === 'Picker pay' && !unavailable('pickerDailyThreshold') && (

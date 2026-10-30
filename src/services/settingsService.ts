@@ -39,7 +39,6 @@ export interface Settings {
   subscriptionPriceGHS: number;
   grossProfitMarginPercent: number;
   minimumOrderValue: number;
-  maxSmallOrderFee: number;
   paystackFeePercent: number;
   packagingCostPerOrder: number;
   pickerRatePerOrder: number;

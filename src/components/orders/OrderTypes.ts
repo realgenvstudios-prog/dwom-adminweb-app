@@ -35,6 +35,7 @@ export interface Order {
   subtotal: number;
   deliveryFee: number;
   serviceFee: number;
+  smallOrderFee: number;
   couponDiscount: number;
   total: number;
   paymentStatus: string;

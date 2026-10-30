@@ -27,6 +27,7 @@ export interface AdminOrderSummary {
   subtotal: number;
   deliveryFee: number;
   serviceFee: number;
+  smallOrderFee?: number;
   couponDiscount: number;
   createdAt: string;
   updatedAt: string;

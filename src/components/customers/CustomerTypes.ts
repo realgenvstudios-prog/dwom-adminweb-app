@@ -37,6 +37,7 @@ export interface CustomerOrder {
   subtotal: number;
   deliveryFee: number;
   serviceFee: number;
+  smallOrderFee?: number;
   total: number;
   createdAt: string;
   address: string | null;

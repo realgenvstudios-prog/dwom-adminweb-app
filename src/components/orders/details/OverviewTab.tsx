@@ -48,6 +48,7 @@ export default function OverviewTab({ order, details, detailsLoading }: Overview
     { label: 'Subtotal', value: order.subtotal },
     { label: 'Delivery fee', value: order.deliveryFee },
     { label: 'Service fee', value: order.serviceFee },
+    ...(order.smallOrderFee > 0 ? [{ label: 'Small order fee', value: order.smallOrderFee }] : []),
     ...(order.couponDiscount > 0 ? [{ label: 'Discount', value: -order.couponDiscount }] : []),
   ];
 
