@@ -97,7 +97,7 @@ export default function ExpenseDialog({ expense, open, onOpenChange, onSaved }: 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>{expense ? 'Edit expense' : 'Record an expense'}</DialogTitle>
           <DialogDescription>Operating costs feed the P&L. Capital spending (equipment, assets) is kept out of it.</DialogDescription>
