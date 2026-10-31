@@ -38,6 +38,8 @@ export interface CustomerOrder {
   deliveryFee: number;
   serviceFee: number;
   smallOrderFee?: number;
+  packagingName?: string | null;
+  packagingFee?: number;
   total: number;
   createdAt: string;
   address: string | null;

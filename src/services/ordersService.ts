@@ -28,6 +28,8 @@ export interface AdminOrderSummary {
   deliveryFee: number;
   serviceFee: number;
   smallOrderFee?: number;
+  packagingName?: string | null;
+  packagingFee?: number;
   couponDiscount: number;
   createdAt: string;
   updatedAt: string;

@@ -36,6 +36,8 @@ export interface Order {
   deliveryFee: number;
   serviceFee: number;
   smallOrderFee: number;
+  packagingName: string | null;
+  packagingFee: number;
   couponDiscount: number;
   total: number;
   paymentStatus: string;

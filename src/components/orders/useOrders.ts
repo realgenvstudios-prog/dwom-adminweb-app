@@ -28,6 +28,8 @@ export function toOrder(o: ListOrder): Order {
     deliveryFee: Number(o.deliveryFee ?? 0),
     serviceFee: Number(o.serviceFee ?? 0),
     smallOrderFee: Number(o.smallOrderFee ?? 0),
+    packagingName: o.packagingName ?? null,
+    packagingFee: Number(o.packagingFee ?? 0),
     couponDiscount: Number(o.couponDiscount ?? 0),
     total: Number(o.total ?? 0),
     paymentStatus: normalizePaymentStatus(o.paymentStatus),

@@ -1,4 +1,4 @@
-import { Bike, MessageSquareText, Phone, ShoppingBasket, User } from 'lucide-react';
+import { Bike, MessageSquareText, Package, Phone, ShoppingBasket, User } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Order } from '../OrderTypes';
 import { formatGhs, paymentMethodMeta } from '../order-status';
@@ -49,6 +49,7 @@ export default function OverviewTab({ order, details, detailsLoading }: Overview
     { label: 'Delivery fee', value: order.deliveryFee },
     { label: 'Service fee', value: order.serviceFee },
     ...(order.smallOrderFee > 0 ? [{ label: 'Small order fee', value: order.smallOrderFee }] : []),
+    ...(order.packagingFee > 0 ? [{ label: `Packaging${order.packagingName ? ` (${order.packagingName})` : ''}`, value: order.packagingFee }] : []),
     ...(order.couponDiscount > 0 ? [{ label: 'Discount', value: -order.couponDiscount }] : []),
   ];
 
@@ -65,6 +66,15 @@ export default function OverviewTab({ order, details, detailsLoading }: Overview
       <Section title="Delivery">
         <div className="space-y-3 rounded-lg border p-4 text-sm">
           <AddressBlock addressText={order.address} place={order.place} />
+          {order.packagingName && (
+            <div className="flex gap-3">
+              <Package className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+              <p>
+                <span className="text-muted-foreground">Pack in </span>
+                {order.packagingName}
+              </p>
+            </div>
+          )}
           {detailsLoading ? (
             <Skeleton className="h-4 w-48" />
           ) : (

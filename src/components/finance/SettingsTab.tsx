@@ -11,6 +11,7 @@ import { settingsService, type Settings } from '../../services/settingsService';
 import { logger } from '../../utils/logger';
 import { formatGhs } from '../orders/order-status';
 import { can } from '../../config/permissions';
+import PackagingCard from './PackagingCard';
 
 type Key =
   | 'defaultServiceFee'
@@ -60,7 +61,7 @@ const SECTIONS: { title: string; description: string; affectsCustomers?: boolean
     description: 'Used to work out profit. Changing these doesn’t change what anyone pays.',
     fields: [
       { key: 'paystackFeePercent', label: 'Paystack fee', hint: 'Estimated card / mobile money processing cost.', unit: '%' },
-      { key: 'packagingCostPerOrder', label: 'Packaging per order', hint: 'Added to every order’s cost.', unit: '₵' },
+      { key: 'packagingCostPerOrder', label: 'Packaging per order', hint: 'Added to an order’s cost, unless its package has its own cost.', unit: '₵' },
       { key: 'grossProfitMarginPercent', label: 'Fallback margin', hint: 'Used to estimate profit when no product costs are recorded.', unit: '%' },
     ],
   },
@@ -243,6 +244,8 @@ const SettingsTab: React.FC = () => {
           </Card>
         ))}
       </div>
+
+      <PackagingCard />
 
       {changed.length > 0 && (
         <div className="fixed inset-x-0 bottom-6 z-30 flex justify-center px-4 animate-in fade-in slide-in-from-bottom-4">
