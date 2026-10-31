@@ -23,12 +23,15 @@ interface ExpenseDialogProps {
 }
 
 const NONE = 'none';
+const OTHER = 'Other';
 const todayKey = () => new Date().toISOString().slice(0, 10);
 
 export default function ExpenseDialog({ expense, open, onOpenChange, onSaved }: ExpenseDialogProps) {
   const [form, setForm] = useState({
     date: expense ? expense.date.slice(0, 10) : todayKey(),
-    category: expense?.category ?? EXPENSE_CATEGORIES[0],
+    // A name typed under Other, or from an older entry, is saved as the category.
+    category: !expense ? EXPENSE_CATEGORIES[0] : EXPENSE_CATEGORIES.includes(expense.category) ? expense.category : OTHER,
+    otherName: expense && !EXPENSE_CATEGORIES.includes(expense.category) ? expense.category : '',
     amount: expense ? String(Number(expense.amount)) : '',
     isCapex: expense?.isCapex ?? false,
     recurring: expense?.recurring ?? false,
@@ -40,8 +43,8 @@ export default function ExpenseDialog({ expense, open, onOpenChange, onSaved }: 
   const [problem, setProblem] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const set = (patch: Partial<typeof form>) => setForm((f) => ({ ...f, ...patch }));
-  // Keep any legacy category / method an old entry used selectable.
-  const categories = EXPENSE_CATEGORIES.includes(form.category) ? EXPENSE_CATEGORIES : [form.category, ...EXPENSE_CATEGORIES];
+  const isOther = form.category === OTHER;
+  // Keep any legacy method an old entry used selectable.
   const methods =
     form.paymentMethod === NONE || EXPENSE_METHODS.some((m) => m.value === form.paymentMethod)
       ? EXPENSE_METHODS
@@ -51,10 +54,13 @@ export default function ExpenseDialog({ expense, open, onOpenChange, onSaved }: 
     const amount = Number.parseFloat(form.amount);
     if (!(amount > 0)) return setProblem('Enter an amount above 0.');
     if (!form.date) return setProblem('Pick a date.');
+    const otherName = form.otherName.trim();
+    // An older entry saved as just "Other" can still be edited without a name.
+    if (isOther && !otherName && expense?.category !== OTHER) return setProblem('Write what this expense is for.');
     setProblem(null);
     const payload = {
       date: form.date,
-      category: form.category,
+      category: isOther ? otherName || OTHER : form.category,
       amount,
       isCapex: form.isCapex,
       recurring: form.recurring,
@@ -126,7 +132,7 @@ export default function ExpenseDialog({ expense, open, onOpenChange, onSaved }: 
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((c) => (
+                  {EXPENSE_CATEGORIES.map((c) => (
                     <SelectItem key={c} value={c}>
                       {c}
                     </SelectItem>
@@ -135,6 +141,13 @@ export default function ExpenseDialog({ expense, open, onOpenChange, onSaved }: 
               </Select>
             </div>
           </div>
+
+          {isOther && (
+            <div className="grid gap-1.5">
+              <Label htmlFor="ex-other">What is this expense for?</Label>
+              <Input id="ex-other" maxLength={60} value={form.otherName} onChange={(e) => set({ otherName: e.target.value })} placeholder="e.g. Generator repair" autoFocus={!expense} />
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-2 rounded-lg border p-1">
             {[
