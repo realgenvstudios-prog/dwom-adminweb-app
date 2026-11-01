@@ -13,6 +13,7 @@ export default function UnavailableReplyCard() {
   const [minutes, setMinutes] = useState('');
   const [saving, setSaving] = useState(false);
   const [autoRefunds, setAutoRefunds] = useState(false);
+  const [nudge, setNudge] = useState(false);
 
   useEffect(() => {
     settingsService
@@ -20,6 +21,7 @@ export default function UnavailableReplyCard() {
       .then((s) => {
         setMinutes(String(s.unavailableReplyMinutes ?? 10));
         setAutoRefunds(s.autoRefunds ?? false);
+        setNudge(s.forgotAnythingNudge ?? false);
       })
       .catch((err) => logger.error('Failed to load reply time:', err));
   }, []);
@@ -71,6 +73,26 @@ export default function UnavailableReplyCard() {
                 .then(() => toast.success(on ? 'Refunds send automatically' : 'Refunds wait for an admin'))
                 .catch((err) => {
                   setAutoRefunds(!on);
+                  toast.error(err instanceof Error ? err.message : 'Couldn’t save.');
+                });
+            }}
+          />
+        </div>
+        <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
+          <div className="grid gap-0.5">
+            <Label htmlFor="forgot-nudge">“Forgot anything?” when sorting starts</Label>
+            <p className="text-xs text-muted-foreground">Replaces the sorting notification with a prompt to add items. Turn on once the app with Add to order is live for most customers.</p>
+          </div>
+          <Switch
+            id="forgot-nudge"
+            checked={nudge}
+            onCheckedChange={(on) => {
+              setNudge(on);
+              settingsService
+                .updateSettings({ forgotAnythingNudge: on })
+                .then(() => toast.success(on ? 'Nudge is on' : 'Nudge is off'))
+                .catch((err) => {
+                  setNudge(!on);
                   toast.error(err instanceof Error ? err.message : 'Couldn’t save.');
                 });
             }}

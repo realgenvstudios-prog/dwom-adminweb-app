@@ -46,6 +46,7 @@ export interface Settings {
   unavailableReplyMinutes: number;
   /** Send refunds owed from order changes without an admin tapping. */
   autoRefunds: boolean;
+  forgotAnythingNudge: boolean;
 
   // Finance & Revenue
   subscriptionPriceGHS: number;
