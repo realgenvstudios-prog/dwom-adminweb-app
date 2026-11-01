@@ -5,17 +5,22 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { settingsService } from '../services/settingsService';
 import { logger } from '../utils/logger';
 
 export default function UnavailableReplyCard() {
   const [minutes, setMinutes] = useState('');
   const [saving, setSaving] = useState(false);
+  const [autoRefunds, setAutoRefunds] = useState(true);
 
   useEffect(() => {
     settingsService
       .getSettings()
-      .then((s) => setMinutes(String(s.unavailableReplyMinutes ?? 10)))
+      .then((s) => {
+        setMinutes(String(s.unavailableReplyMinutes ?? 10));
+        setAutoRefunds(s.autoRefunds ?? true);
+      })
       .catch((err) => logger.error('Failed to load reply time:', err));
   }, []);
 
@@ -40,7 +45,8 @@ export default function UnavailableReplyCard() {
         <CardTitle>Unavailable items</CardTitle>
         <CardDescription>How long a customer has to choose a replacement. After that, the item is removed from their order.</CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-wrap items-end gap-3">
+      <CardContent className="grid gap-4">
+        <div className="flex flex-wrap items-end gap-3">
         <div className="grid gap-1.5">
           <Label htmlFor="reply-minutes">Minutes to reply</Label>
           <Input id="reply-minutes" type="number" min={1} max={120} value={minutes} onChange={(e) => setMinutes(e.target.value)} className="w-32 tabular-nums" />
@@ -49,6 +55,27 @@ export default function UnavailableReplyCard() {
           {saving && <Loader2 className="animate-spin" />}
           Save
         </Button>
+        </div>
+        <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
+          <div className="grid gap-0.5">
+            <Label htmlFor="auto-refunds">Send refunds automatically</Label>
+            <p className="text-xs text-muted-foreground">When an order change or cancellation leaves money owed, it goes back through Paystack within about a minute. If Paystack refuses, you get an alert to retry from the order.</p>
+          </div>
+          <Switch
+            id="auto-refunds"
+            checked={autoRefunds}
+            onCheckedChange={(on) => {
+              setAutoRefunds(on);
+              settingsService
+                .updateSettings({ autoRefunds: on })
+                .then(() => toast.success(on ? 'Refunds send automatically' : 'Refunds wait for an admin'))
+                .catch((err) => {
+                  setAutoRefunds(!on);
+                  toast.error(err instanceof Error ? err.message : 'Couldn’t save.');
+                });
+            }}
+          />
+        </div>
       </CardContent>
     </Card>
   );

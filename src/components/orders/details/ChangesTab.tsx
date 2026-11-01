@@ -19,6 +19,7 @@ const KIND_LABEL: Record<string, string> = {
   item_unavailable: 'Item marked unavailable',
   item_replaced: 'Item replaced',
   item_removed: 'Item removed',
+  cash_difference: 'Cash difference at delivery',
 };
 const PAYMENT_LABEL: Record<string, string> = {
   top_up: 'Extra paid online',
@@ -38,6 +39,7 @@ const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
 const when = (iso: string) => new Date(iso).toLocaleString([], { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
 
 function describe(details: Record<string, unknown>): string {
+  if (details.due !== undefined) return `Rider collected ${formatGhs(Number(details.collected))}, ${formatGhs(Number(details.due))} was due`;
   const items = (details.items as { name?: string; quantity?: number }[] | undefined) ?? [];
   const list = items.map((i) => `${i.quantity ?? ''} ${i.name ?? ''}`.trim()).join(', ');
   const removed = details.removed as string | undefined;
