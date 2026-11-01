@@ -13,7 +13,7 @@ export default function UnavailableReplyCard() {
   const [minutes, setMinutes] = useState('');
   const [saving, setSaving] = useState(false);
   const [autoRefunds, setAutoRefunds] = useState(false);
-  const [nudge, setNudge] = useState(false);
+  const [nudge, setNudge] = useState(true);
 
   useEffect(() => {
     settingsService
@@ -21,7 +21,7 @@ export default function UnavailableReplyCard() {
       .then((s) => {
         setMinutes(String(s.unavailableReplyMinutes ?? 10));
         setAutoRefunds(s.autoRefunds ?? false);
-        setNudge(s.forgotAnythingNudge ?? false);
+        setNudge(s.forgotAnythingNudge ?? true);
       })
       .catch((err) => logger.error('Failed to load reply time:', err));
   }, []);
@@ -81,7 +81,7 @@ export default function UnavailableReplyCard() {
         <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
           <div className="grid gap-0.5">
             <Label htmlFor="forgot-nudge">“Forgot anything?” when sorting starts</Label>
-            <p className="text-xs text-muted-foreground">Replaces the sorting notification with a prompt to add items. Turn on once the app with Add to order is live for most customers.</p>
+            <p className="text-xs text-muted-foreground">Replaces the sorting notification with a prompt to add items.</p>
           </div>
           <Switch
             id="forgot-nudge"
