@@ -32,6 +32,7 @@ export interface AdminOrderSummary {
   packagingFee?: number;
   originalTotal?: number | null;
   balanceAtDoor?: number;
+  paidExtra?: number;
   newItemsToAcknowledge?: boolean;
   OrderItemIssue?: Array<{ id: number }>;
   couponDiscount: number;

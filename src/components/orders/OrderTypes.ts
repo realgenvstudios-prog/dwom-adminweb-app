@@ -44,6 +44,8 @@ export interface Order {
   originalTotal: number | null;
   /** Extra the rider collects on a card or MoMo order. */
   balanceAtDoor: number;
+  /** Paid online for added items on a cash order. */
+  paidExtra: number;
   newItemsToAcknowledge: boolean;
   /** Items waiting on the customer's choice. */
   openIssues: number;

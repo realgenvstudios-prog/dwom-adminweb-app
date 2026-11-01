@@ -22,6 +22,8 @@ export interface OrderDetails {
   goodsWithRider: boolean;
   cancelledBy?: string;
   statusHistory: StatusChange[];
+  /** Extra payments and refunds. */
+  payments: Array<{ id: number; kind: string; status: string; amount: number }>;
   riderRating: { rating: number; comment?: string } | null;
   productReviews: Array<{ productId: number; productName: string; rating: number; comment?: string }>;
 }
@@ -55,6 +57,7 @@ interface RawOrder {
   goodsReturnedAt?: string | null;
   cancelledBy?: string | null;
   StatusHistory?: StatusChange[];
+  OrderPayment?: Array<{ id: number; kind: string; status: string; amount: number | string }>;
   RiderRating?: Array<{ rating: number; comment?: string | null }>;
   ProductReview?: Array<{ productId: number; rating: number; comment?: string | null; Product?: { nameEnglish?: string } }>;
 }
@@ -114,6 +117,7 @@ export function useOrderDetails(orderId: string | null, reloadKey = 0) {
             handlingNote: raw.handlingNote ?? undefined,
             goodsWithRider: raw.status === 'cancelled' && !!raw.pickedUpAt && !raw.goodsReturnedAt,
             cancelledBy: raw.cancelledBy ?? undefined,
+            payments: (raw.OrderPayment ?? []).map((p) => ({ ...p, amount: Number(p.amount) })),
             statusHistory: (raw.StatusHistory ?? []).map((h) => ({ ...h, status: normalizeOrderStatus(h.status) })),
             riderRating: raw.RiderRating?.[0]
               ? { rating: raw.RiderRating[0].rating, comment: raw.RiderRating[0].comment ?? undefined }

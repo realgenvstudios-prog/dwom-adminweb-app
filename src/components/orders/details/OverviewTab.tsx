@@ -55,6 +55,25 @@ export default function OverviewTab({ order, details, detailsLoading, onAcknowle
     ...(order.couponDiscount > 0 ? [{ label: 'Discount', value: -order.couponDiscount }] : []),
   ];
 
+  // What's been paid, what's still owed, and what's going back.
+  const payments = details?.payments ?? [];
+  const sumOf = (test: (p: { kind: string; status: string }) => boolean) => payments.filter(test).reduce((sum, p) => sum + p.amount, 0);
+  const isCash = order.paymentMethod === 'cash';
+  const paidFirst = !isCash && ['paid', 'completed'].includes(order.paymentStatus) ? (order.originalTotal ?? order.total) : 0;
+  const extra = sumOf((p) => p.kind === 'top_up' && p.status === 'paid');
+  const toSend = sumOf((p) => p.kind === 'refund' && (p.status === 'refund_due' || p.status === 'refund_failed'));
+  const sent = sumOf((p) => p.kind === 'refund' && p.status === 'refund_sent');
+  const refunded = sumOf((p) => p.kind === 'refund' && p.status === 'refunded');
+  const rider = isCash ? Math.max(order.total - order.paidExtra, 0) : order.balanceAtDoor;
+  const money = [
+    { label: 'Paid online', value: paidFirst },
+    { label: 'Extra paid online', value: extra },
+    { label: 'Refund to send', value: toSend, warn: true },
+    { label: 'Refund sent', value: sent },
+    { label: 'Refunded', value: refunded },
+    { label: order.orderStatus === 'delivered' ? 'Rider collected' : 'Rider collects', value: order.orderStatus === 'cancelled' ? 0 : rider, warn: order.orderStatus !== 'delivered' },
+  ].filter((m) => m.value > 0);
+
   return (
     <div className="space-y-6">
       {order.openIssues > 0 && (
@@ -125,9 +144,15 @@ export default function OverviewTab({ order, details, detailsLoading, onAcknowle
               </div>
             ))}
             <div className="flex justify-between bg-muted/50 px-4 py-2 font-semibold">
-              <dt>Total</dt>
+              <dt>Total{order.originalTotal != null && order.originalTotal !== order.total ? ` (was ${formatGhs(order.originalTotal)})` : ''}</dt>
               <dd className="tabular-nums">{formatGhs(order.total)}</dd>
             </div>
+            {money.map((m) => (
+              <div key={m.label} className="flex justify-between px-4 py-2">
+                <dt className={m.warn ? 'font-medium text-amber-700' : 'text-muted-foreground'}>{m.label}</dt>
+                <dd className="tabular-nums">{formatGhs(m.value)}</dd>
+              </div>
+            ))}
           </dl>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t px-4 py-2 text-xs text-muted-foreground">
             <span className="flex items-center gap-1.5">
@@ -135,7 +160,6 @@ export default function OverviewTab({ order, details, detailsLoading, onAcknowle
               {method.label}
             </span>
             {order.paymentRef && <span className="font-mono break-all">Ref {order.paymentRef}</span>}
-            {order.balanceAtDoor > 0 && <span className="font-medium text-amber-700">Rider collects {formatGhs(order.balanceAtDoor)}</span>}
           </div>
         </div>
       </Section>

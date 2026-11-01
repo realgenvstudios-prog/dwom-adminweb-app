@@ -32,6 +32,7 @@ export function toOrder(o: ListOrder): Order {
     packagingFee: Number(o.packagingFee ?? 0),
     originalTotal: o.originalTotal != null ? Number(o.originalTotal) : null,
     balanceAtDoor: Number(o.balanceAtDoor ?? 0),
+    paidExtra: Number(o.paidExtra ?? 0),
     newItemsToAcknowledge: !!o.newItemsToAcknowledge,
     openIssues: o.OrderItemIssue?.length ?? 0,
     couponDiscount: Number(o.couponDiscount ?? 0),
