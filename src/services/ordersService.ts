@@ -93,7 +93,18 @@ export interface OrderHistory {
   payments: OrderPaymentRow[];
 }
 
+export interface OrderChangesSummary {
+  days: number;
+  refundsToSend: { count: number; amount: number };
+  refundsSent: { count: number; amount: number };
+  paidOnlineExtra: { count: number; amount: number };
+  atDoorExtra: { count: number; amount: number };
+  ordersWithAddedItems: number;
+  mostUnavailable: { name: string; count: number }[];
+}
+
 export const ordersService = {
+  getChangesSummary: () => adminApiClient.get<OrderChangesSummary>('/orders/changes/summary'),
   getChanges: (id: number) => adminApiClient.get<OrderHistory>(`/orders/${id}/changes`),
   acknowledgeNewItems: (id: number) => adminApiClient.post<{ ok: boolean }>(`/orders/${id}/acknowledge-new-items`),
   flagUnavailable: (id: number, itemId: number, substituteProductIds: number[]) =>

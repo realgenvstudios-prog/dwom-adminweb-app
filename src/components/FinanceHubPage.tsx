@@ -4,6 +4,7 @@ import { useTabParam } from '@/hooks/use-tab-param';
 import { allowedTabs } from '../config/permissions';
 import { usePermissions } from '@/hooks/use-permissions';
 import OverviewTab from './finance/OverviewTab';
+import OrderChangesCard from './finance/OrderChangesCard';
 import ProductCostsTab from './finance/ProductCostsTab';
 import ExpensesTab from './finance/ExpensesTab';
 import FounderLedgerTab from './finance/FounderLedgerTab';
@@ -46,7 +47,10 @@ const FinanceHubPage: React.FC = () => {
         </div>
         {allowed.includes('overview') && (
           <TabsContent value="overview">
-            <OverviewTab />
+            <div className="flex flex-col gap-6">
+              <OverviewTab />
+              <OrderChangesCard />
+            </div>
           </TabsContent>
         )}
         {allowed.includes('productCosts') && (
