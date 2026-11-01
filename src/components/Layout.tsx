@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSupportAlerts } from '../hooks/use-support-alerts';
 import { useLocation, useNavigate } from 'react-router-dom';
 import adminAuthService from '../services/authService';
 import { canAccessRoute, resolveUiRole } from '../config/permissions';
@@ -27,6 +28,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   // Ticked permissions are re-read from the server on open and on tab focus.
   useRefreshPermissions();
   useSignInHelpAlerts();
+  useSupportAlerts();
   usePermissions();
 
   const currentAdmin = adminAuthService.getCurrentAdmin();

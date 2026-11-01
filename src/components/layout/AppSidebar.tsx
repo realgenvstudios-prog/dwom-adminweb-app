@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSupportWaitingCount } from '../../hooks/use-support-alerts';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import {
@@ -44,12 +45,14 @@ function isOnPage(pathname: string, item: NavItem) {
 
 function NavLinkItem({ item, active }: { item: NavItem; active: boolean }) {
   const signInHelp = useSignInHelpCount();
-  // Customers stuck on the code screen show as a count on Support.
-  const badge = item.path === '/support' ? signInHelp : 0;
+  const supportWaiting = useSupportWaitingCount();
+  // Customers stuck on the code screen or waiting for a reply show as a count on Support.
+  const onSupport = item.path === '/support';
+  const badge = onSupport ? signInHelp + supportWaiting : 0;
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild isActive={active} tooltip={badge ? `${item.label} (${badge} waiting to sign in)` : item.label}>
-        <Link to={badge ? `${item.path}?tab=signin` : item.path}>
+      <SidebarMenuButton asChild isActive={active} tooltip={badge ? `${item.label} (${badge} waiting)` : item.label}>
+        <Link to={onSupport && signInHelp > 0 ? `${item.path}?tab=signin` : item.path}>
           <item.icon />
           <span>{item.label}</span>
         </Link>

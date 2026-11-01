@@ -3,7 +3,7 @@ import { BellRing, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import adminPushService from '../../services/adminPushService';
 
-/** Desktop notification for each new order, per browser (web push). */
+/** Desktop notifications for new orders and support messages, per browser (web push). */
 export default function NewOrderAlerts() {
   const [state, setState] = useState<{ checking: boolean; supported: boolean; subscribed: boolean }>({ checking: true, supported: true, subscribed: false });
   const [busy, setBusy] = useState(false);
@@ -38,8 +38,8 @@ export default function NewOrderAlerts() {
       <div className="flex items-start gap-3">
         <BellRing className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
         <div className="flex-1">
-          <p className="text-sm font-medium">New order alerts</p>
-          <p className="text-xs text-muted-foreground">A desktop notification the moment an order comes in, even when this tab is closed. Set per browser.</p>
+          <p className="text-sm font-medium">Order and support alerts</p>
+          <p className="text-xs text-muted-foreground">A desktop notification when an order comes in or a customer messages support, even when this tab is closed. Set per browser.</p>
         </div>
       </div>
       {state.checking ? null : !state.supported ? (

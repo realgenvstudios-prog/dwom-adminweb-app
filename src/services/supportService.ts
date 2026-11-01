@@ -50,6 +50,8 @@ export interface SupportMetrics {
 export const OUTDATED_SERVER = 'The server is running an older version of Support. Deploy the latest backend to use this inbox.';
 
 const supportService = {
+  waitingCount: () => adminApiClient.get<{ open: number }>('/chat/admin/support-tickets/count'),
+
   async getConversations(): Promise<SupportConversation[]> {
     const data = await adminApiClient.get<SupportConversation[]>('/chat/admin/support-tickets');
     const list = Array.isArray(data) ? data : [];
