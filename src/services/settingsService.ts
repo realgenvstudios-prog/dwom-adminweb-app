@@ -35,6 +35,13 @@ export interface Settings {
   isServiceClosed: boolean;
   serviceClosedMessage: string;
 
+  // App updates
+  appMinVersionIos: string | null;
+  appMinVersionAndroid: string | null;
+  appLatestVersionIos: string | null;
+  appLatestVersionAndroid: string | null;
+  blockOldAppOrders: boolean;
+
   // Finance & Revenue
   subscriptionPriceGHS: number;
   grossProfitMarginPercent: number;

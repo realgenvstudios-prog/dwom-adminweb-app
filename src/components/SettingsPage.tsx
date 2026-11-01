@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import AppUpdatesCard from './AppUpdatesCard';
 import { Link } from 'react-router-dom';
 import { AlertCircle, ArrowRight, Loader2, MapPinned, Percent, RotateCw, Store, Undo2, Users } from 'lucide-react';
 import { toast } from 'sonner';
@@ -158,6 +159,8 @@ export default function SettingsPage() {
 
         </div>
       )}
+
+      <AppUpdatesCard />
 
       <Card>
         <CardHeader>
