@@ -36,6 +36,7 @@ interface RawLine {
   discountedPrice?: number | string;
   discounted_price?: number | string;
   notes?: string | null;
+  addedAfterPlacing?: boolean;
   /** Snapshot of chosen options; older rows may be client-shaped, so only `label` is relied on. */
   selectedVariations?: Array<{ label?: string; groupName?: string }> | null;
   Product?: { nameEnglish?: string };
@@ -76,6 +77,7 @@ function toItem(line: RawLine, isBundle: boolean): OrderItem {
     variations: Array.isArray(line.selectedVariations) ? line.selectedVariations.map((v) => v?.label).filter((l): l is string => !!l) : undefined,
     notes: line.notes || undefined,
     isBundle,
+    added: !!line.addedAfterPlacing,
   };
 }
 

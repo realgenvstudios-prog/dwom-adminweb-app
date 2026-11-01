@@ -17,6 +17,8 @@ export interface OrderItem {
   variations?: string[];
   notes?: string;
   isBundle?: boolean;
+  /** Added with Add to order. */
+  added?: boolean;
 }
 
 export interface Order {
@@ -38,6 +40,13 @@ export interface Order {
   smallOrderFee: number;
   packagingName: string | null;
   packagingFee: number;
+  /** The total when placed, once the order has changed. */
+  originalTotal: number | null;
+  /** Extra the rider collects on a card or MoMo order. */
+  balanceAtDoor: number;
+  newItemsToAcknowledge: boolean;
+  /** Items waiting on the customer's choice. */
+  openIssues: number;
   couponDiscount: number;
   total: number;
   paymentStatus: string;

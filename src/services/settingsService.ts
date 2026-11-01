@@ -42,6 +42,9 @@ export interface Settings {
   appLatestVersionAndroid: string | null;
   blockOldAppOrders: boolean;
 
+  /** Minutes a customer has to answer about an unavailable item. */
+  unavailableReplyMinutes: number;
+
   // Finance & Revenue
   subscriptionPriceGHS: number;
   grossProfitMarginPercent: number;

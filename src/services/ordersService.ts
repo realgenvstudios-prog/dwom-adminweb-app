@@ -30,6 +30,10 @@ export interface AdminOrderSummary {
   smallOrderFee?: number;
   packagingName?: string | null;
   packagingFee?: number;
+  originalTotal?: number | null;
+  balanceAtDoor?: number;
+  newItemsToAcknowledge?: boolean;
+  OrderItemIssue?: Array<{ id: number }>;
   couponDiscount: number;
   createdAt: string;
   updatedAt: string;
@@ -64,7 +68,38 @@ interface CreateOrderPayload {
   items: Array<{ productId: number; quantity: number }>;
 }
 
+export interface OrderChangeRow {
+  id: number;
+  kind: string;
+  actor: string;
+  details: Record<string, unknown>;
+  totalBefore: number;
+  totalAfter: number;
+  createdAt: string;
+}
+
+export interface OrderPaymentRow {
+  id: number;
+  kind: string;
+  status: string;
+  method: string | null;
+  amount: number;
+  reason: string | null;
+  createdAt: string;
+}
+
+export interface OrderHistory {
+  changes: OrderChangeRow[];
+  payments: OrderPaymentRow[];
+}
+
 export const ordersService = {
+  getChanges: (id: number) => adminApiClient.get<OrderHistory>(`/orders/${id}/changes`),
+  acknowledgeNewItems: (id: number) => adminApiClient.post<{ ok: boolean }>(`/orders/${id}/acknowledge-new-items`),
+  flagUnavailable: (id: number, itemId: number, substituteProductIds: number[]) =>
+    adminApiClient.post<{ status: string }>(`/orders/${id}/items/${itemId}/unavailable`, { substituteProductIds }),
+  sendRefund: (id: number, body: { paymentId?: number; amount?: number; reason?: string }) => adminApiClient.post<{ status: string }>(`/orders/${id}/refunds`, body),
+
   /**
    * Create a manual order (admin only)
    */

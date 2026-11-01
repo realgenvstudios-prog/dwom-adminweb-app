@@ -1,4 +1,5 @@
 import { Bike, MessageSquareText, Package, Phone, ShoppingBasket, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Order } from '../OrderTypes';
 import { formatGhs, paymentMethodMeta } from '../order-status';
@@ -37,12 +38,13 @@ function Person({ icon: Icon, label, name, sub, empty }: { icon: React.Component
 }
 
 interface OverviewTabProps {
+  onAcknowledge?: () => void;
   order: Order;
   details: OrderDetails | null;
   detailsLoading: boolean;
 }
 
-export default function OverviewTab({ order, details, detailsLoading }: OverviewTabProps) {
+export default function OverviewTab({ order, details, detailsLoading, onAcknowledge }: OverviewTabProps) {
   const method = paymentMethodMeta(order.paymentMethod);
   const charges = [
     { label: 'Subtotal', value: order.subtotal },
@@ -55,6 +57,19 @@ export default function OverviewTab({ order, details, detailsLoading }: Overview
 
   return (
     <div className="space-y-6">
+      {order.openIssues > 0 && (
+        <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-800">Waiting for the customer to choose a replacement. The order can’t be marked Ready yet.</p>
+      )}
+      {order.newItemsToAcknowledge && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-800">
+          <span>The customer added items. See Items, make sure the picker has them, then acknowledge.</span>
+          {onAcknowledge && (
+            <Button size="sm" onClick={onAcknowledge}>
+              Acknowledge
+            </Button>
+          )}
+        </div>
+      )}
       <Section title="People">
         <div className="grid gap-3 sm:grid-cols-3">
           <Person icon={User} label="Customer" name={order.customer} sub={order.phone} empty="Unknown" />
@@ -120,6 +135,7 @@ export default function OverviewTab({ order, details, detailsLoading }: Overview
               {method.label}
             </span>
             {order.paymentRef && <span className="font-mono break-all">Ref {order.paymentRef}</span>}
+            {order.balanceAtDoor > 0 && <span className="font-medium text-amber-700">Rider collects {formatGhs(order.balanceAtDoor)}</span>}
           </div>
         </div>
       </Section>

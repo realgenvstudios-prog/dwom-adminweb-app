@@ -31,6 +31,7 @@ import { logger } from '../../../utils/logger';
 import type { Order } from '../OrderTypes';
 import { ORDER_STATUSES, PAYMENT_STATUSES, formatDateTime, formatGhs, orderStatusMeta, paymentStatusMeta } from '../order-status';
 import ActivityTab from './ActivityTab';
+import ChangesTab from './ChangesTab';
 import FeedbackTab from './FeedbackTab';
 import ItemsTab from './ItemsTab';
 import OverviewTab from './OverviewTab';
@@ -49,9 +50,11 @@ interface OrderDetailsSheetProps {
   onOrderChange: (id: string, patch: Partial<Order>) => void;
   onAssignRider: (order: Order) => void;
   onAssignPicker: (order: Order) => void;
+  /** Refetches the orders list after a change the sheet can't patch itself. */
+  onRefresh?: () => void;
 }
 
-export default function OrderDetailsSheet({ order: incoming, open, onOpenChange, onOrderChange, onAssignRider, onAssignPicker }: OrderDetailsSheetProps) {
+export default function OrderDetailsSheet({ order: incoming, open, onOpenChange, onOrderChange, onAssignRider, onAssignPicker, onRefresh }: OrderDetailsSheetProps) {
   // Keep showing the last order while the sheet animates closed.
   const [lastOrder, setLastOrder] = useState(incoming);
   if (incoming && incoming !== lastOrder) setLastOrder(incoming);
@@ -247,16 +250,46 @@ export default function OrderDetailsSheet({ order: incoming, open, onOpenChange,
                   Items
                   <span className="ml-1 text-xs text-muted-foreground tabular-nums">{order.itemsCount}</span>
                 </TabsTrigger>
+                <TabsTrigger value="changes">Changes</TabsTrigger>
                 <TabsTrigger value="activity">Activity</TabsTrigger>
                 <TabsTrigger value="feedback">Feedback</TabsTrigger>
               </TabsList>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto p-6">
               <TabsContent value="overview" className="mt-0">
-                <OverviewTab order={order} details={details} detailsLoading={detailsLoading} />
+                <OverviewTab
+                  order={order}
+                  details={details}
+                  detailsLoading={detailsLoading}
+                  onAcknowledge={
+                    can('orders.updateStatus')
+                      ? () =>
+                          void ordersService
+                            .acknowledgeNewItems(Number.parseInt(order.id, 10))
+                            .then(() => {
+                              onOrderChange(order.id, { newItemsToAcknowledge: false });
+                              toast.success('New items acknowledged');
+                            })
+                            .catch((err) => toast.error(err instanceof Error ? err.message : 'Couldn’t save.'))
+                      : undefined
+                  }
+                />
               </TabsContent>
               <TabsContent value="items" className="mt-0">
-                <ItemsTab items={details?.items ?? []} loading={detailsLoading} error={detailsError} />
+                <ItemsTab
+                  items={details?.items ?? []}
+                  loading={detailsLoading}
+                  error={detailsError}
+                  orderId={Number.parseInt(order.id, 10)}
+                  canChange={['placed', 'accepted', 'sorting'].includes(order.orderStatus)}
+                  onChanged={() => {
+                    setReloadKey((k) => k + 1);
+                    onRefresh?.();
+                  }}
+                />
+              </TabsContent>
+              <TabsContent value="changes" className="mt-0">
+                <ChangesTab order={order} reloadKey={reloadKey} onChanged={() => setReloadKey((k) => k + 1)} />
               </TabsContent>
               <TabsContent value="activity" className="mt-0">
                 <ActivityTab orderId={order.id} history={details?.statusHistory ?? []} historyLoading={detailsLoading} />

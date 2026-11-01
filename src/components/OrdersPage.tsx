@@ -221,6 +221,7 @@ const OrdersPage: React.FC = () => {
         open={selectedOrder !== null}
         onOpenChange={(open) => !open && setSelectedId(null)}
         onOrderChange={handleOrderChange}
+        onRefresh={refresh}
         onAssignRider={(o) => setAssign({ kind: 'rider', orderId: o.id })}
         onAssignPicker={(o) => setAssign({ kind: 'picker', orderId: o.id })}
       />

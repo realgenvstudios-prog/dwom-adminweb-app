@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import UnavailableReplyCard from './UnavailableReplyCard';
 import AppUpdatesCard from './AppUpdatesCard';
 import { Link } from 'react-router-dom';
 import { AlertCircle, ArrowRight, Loader2, MapPinned, Percent, RotateCw, Store, Undo2, Users } from 'lucide-react';
@@ -159,6 +160,8 @@ export default function SettingsPage() {
 
         </div>
       )}
+
+      <UnavailableReplyCard />
 
       <AppUpdatesCard />
 
