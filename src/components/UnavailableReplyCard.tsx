@@ -12,14 +12,14 @@ import { logger } from '../utils/logger';
 export default function UnavailableReplyCard() {
   const [minutes, setMinutes] = useState('');
   const [saving, setSaving] = useState(false);
-  const [autoRefunds, setAutoRefunds] = useState(true);
+  const [autoRefunds, setAutoRefunds] = useState(false);
 
   useEffect(() => {
     settingsService
       .getSettings()
       .then((s) => {
         setMinutes(String(s.unavailableReplyMinutes ?? 10));
-        setAutoRefunds(s.autoRefunds ?? true);
+        setAutoRefunds(s.autoRefunds ?? false);
       })
       .catch((err) => logger.error('Failed to load reply time:', err));
   }, []);
