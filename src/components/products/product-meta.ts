@@ -22,7 +22,7 @@ export function stockMeta(value: string | undefined): StockMeta {
   return STOCK_STATUSES.find((s) => s.value === value) ?? STOCK_STATUSES[0];
 }
 
-export const UNIT_TYPES = ['Kg', 'Gm', 'Piece', 'Pack', 'Bunch', 'Jar', 'Bottle', 'Litre'];
+export const UNIT_TYPES = ['Kg', 'Gm', 'Piece', 'Pack', 'Bunch', 'Jar', 'Bottle', 'Litre', 'Cup'];
 
 /** Prisma Decimal/Float fields can arrive as strings. */
 export function num(v: unknown): number {
