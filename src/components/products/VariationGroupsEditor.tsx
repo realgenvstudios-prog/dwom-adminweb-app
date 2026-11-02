@@ -19,7 +19,7 @@ export interface VariationOption {
 export interface VariationGroup {
   name: string;
   nameFrench?: string;
-  type: 'weight' | 'quantity' | 'portion' | 'preparation';
+  type: 'weight' | 'quantity' | 'portion' | 'preparation' | 'variety';
   required?: boolean;
   sortOrder?: number;
   options: VariationOption[];
@@ -31,6 +31,7 @@ interface Props {
   showPreparationOptions: boolean;
   onShowPrepChange: (show: boolean) => void;
   basePrice: number;
+  error?: string;
 }
 
 type GroupType = VariationGroup['type'];
@@ -40,7 +41,12 @@ const TYPES: Record<GroupType, { label: string; example: string }> = {
   quantity: { label: 'Quantity', example: 'e.g. 1 unit, 3 pack' },
   portion: { label: 'Portion', example: 'e.g. Full, Half, Quarter' },
   preparation: { label: 'Preparation', example: 'e.g. As is, Cut, Cleaned' },
+  variety: { label: 'Named choice', example: 'e.g. Cuts: Big, Small. Skin: With, Without' },
 };
+
+// These don't scale the price. Prices from every multiplier a customer picks
+// are added together, so a second multiplier group would inflate the total.
+const usesExtraCharge = (type: GroupType) => type === 'preparation' || type === 'variety';
 
 const PRESETS: Record<GroupType, VariationOption[]> = {
   weight: [
@@ -63,11 +69,15 @@ const PRESETS: Record<GroupType, VariationOption[]> = {
     { label: 'Cut', extraCharge: 0 },
     { label: 'Cleaned', extraCharge: 0 },
   ],
+  variety: [
+    { label: '', extraCharge: 0, isDefault: true },
+    { label: '', extraCharge: 0 },
+  ],
 };
 
 // Every update returns new objects — the presets above are copied, never
 // shared, so editing one product's options can't leak into the next one.
-const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparationOptions, onShowPrepChange, basePrice }) => {
+const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparationOptions, onShowPrepChange, basePrice, error }) => {
   const setGroup = (gi: number, patch: Partial<VariationGroup>) =>
     onChange(groups.map((g, i) => (i === gi ? { ...g, ...patch } : g)));
 
@@ -78,7 +88,7 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
     onChange([
       ...groups,
       {
-        name: TYPES[type].label,
+        name: type === 'variety' ? '' : TYPES[type].label,
         type,
         required: type !== 'preparation',
         sortOrder: groups.length,
@@ -86,7 +96,8 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
       },
     ]);
 
-  const available = (Object.keys(TYPES) as GroupType[]).filter((t) => !groups.some((g) => g.type === t));
+  // Any number of named choices; the sizing groups stay one of each.
+  const available = (Object.keys(TYPES) as GroupType[]).filter((t) => t === 'variety' || !groups.some((g) => g.type === t));
 
   return (
     <div className="grid gap-4">
@@ -97,11 +108,12 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
 
       {groups.map((group, gi) => {
         const prep = group.type === 'preparation';
+        const extra = usesExtraCharge(group.type);
         return (
-          <div key={group.type} className="grid gap-3 rounded-lg border bg-muted/30 p-3">
+          <div key={gi} className="grid gap-3 rounded-lg border bg-muted/30 p-3">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">{TYPES[group.type].label}</span>
+                <span className="text-sm font-medium">{group.name.trim() || TYPES[group.type].label}</span>
                 <span className="text-xs text-muted-foreground">{TYPES[group.type].example}</span>
                 {group.required && <Badge variant="secondary">Required</Badge>}
               </div>
@@ -110,7 +122,7 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
                 variant="ghost"
                 size="icon-sm"
                 onClick={() => onChange(groups.filter((_, i) => i !== gi))}
-                aria-label={`Remove ${TYPES[group.type].label} group`}
+                aria-label={`Remove ${group.name.trim() || TYPES[group.type].label} group`}
               >
                 <Trash2 />
               </Button>
@@ -126,7 +138,7 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
             <div className="grid grid-cols-2 gap-2">
               <div className="grid gap-1">
                 <Label className="text-xs text-muted-foreground">Group name (EN)</Label>
-                <Input className="h-8 bg-background" value={group.name} onChange={(e) => setGroup(gi, { name: e.target.value })} />
+                <Input className="h-8 bg-background" value={group.name} placeholder="e.g. Cuts" onChange={(e) => setGroup(gi, { name: e.target.value })} />
               </div>
               <div className="grid gap-1">
                 <Label className="text-xs text-muted-foreground">Group name (FR)</Label>
@@ -144,8 +156,8 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
                 <div className="grid grid-cols-[1fr_1fr_88px_88px_52px_32px] gap-2 px-0.5 text-xs text-muted-foreground">
                   <span>Label</span>
                   <span>Label (FR)</span>
-                  <span>{prep ? 'Extra (GH₵)' : 'Multiplier'}</span>
-                  <span>{prep ? '' : 'Price'}</span>
+                  <span>{extra ? 'Extra (GH₵)' : 'Multiplier'}</span>
+                  <span>{extra ? '' : 'Price'}</span>
                   <span className="text-center">Default</span>
                   <span />
                 </div>
@@ -154,7 +166,7 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
                     <Input
                       className="h-8 bg-background"
                       value={opt.label}
-                      placeholder="e.g. 1kg"
+                      placeholder={group.type === 'variety' ? 'e.g. Big cuts' : 'e.g. 1kg'}
                       onChange={(e) => setOptions(gi, (os) => os.map((o, i) => (i === oi ? { ...o, label: e.target.value } : o)))}
                     />
                     <Input
@@ -168,15 +180,15 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
                       type="number"
                       step="0.01"
                       min="0"
-                      value={prep ? (opt.extraCharge ?? 0) : (opt.priceMultiplier ?? 1)}
+                      value={extra ? (opt.extraCharge ?? 0) : (opt.priceMultiplier ?? 1)}
                       onChange={(e) => {
                         const v = Number.parseFloat(e.target.value);
                         const n = Number.isFinite(v) ? v : 0;
-                        setOptions(gi, (os) => os.map((o, i) => (i === oi ? { ...o, ...(prep ? { extraCharge: n } : { priceMultiplier: n }) } : o)));
+                        setOptions(gi, (os) => os.map((o, i) => (i === oi ? { ...o, ...(extra ? { extraCharge: n } : { priceMultiplier: n }) } : o)));
                       }}
                     />
                     <span className="text-xs text-muted-foreground tabular-nums">
-                      {prep
+                      {extra
                         ? opt.extraCharge
                           ? `+₵${opt.extraCharge.toFixed(2)}`
                           : ''
@@ -221,7 +233,7 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
               onClick={() =>
                 setOptions(gi, (os) => [
                   ...os,
-                  { label: '', ...(prep ? { extraCharge: 0 } : { priceMultiplier: 1 }), isDefault: false, sortOrder: os.length },
+                  { label: '', ...(extra ? { extraCharge: 0 } : { priceMultiplier: 1 }), isDefault: false, sortOrder: os.length },
                 ])
               }
             >
@@ -242,6 +254,7 @@ const VariationGroupsEditor: React.FC<Props> = ({ groups, onChange, showPreparat
           ))}
         </div>
       )}
+      {error && <p className="text-xs text-destructive">{error}</p>}
       {groups.length === 0 && <p className="text-xs text-muted-foreground">No variations. The product sells at its base price.</p>}
     </div>
   );

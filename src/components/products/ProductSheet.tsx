@@ -183,14 +183,14 @@ export default function ProductSheet({ product, intent, open, onOpenChange, cate
                     <p className="text-sm text-muted-foreground">None. Sold at the base price.</p>
                   ) : (
                     <div className="grid gap-3">
-                      {variations.map((g) => (
-                        <div key={g.type} className="rounded-lg border p-3">
+                      {variations.map((g, gi) => (
+                        <div key={gi} className="rounded-lg border p-3">
                           <p className="mb-2 text-sm font-medium">{g.name}</p>
                           <div className="flex flex-wrap gap-1.5">
                             {g.options.map((o, i) => (
                               <Badge key={i} variant={o.isDefault ? 'default' : 'outline'} className="font-normal">
                                 {o.label}
-                                {g.type === 'preparation'
+                                {g.type === 'preparation' || g.type === 'variety'
                                   ? o.extraCharge
                                     ? ` · +${formatGhs(o.extraCharge)}`
                                     : ''

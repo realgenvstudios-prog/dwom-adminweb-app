@@ -132,6 +132,7 @@ export default function ProductFormFields({ value, onChange, errors, categories,
         showPreparationOptions={value.showPreparationOptions}
         onShowPrepChange={(showPreparationOptions) => onChange({ showPreparationOptions })}
         basePrice={Number.parseFloat(value.price) || 0}
+        error={errors.variationGroups}
       />
     </div>
   );

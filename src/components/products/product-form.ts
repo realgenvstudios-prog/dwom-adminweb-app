@@ -38,6 +38,8 @@ export function validateProductForm(v: ProductFormValues): ProductFormErrors {
   if (!v.nameLocal.trim()) e.nameLocal = 'Enter the local name';
   if (!v.categoryId) e.categoryId = 'Choose a category';
   if (!(Number.parseFloat(v.price) > 0)) e.price = 'Enter a price above 0';
+  if (v.variationGroups.some((g) => !g.name.trim())) e.variationGroups = 'Give every variation group a name';
+  else if (v.variationGroups.some((g) => !g.options.length || g.options.some((o) => !o.label.trim()))) e.variationGroups = `Give every option in "${v.variationGroups.find((g) => !g.options.length || g.options.some((o) => !o.label.trim()))?.name}" a label`;
   return e;
 }
 
