@@ -1,4 +1,12 @@
 {
+  "redirects": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "get.dwom.org" }],
+      "destination": "/general",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
