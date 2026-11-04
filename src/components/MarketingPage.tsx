@@ -4,16 +4,18 @@ import { useTabParam } from '@/hooks/use-tab-param';
 import CampaignsTab from './marketing/CampaignsTab';
 import CouponsTab from './marketing/CouponsTab';
 import NotificationsTab from './marketing/NotificationsTab';
+import QrCodesTab from './marketing/QrCodesTab';
 import { allowedTabs } from '../config/permissions';
 import { usePermissions } from '@/hooks/use-permissions';
 
-const TAB_KEYS = ['campaigns', 'notifications', 'coupons'] as const;
+const TAB_KEYS = ['campaigns', 'notifications', 'coupons', 'qrCodes'] as const;
 type TabKey = (typeof TAB_KEYS)[number];
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'campaigns', label: 'Campaigns' },
   { key: 'notifications', label: 'Notifications' },
   { key: 'coupons', label: 'Discount Codes' },
+  { key: 'qrCodes', label: 'Flyer QR codes' },
 ];
 
 const MarketingPage: React.FC = () => {
@@ -51,6 +53,11 @@ const MarketingPage: React.FC = () => {
         {allowed.includes('coupons') && (
           <TabsContent value="coupons">
             <CouponsTab />
+          </TabsContent>
+        )}
+        {allowed.includes('qrCodes') && (
+          <TabsContent value="qrCodes">
+            <QrCodesTab />
           </TabsContent>
         )}
       </Tabs>

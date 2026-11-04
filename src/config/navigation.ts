@@ -101,6 +101,7 @@ const SUB_PAGES: Record<string, { label: string; tab: string; superAdminOnly?: b
     { label: 'Campaigns', tab: 'campaigns' },
     { label: 'Notifications', tab: 'notifications' },
     { label: 'Discount Codes', tab: 'coupons' },
+    { label: 'Flyer QR codes', tab: 'qrCodes' },
   ],
   '/finance': [
     { label: 'Overview & P&L', tab: 'overview' },

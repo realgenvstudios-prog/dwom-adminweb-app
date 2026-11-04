@@ -80,7 +80,7 @@ const PAGE_PREFIXES: Record<string, string[]> = {
   '/field-operations': ['riders.', 'pickers.', 'zones.', 'pickupPoints.', 'riderPay.'],
   '/customers': ['customers.'],
   '/finance': ['finance.', 'expenses.'],
-  '/marketing': ['campaigns.', 'notifications.', 'customerGroups.', 'coupons.'],
+  '/marketing': ['campaigns.', 'notifications.', 'customerGroups.', 'coupons.', 'qrCodes.'],
   '/social': ['social.'],
   '/support': ['support.'],
 };
@@ -148,7 +148,7 @@ const TAB_ACCESS: Record<string, Record<string, string[]>> = {
   '/catalog': { products: ['products.'], categories: ['categories.', 'products.view'], bundles: ['bundles.', 'products.view'] },
   '/warehouse': { operations: ['warehouse.'], suppliers: ['suppliers.', 'purchases.record'] },
   '/field-operations': { riders: ['riders.'], applications: ['riders.review', 'riders.view', 'riders.documentRules'], pickers: ['pickers.'], zones: ['zones.'], pickup: ['pickupPoints.', 'zones.view', 'riders.view'], pay: ['riderPay.'] },
-  '/marketing': { campaigns: ['campaigns.'], notifications: ['notifications.', 'customerGroups.manage'], coupons: ['coupons.'] },
+  '/marketing': { campaigns: ['campaigns.'], notifications: ['notifications.', 'customerGroups.manage'], coupons: ['coupons.'], qrCodes: ['qrCodes.'] },
   '/finance': { overview: ['finance.view'], productCosts: ['finance.productCosts'], expenses: ['expenses.'], founderLedger: [], settings: ['finance.settings'] },
 };
 
